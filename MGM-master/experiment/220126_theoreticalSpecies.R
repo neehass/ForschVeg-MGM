@@ -33,13 +33,14 @@ Sys.getenv()
 
 
 # Setup integration of julia
-install.packages("terra")
-install.packages("JuliaCall")
+# install.packages("JuliaCall")
 library(JuliaCall)
 #if (setting =="local") julia_setup(JULIA_HOME = "C:\\Users\\Lewerentz\\AppData\\Local\\Programs\\Julia-1.8.5\\bin",
 #                                   installJulia = F)
 #if (setting =="local") julia_setup(JULIA_HOME = "C:\\Users\\anl85ck\\AppData\\Local\\Programs\\Julia-1.6.0\\bin",installJulia = F)
 #if (setting =="HPC") julia_setup(JULIA_HOME = "/home/anl85ck/.julia/bin",installJulia = F) #on HPC
+
+if (setting =="local") julia_setup(JULIA_HOME = "C:/Users/maiim/AppData/Local/Programs/Julia-1.11.5/bin", installJulia = F)
 julia <- julia_setup(verbose = T, install = T)
 julia_eval("Threads.nthreads()") #check N threads
 #julia_command("Threads.nthreads()")
@@ -56,6 +57,7 @@ julia_library("DataFrames")
 julia_library("StatsBase")
 
 # Packages
+# install.packages(c("tidyverse", "DEoptim", "data.table", "here"))
 library(tidyverse)
 library(DEoptim)
 library(data.table)
@@ -78,7 +80,7 @@ scenarios<-data.table(
 if (setting =="local") {
   setwd('../')
   wd<-getwd()
-  if (str_sub(wd,-3,-1) != "MGM") {
+  if (str_sub(wd,-3,-1) != "MGM") { #moves you to project folder containing MGM
     print("Wrong path!")
     quit(save="no")
   }
