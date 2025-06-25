@@ -31,7 +31,6 @@ Sys.getenv("JULIA_NUM_THREADS")
 Sys.getenv()
 
 
-
 # Setup integration of julia
 # install.packages("JuliaCall")
 library(JuliaCall)
