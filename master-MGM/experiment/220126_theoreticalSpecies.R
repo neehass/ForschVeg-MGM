@@ -5,7 +5,7 @@
 ## Output is written in folder output in a subfolder called after the name of the modelrun
 
 getwd() # "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/MGM-scripte-data"
-setwd("MGM-master/experiment")
+setwd("master-MGM/experiment")
 #setwd("C:/Users/Lewerentz/Desktop/work/3_Projekte/3_BLIZSynthesis/MGM_Experiment/MGM/experiment")
 
 ## General configurations
