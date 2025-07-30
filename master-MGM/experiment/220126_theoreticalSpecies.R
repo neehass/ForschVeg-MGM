@@ -177,11 +177,6 @@ julia_source("model/output.jl")
 #   
 # }
 
-
-
-
-
-
 ###############################################
 
 for (S in 1:length(scenarios)){
