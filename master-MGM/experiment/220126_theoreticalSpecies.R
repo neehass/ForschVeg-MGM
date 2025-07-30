@@ -4,6 +4,8 @@
 ## Output mean summer biomass after a given number of years in given depths
 ## Output is written in folder output in a subfolder called after the name of the modelrun
 
+#test
+
 getwd() # "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/MGM-scripte-data"
 setwd("master-MGM/experiment")
 #setwd("C:/Users/Lewerentz/Desktop/work/3_Projekte/3_BLIZSynthesis/MGM_Experiment/MGM/experiment")
