@@ -152,7 +152,7 @@ function CHARISMA_biomass_parallel()
                 #println(GeneralSettings["species"][s])
 
                 #Get settings
-                settings = getsettings(GeneralSettings["lakes"][l], GeneralSettings["species"][s])
+                settings = getsettings(GeneralSettings["lakes"][l], GeneralSettings["species"][s]) # definded in input.jl, combines config files & merges them
                 push!(settings, "years" => parse.(Int64,GeneralSettings["years"])[1]) #add "years" from GeneralSettings
                 push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
                 push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
@@ -256,10 +256,11 @@ function CHARISMA_biomass_parallel_lastNyears()
 
                 # Simulate environment
                 dynamicData = Dict{Int16, DayData}()
-                environment = simulateEnvironment(settings, dynamicData)
+                environment = simulateEnvironment(settings, dynamicData) # in simulation.jl, returns temp, irradiance, waterlevel, lightAttenuation on a daily basis
 
                 # Get macrophytes in multiple depths
-                result = simulateMultipleDepth_parallel(depths,settings,dynamicData) #Biomass, Number, indWeight, Height,
+                result = simulateMultipleDepth_parallel(depths,settings,dynamicData) #in run simulation.jl, calls simualte.function and applies it per depth 
+                    # returns: Biomass, Number, indWeight, Height (superInd,superIndSeeds, superIndTubers, seeds, tubers, growthSeeds, growthTubers)
                 # [depths][1=superInd][day*year,parameter]]
 
                 #Write output

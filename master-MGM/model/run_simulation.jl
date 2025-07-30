@@ -39,13 +39,14 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
     #Initialize variables from settings
     germinationDay = settings["germinationDay"]
 
+    
 
     #LOOP OVER YEARS
     for y = 1:settings["years"] #Loop over years
         #println(y)
 
         # INITIALISATION
-        if y == 1 #Initialize in first year SeedBiomass & SeedNumber
+        if y == 1 #Initialize in first year SeedBiomass & SeedNumber, in functions.jl
             seeds[1, 1, 1] = settings["seedInitialBiomass"] #initial SeedBiomass
             tubers[1, 1, 1] = settings["tuberInitialBiomass"] #initial TurionBiomass
             seeds[1, 2, 1] = getNumberOfSeeds(seeds[1, 1, 1],settings) #initial SeedNumber
@@ -69,7 +70,7 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
 
         # LOOP OVER DAYS
         for d = 2:settings["yearlength"]
-            WaterDepth = getWaterDepth(d, LevelOfGrid, settings, dynamicData)
+            WaterDepth = getWaterDepth(d, LevelOfGrid, settings, dynamicData) # in functions.jl, returns the water depth for the current day
 
             ########################################################################
             ##SEEDS: NO GROWTH UNTILL GERMINATION
@@ -489,10 +490,6 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                 end
             end
 
-
-
-
-
             ########################################################################
             #GROWTH BOTH
             if superIndSeeds[d-1,1,y] > 0 && superIndTubers[d-1,1,y] > 0
@@ -769,11 +766,8 @@ function simulate1Depth(depth, settings::Dict{String,Any}, dynamicData::Dict{Int
         ResF = vcat(ResF, Res[6][:, :, y]) #growthSeeds
         ResG = vcat(ResG, Res[7][:, :, y]) #growthTubers
     end
-    return ResA, ResB, ResC, ResD, ResE, ResF, ResG #superInd,superIndSeeds, superIndTubers, seeds, tubers, growthSeeds, growthTubers
+    return ResA, ResB, ResC, ResD, ResE, ResF, ResG # superInd,superIndSeeds, superIndTubers, seeds, tubers, growthSeeds, growthTubers
 end #[day*year,parameter], [day*year,parameter]
-
-
-
 
 
 """
@@ -832,6 +826,11 @@ function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int1
             push!(waterlevel, getWaterlevel(d,settings,dynamicData))
             push!(lightAttenuation, getLightAttenuation(d,settings, dynamicData))
         end
+
+        # push temp bottom or hypo
+        # push mesolimniondepth z0
+        # push tempprofile 
+
     #end
     return (temp, irradiance, waterlevel, lightAttenuation)
 end

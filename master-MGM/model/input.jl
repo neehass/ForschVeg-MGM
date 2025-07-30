@@ -15,6 +15,7 @@ Code source: Leidinger et al. (2021)
 """
 
 function getsettings(configfileLake::String = "",configfileSpecies::String = "",configfileGeneral::String = "",)
+    # default in case no files are given
     defaultsGlobal = defaultSettingsGlobal()
     defaultsLake = defaultSettingsLake()
     defaultsSpecies = defaultSettingsSpecies()
