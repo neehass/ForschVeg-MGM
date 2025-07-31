@@ -39,10 +39,23 @@ push!(settings, "years" => parse.(Int64,GeneralSettings["years"])[1]) #add "year
 push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
 push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
 
+# test parameters
+push!(settings, "Areakm2" => (76.76)) #add "Areakm2" from GeneralSettings
+push!(settings, "depth" => -60) #add "depths" from GeneralSettings
+
+# area group
+push!(settings, "AreaGroup" => getAreaGroup(settings["Areakm2"]))
+
+
+# if parameters are added: 
+# push!(settings, "Areakm2" => parse.(Float64, GeneralSettings["Areakm2"])) #add "Areakm2" from GeneralSettings
+# push!(settings, "depth" => parse.(Float64, GeneralSettings["depth"])) #add "depth" from GeneralSettings
+
 # to get insights into the settings
 # df = DataFrame(Key = collect(keys(settings)), Value = collect(values(settings)))
 
 lak_nam = settings["Name"]
+lak_group = settings["AreaGroup"]
 
 # ---- 3) test the environment simulation -----------------------------
 dynamicData = Dict{Int16, DayData}()
@@ -54,12 +67,11 @@ sim_mesoDepth = environment[3]
 
 # ---- 4) plot: check the results -----------------------------------
 plot(1:365, sim_tempEpi, 
-    label = "Epi", title = lak_nam * " - Epi & Hypo Temperature", xlabel = "Day of the year", ylabel = "Temperature [°C]", legend = :topright)
+    label = "Epi", title = lak_nam * " - Epi & Hypo Temperature (" * lak_group * ")", xlabel = "Day of the year", ylabel = "Temperature [°C]", legend = :topright)
 plot!(1:365, sim_tempHypo, label = "Hypo", legend = :topright)
 savefig("./plots/1st_Temperature_Epi_Hypo.png")
 
-
 plot(1:365, sim_mesoDepth, 
-    label = "mesoDepth", title = lak_nam * " - Mesolimnion Depth", xlabel = "Day of the year", ylabel = "Depth [m]", legend = :topright)
+    label = "mesoDepth", title = lak_nam * " - Epi & Hypo Temperature (" * lak_group * ")", xlabel = "Day of the year", ylabel = "Depth [m]", legend = :topright)
 savefig("./plots/1st_Temperature_Epi_Hypo.png")
 

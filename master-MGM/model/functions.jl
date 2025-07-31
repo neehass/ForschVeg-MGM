@@ -109,8 +109,8 @@ function getMesolimnion_Depth_mean(day, tempHypo, tempEpi, settings::Dict{String
         Thypo_max = maximum(sim_tempHypo)
         # calculate max MesoDepth by fraction and Temp diff
         Fmin = 0.51
-        #  depth = settings["depth"]
-        depth = -60
+         depth = settings["depth"]
+        # depth = -60
         Z0_max = (Fmin * depth) * (abs.(Thypo_max - Tepi_max)/Tepi_max)
 
         # Compute temperature using cosine-based seasonal model

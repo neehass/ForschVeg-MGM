@@ -248,3 +248,28 @@ function parseconfigGeneral(configfilename::String)
     end
     settings
 end
+
+"""
+    getAreaGroup(filename)
+
+    by Areakm2 --> AreaGroup is derived
+    ”very.small”: <1, ”small”: <2, ”medium”: 2km2, ”large”: 5km2 and ”very.large”: 20km2
+
+    Returns the area group for a given lake configuration file.
+"""
+function getAreaGroup(area::Float64) # from settings["Areakm2"]
+    if area <= 1.0
+        return "very.small"
+    elseif area <= 2.0
+        return "small"
+    elseif area <= 5.0
+        return "medium"
+    elseif area <= 20.0
+        return "large"
+    else
+        return "very.large"
+    end
+end
+
+
+ 
