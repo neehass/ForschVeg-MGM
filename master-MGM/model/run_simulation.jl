@@ -813,11 +813,11 @@ Arguments used from settings: yearlength, ...
 Returns: temp, irradiance, waterlevel, lightAttenuation []
 """
 
-function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}) # DayData in structs.jl
+function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, HypoFrac_dir::String, MesoFrac_dir::String) # DayData in structs.jl
     tempEpi = Float64[]
     tempHypo = Float64[]
     mesoDepth = Float64[]
-    # tempprofile = Float64[] #TODO
+    tempprofile = Float64[] #TODO
     irradiance = Float64[]
     waterlevel = Float64[]
     lightAttenuation = Float64[]
@@ -826,21 +826,23 @@ function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int1
         for d = 1:settings["yearlength"]
             dynamicData[d] = DayData()
             push!(tempEpi, getTemperature_Epi(d,settings,dynamicData))
-            push!(tempHypo, getTemperature_Hypo_mean(d,settings,dynamicData))
+            # push!(tempHypo, getTemperature_Hypo_mean(d,settings,dynamicData))
+            push!(tempHypo, getTemperature_Hypo_area(d,settings,dynamicData,HypoFrac_dir))
             push!(irradiance, getSurfaceIrradianceDay(d,settings,dynamicData))
             push!(waterlevel, getWaterlevel(d,settings,dynamicData))
             push!(lightAttenuation, getLightAttenuation(d,settings, dynamicData))
         end
 
-        # seperate loop for mesolimnion depth
+    #end
+    # seperate loop for mesolimnion depth
         for d = 1:settings["yearlength"]
             dynamicData[d] = DayData()
-            push!(mesoDepth, getMesolimnion_Depth_mean(d, tempEpi, tempHypo, settings, dynamicData)) 
+            push!(mesoDepth, getMesolimnion_Depth_area(d, tempEpi, sim_tempHypo, settings, dynamicData, MesoFrac_dir))
+            #push!(mesoDepth, getMesolimnion_Depth_mean(d, tempEpi, tempHypo, settings, dynamicData)) 
             
             #push!(tempprofile, getTemperatureProfile(d,settings,dynamicData)) #TODO
         end
-       
 
-    #end
-    return (tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation)
+    return (tempEpi, tempHypo, mesoDepth, tempprofile, irradiance, waterlevel, lightAttenuation)
 end
+

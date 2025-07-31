@@ -68,7 +68,7 @@ function getTemperature_Epi(day, settings::Dict{String, Any}, dynamicData::Dict{
 end
 
 """
-    getTemperature_Hypo_mean(day; settings; dynamicData)
+    getTemperature_Hypo(day; settings; dynamicData)
     hypolimnion = fraction (mean) of SurfaceTemperature
     minfrac 0 1.2
     maxfrac = (1/3)
@@ -83,8 +83,10 @@ Result: Daily water temperature [°C]
 """
 function getTemperature_Hypo_mean(day, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
     if ismissing(dynamicData[day].tempHypo)
+        # Hypolimnion Temperature is a fraction of Epilimnion Temperature
         maxTemp_hypo = settings["maxTemp"] * (1/3) #mean max fraction of hypolimnion temperature
         minTemp_hypo = settings["minTemp"] * 1.2 #mean min fraction of hypolimnion temperature
+        
         dynamicData[day].tempHypo =
             settings["tempDev"] * (
                 maxTemp_hypo -
@@ -95,27 +97,90 @@ function getTemperature_Hypo_mean(day, settings::Dict{String, Any}, dynamicData:
     return (dynamicData[day].tempHypo)
 end
 
+"""
+    getTemperature_Hypo_area(day; settings; dynamicData)
+    hypolimnion = fraction (mean) of SurfaceTemperature
+
+    Hypolimnion Temperature gets modeled as a fraction of Epilimnion temp and by a cosine function
+    dependent on area group
+
+    Source: van Nes et al. (2003)
+
+    Arguments used from settings: yearlength,tempDev,tempDelay,maxTemp_Epi,minTemp_Epi
+
+    Result: Daily water temperature [°C]
+"""
+function getTemperature_Hypo_area(day, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, HypoFrac_dir::String)
+     HypoFrac = CSV.read(HypoFrac_dir, DataFrame) 
+
+    if ismissing(dynamicData[day].tempHypo)
+       
+        Fmin = HypoFrac.min[HypoFrac.AreaGroup .== settings["AreaGroup"]][1]
+        Fmax = HypoFrac.max[HypoFrac.AreaGroup .== settings["AreaGroup"]][1]
+
+        maxTemp_hypo = settings["maxTemp"] * Fmin #mean max fraction of hypolimnion temperature
+        minTemp_hypo = settings["minTemp"] * Fmax #mean min fraction of hypolimnion temperature
+        
+        dynamicData[day].tempHypo =
+            settings["tempDev"] * (
+                maxTemp_hypo -
+                ((maxTemp_hypo - minTemp_hypo) / 2) *
+                (1 + cos((2 * pi / settings["yearlength"]) * (day - settings["tempDelay"])))
+            )
+    end
+    return (dynamicData[day].tempHypo)
+end
+  
+
 
 """
     getMesolimnion_Depth_mean(day; settings; dynamicData)
-    Fmin = 0.51
+    Fmin = 0.51 by mean 
 """
 function getMesolimnion_Depth_mean(day, tempHypo, tempEpi, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
     if ismissing(dynamicData[day].mesoDepth)
        # get delay day, 2nd point where tempEpi and tempHypo are equal / have smallest diff
-        dif = abs.(sim_tempEpi .- sim_tempHypo)
+        dif = abs.(tempEpi .- tempHypo)
         delay_day = sortperm(dif)[2]  # 2nd day where temperature difference is minimal
-        Tepi_max = maximum(sim_tempEpi)
-        Thypo_max = maximum(sim_tempHypo)
+        Tepi_max = maximum(tempEpi)
+        Thypo_max = maximum(tempHypo)
         # calculate max MesoDepth by fraction and Temp diff
         Fmin = 0.51
-         depth = settings["depth"]
+        depth = settings["depth"]
         # depth = -60
         Z0_max = (Fmin * depth) * (abs.(Thypo_max - Tepi_max)/Tepi_max)
 
         # Compute temperature using cosine-based seasonal model
         mesoDepth = (Z0_max/2) * (1 + cos((2 * pi / settings["yearlength"]) * (day - delay_day - settings["yearlength"]/2))) # * (day - delay_day - yearlength/2)
         dynamicData[day].mesoDepth = mesoDepth
+    end
+    return (dynamicData[day].mesoDepth)
+end
+
+"""
+    getMesolimnion_Depth_area(day; settings; dynamicData)
+    by area group
+"""
+function getMesolimnion_Depth_area(day, tempEpi, tempHypo, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, MesoFrac_dir::String)
+     MesoFrac = CSV.read(MesoFrac_dir, DataFrame) 
+
+    if ismissing(dynamicData[day].mesoDepth)
+       # get delay day, 2nd point where tempEpi and tempHypo are equal / have smallest diff
+        dif = abs.(tempEpi .- tempHypo)
+        delay_day = sortperm(dif)[2]  # 2nd day where temperature difference is minimal
+        Tepi_max = maximum(tempEpi)
+        Thypo_max = maximum(tempHypo)
+
+        # calculate max MesoDepth by fraction and Temp diff
+        Fmin = MesoFrac.min[MesoFrac.AreaGroup .== settings["AreaGroup"]][1]
+        depth = settings["lakeDepth"]
+
+        z0_max = (Fmin * depth) * (abs.(Thypo_max - Tepi_max)/Tepi_max)
+
+        # Compute temperature using cosine-based seasonal model
+        z0 = (z0_max/2) * (1 + cos((2 * pi / settings["yearlength"]) * (day - delay_day - settings["yearlength"]/2))) # * (day - delay_day - yearlength/2)
+        
+        dynamicData[day].mesoDepth = z0
     end
     return (dynamicData[day].mesoDepth)
 end

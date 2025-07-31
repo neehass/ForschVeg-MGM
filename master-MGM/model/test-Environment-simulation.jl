@@ -18,8 +18,8 @@ include(joinpath(dir,"model/structs.jl"))
 include(joinpath(dir,"model/functions.jl"))
 include(joinpath(dir,"model/run_simulation.jl"))
 include(joinpath(dir,"model/defaults.jl"))
-import Pkg
-
+using Pkg
+using CSV
 using Plots
 using DataFrames
 # -------------------------------------------------------------------------------------------------
@@ -41,11 +41,10 @@ push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" fr
 
 # test parameters
 push!(settings, "Areakm2" => (76.76)) #add "Areakm2" from GeneralSettings
-push!(settings, "depth" => -60) #add "depths" from GeneralSettings
+push!(settings, "lakeDepth" => -60) #add "depths" from GeneralSettings
 
-# area group
+# area group  "very.small", "small", "medium", "large", "very.large"
 push!(settings, "AreaGroup" => getAreaGroup(settings["Areakm2"]))
-
 
 # if parameters are added: 
 # push!(settings, "Areakm2" => parse.(Float64, GeneralSettings["Areakm2"])) #add "Areakm2" from GeneralSettings
@@ -55,15 +54,18 @@ push!(settings, "AreaGroup" => getAreaGroup(settings["Areakm2"]))
 # df = DataFrame(Key = collect(keys(settings)), Value = collect(values(settings)))
 
 lak_nam = settings["Name"]
-lak_group = settings["AreaGroup"]
+lak_group =  settings["AreaGroup"]
 
 # ---- 3) test the environment simulation -----------------------------
+HypoFrac_dir = "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
+MesoFrac_dir = "./input/lakeFractionParameters/MesoDepth_fraction.config.txt"
+
 dynamicData = Dict{Int16, DayData}()
-environment = simulateEnvironment(settings, dynamicData)
+environment = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MesoFrac_dir)
 
 sim_tempEpi = environment[1]
 sim_tempHypo = environment[2]
-sim_mesoDepth = environment[3]
+sim_mesoDepth = environment[3] 
 
 # ---- 4) plot: check the results -----------------------------------
 plot(1:365, sim_tempEpi, 
@@ -74,4 +76,10 @@ savefig("./plots/1st_Temperature_Epi_Hypo.png")
 plot(1:365, sim_mesoDepth, 
     label = "mesoDepth", title = lak_nam * " - Epi & Hypo Temperature (" * lak_group * ")", xlabel = "Day of the year", ylabel = "Depth [m]", legend = :topright)
 savefig("./plots/1st_Temperature_Epi_Hypo.png")
+
+
+
+
+
+
 
