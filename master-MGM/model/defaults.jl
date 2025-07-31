@@ -50,7 +50,7 @@ function defaultSettingsLake()
     Dict(
         #GENERAL
         "Lake" => "default", #Name of the lake
-
+        "Name" => "default", #Name of the lake
         #CARBONATE
         #"maxCarbonate" => 200.0, #Carbonate in water without plants [mg/l]
 

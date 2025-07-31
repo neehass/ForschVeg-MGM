@@ -5,6 +5,12 @@
 #
 #Contains cifferent functions that are needed to run MGM
 
+# import Pkg 
+# Pkg.add("Distributions") #for Binomial distribution
+# Pkg.add("CSV")
+# Pkg.add("DataFrames")
+# Pkg.add("StatsBase")
+
 """
     getDaylength(day; settings; dynamicData)
 
@@ -39,28 +45,81 @@ end
 
 
 """
-    getTemperature(day; settings; dynamicData)
+    getTemperature_Epi(day; settings; dynamicData)
 
-Temperature gets modeled with a cosine function
+Epilimnion/ Surface Temperature gets modeled with a cosine function
 
 Source: van Nes et al. (2003)
 
-Arguments used from settings: yearlength,tempDev,maxTemp,minTemp,tempDelay
+Arguments used from settings: yearlength,tempDev,maxTemp_Epi,minTemp_Epi,tempDelay
 
 Result: Daily water temperature [°C]
 """
-function getTemperature(day, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
-    if ismissing(dynamicData[day].temperature)
-        dynamicData[day].temperature =
+function getTemperature_Epi(day, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
+    if ismissing(dynamicData[day].tempEpi)
+        dynamicData[day].tempEpi =
             settings["tempDev"] * (
                 settings["maxTemp"] -
                 ((settings["maxTemp"] - settings["minTemp"]) / 2) *
                 (1 + cos((2 * pi / settings["yearlength"]) * (day - settings["tempDelay"])))
             )
     end
-    return (dynamicData[day].temperature)
+    return (dynamicData[day].tempEpi)
 end
 
+"""
+    getTemperature_Hypo_mean(day; settings; dynamicData)
+    hypolimnion = fraction (mean) of SurfaceTemperature
+    minfrac 0 1.2
+    maxfrac = (1/3)
+
+Hypolimnion Temperature gets modeled as a fraction of Epilimnion temp and by a cosine function
+
+Source: van Nes et al. (2003)
+
+Arguments used from settings: yearlength,tempDev,tempDelay,maxTemp_Epi,minTemp_Epi
+
+Result: Daily water temperature [°C]
+"""
+function getTemperature_Hypo_mean(day, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
+    if ismissing(dynamicData[day].tempHypo)
+        maxTemp_hypo = settings["maxTemp"] * (1/3) #mean max fraction of hypolimnion temperature
+        minTemp_hypo = settings["minTemp"] * 1.2 #mean min fraction of hypolimnion temperature
+        dynamicData[day].tempHypo =
+            settings["tempDev"] * (
+                maxTemp_hypo -
+                ((maxTemp_hypo - minTemp_hypo) / 2) *
+                (1 + cos((2 * pi / settings["yearlength"]) * (day - settings["tempDelay"])))
+            )
+    end
+    return (dynamicData[day].tempHypo)
+end
+
+
+"""
+    getMesolimnion_Depth_mean(day; settings; dynamicData)
+    Fmin = 0.51
+"""
+function getMesolimnion_Depth_mean(day, tempHypo, tempEpi, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
+    if ismissing(dynamicData[day].mesoDepth)
+       # get delay day, 2nd point where tempEpi and tempHypo are equal / have smallest diff
+       dif = abs.(tempHypo .- tempEpi)
+       delay_day = sortperm(dif)[2]  # 2nd day where temperature difference is minimal
+       Tepi_max = maximum(tempEpi)
+       Thypo_max = maximum(tempHypo)
+       # calculate max MesoDepth by fraction and Temp diff
+       Fmin = 0.51
+        #  depth = settings["depth"]
+       depth = -60 
+       Z0_max = (Fmin * depth) * (abs.(Thypo_max - Tepi_max)/Tepi_max)
+       
+       # Compute temperature using cosine-based seasonal model
+       dynamicData[day].mesoDepth =
+        (Z0_max/2) * (1 + cos((2 * pi / settings["yearlength"]) * (day - delay_day - settings["yearlength"]/2))) # * (day - delay_day - yearlength/2)
+
+    end
+    return (dynamicData[day].mesoDepth)
+end
 
 
 """

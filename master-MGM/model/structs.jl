@@ -16,8 +16,14 @@ Base.@kwdef mutable struct DayData
         # getSurfaceIrradianceHour(day, hour, settings::Dict{String, Any}) #times in hour after sunset
         surfaceIrradianceHour::Dict{Int8, Float64} = Dict{Int8, Float64}()
 
-        # getTemperature(day, settings::Dict{String, Any})
-        temperature::Union{Missing, Float64} = missing
+        # getTemperature_Epi(day, settings::Dict{String, Any})
+        tempEpi::Union{Missing, Float64} = missing
+         
+        # getTemperature_Hypo_mean(day, settings::Dict{String, Any})
+        tempHypo::Union{Missing, Float64} = missing
+
+        # getMesolimnion_Depth_mean(day, settings::Dict{String, Any})
+        mesoDepth::Union{Missing, Float64} = missing
 
         # getDaylength(day, settings::Dict{String, Any})
         daylength::Union{Missing, Float64} = missing

@@ -813,24 +813,34 @@ Arguments used from settings: yearlength, ...
 Returns: temp, irradiance, waterlevel, lightAttenuation []
 """
 
-function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
-    temp = Float64[]
+function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}) # DayData in structs.jl
+    tempEpi = Float64[]
+    tempHypo = Float64[]
+    mesoDepth = Float64[]
+    # tempprofile = Float64[] #TODO
     irradiance = Float64[]
     waterlevel = Float64[]
     lightAttenuation = Float64[]
+
     #for y = 1:settings["years"]
         for d = 1:settings["yearlength"]
             dynamicData[d] = DayData()
-            push!(temp, getTemperature(d,settings,dynamicData))
+            push!(tempEpi, getTemperature_Epi(d,settings,dynamicData))
+            push!(tempHypo, getTemperature_Hypo_mean(d,settings,dynamicData))
             push!(irradiance, getSurfaceIrradianceDay(d,settings,dynamicData))
             push!(waterlevel, getWaterlevel(d,settings,dynamicData))
             push!(lightAttenuation, getLightAttenuation(d,settings, dynamicData))
         end
 
-        # push temp bottom or hypo
-        # push mesolimniondepth z0
-        # push tempprofile 
+        # seperate loop for mesolimnion depth
+        for d = 1:settings["yearlength"]
+            dynamicData[d] = DayData()
+            push!(mesoDepth, getMesolimnion_Depth_mean(d,tempEpi, tempHypo,settings,dynamicData)) 
+            
+            #push!(tempprofile, getTemperatureProfile(d,settings,dynamicData)) #TODO
+        end
+       
 
     #end
-    return (temp, irradiance, waterlevel, lightAttenuation)
+    return (tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation)
 end
