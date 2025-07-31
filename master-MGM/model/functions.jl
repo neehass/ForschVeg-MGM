@@ -103,20 +103,19 @@ end
 function getMesolimnion_Depth_mean(day, tempHypo, tempEpi, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
     if ismissing(dynamicData[day].mesoDepth)
        # get delay day, 2nd point where tempEpi and tempHypo are equal / have smallest diff
-       dif = abs.(tempHypo .- tempEpi)
-       delay_day = sortperm(dif)[2]  # 2nd day where temperature difference is minimal
-       Tepi_max = maximum(tempEpi)
-       Thypo_max = maximum(tempHypo)
-       # calculate max MesoDepth by fraction and Temp diff
-       Fmin = 0.51
+        dif = abs.(sim_tempEpi .- sim_tempHypo)
+        delay_day = sortperm(dif)[2]  # 2nd day where temperature difference is minimal
+        Tepi_max = maximum(sim_tempEpi)
+        Thypo_max = maximum(sim_tempHypo)
+        # calculate max MesoDepth by fraction and Temp diff
+        Fmin = 0.51
         #  depth = settings["depth"]
-       depth = -60 
-       Z0_max = (Fmin * depth) * (abs.(Thypo_max - Tepi_max)/Tepi_max)
-       
-       # Compute temperature using cosine-based seasonal model
-       dynamicData[day].mesoDepth =
-        (Z0_max/2) * (1 + cos((2 * pi / settings["yearlength"]) * (day - delay_day - settings["yearlength"]/2))) # * (day - delay_day - yearlength/2)
+        depth = -60
+        Z0_max = (Fmin * depth) * (abs.(Thypo_max - Tepi_max)/Tepi_max)
 
+        # Compute temperature using cosine-based seasonal model
+        mesoDepth = (Z0_max/2) * (1 + cos((2 * pi / settings["yearlength"]) * (day - delay_day - settings["yearlength"]/2))) # * (day - delay_day - yearlength/2)
+        dynamicData[day].mesoDepth = mesoDepth
     end
     return (dynamicData[day].mesoDepth)
 end

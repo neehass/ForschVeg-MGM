@@ -51,13 +51,15 @@ environment = simulateEnvironment(settings, dynamicData)
 sim_tempEpi = environment[1]
 sim_tempHypo = environment[2]
 sim_mesoDepth = environment[3]
-sim_mesoDepth = getMesolimnion_Depth_mean.(, sim_tempEpi, sim_tempHypo, settings, dynamicData)
+
 # ---- 4) plot: check the results -----------------------------------
 plot(1:365, sim_tempEpi, 
     label = "Epi", title = lak_nam * " - Epi & Hypo Temperature", xlabel = "Day of the year", ylabel = "Temperature [°C]", legend = :topright)
 plot!(1:365, sim_tempHypo, label = "Hypo", legend = :topright)
 savefig("./plots/1st_Temperature_Epi_Hypo.png")
 
+
 plot(1:365, sim_mesoDepth, 
     label = "mesoDepth", title = lak_nam * " - Mesolimnion Depth", xlabel = "Day of the year", ylabel = "Depth [m]", legend = :topright)
 savefig("./plots/1st_Temperature_Epi_Hypo.png")
+
