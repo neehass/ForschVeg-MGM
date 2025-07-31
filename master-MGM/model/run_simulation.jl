@@ -835,7 +835,7 @@ function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int1
         # seperate loop for mesolimnion depth
         for d = 1:settings["yearlength"]
             dynamicData[d] = DayData()
-            push!(mesoDepth, getMesolimnion_Depth_mean(d,tempEpi, tempHypo,settings,dynamicData)) 
+            push!(mesoDepth, getMesolimnion_Depth_mean(d, tempEpi, tempHypo, settings, dynamicData)) 
             
             #push!(tempprofile, getTemperatureProfile(d,settings,dynamicData)) #TODO
         end
