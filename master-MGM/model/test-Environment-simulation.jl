@@ -23,7 +23,6 @@ import Pkg
 using Plots
 using DataFrames
 # -------------------------------------------------------------------------------------------------
-f
 # ---- 1) load settings 
 GeneralSettings = parseconfigGeneral("./input/general.config.txt")
 
