@@ -2,6 +2,8 @@
 # Test Functions for MGM Model
 # simualtionEnviroment()
 # -------------------------------------------------------------------------------------------------
+# sel.general.config: Lakes: chiemsee (large) = 2, AbtsdorfSee (very.small) = 1, Eibsee (medium) = 3
+# general.config: Lakes: chiemsee (large) = 6, AbtsdorfSee (very.small) = 1, Eibsee (medium) = 7
 # 1) load settings
 # 2) load settings for testing the environment simulation
 # 3) test the environment simulation
@@ -25,6 +27,7 @@ using DataFrames
 # -------------------------------------------------------------------------------------------------
 # ---- 1) load settings 
 GeneralSettings = parseconfigGeneral("./input/general.config.txt")
+GeneralSettings = parseconfigGeneral("./input/sel.general.config.txt")
 
 depths = parse.(Float64, GeneralSettings["depths"])[1] #da nur 1 depth # parse = Converts each string in array to Float64: ["10.0", "20.0"] → [10.0, 20.0]
 nyears = parse.(Int64, GeneralSettings["years"])
@@ -32,7 +35,8 @@ nlakes = length(GeneralSettings["lakes"]) #VE
 nspecies = length(GeneralSettings["species"]) #VE
 
 # ---- 2) load settings for testing the environment simulation -------------------------
-l = 6 # lake = chiemsee
+l = 6 # lake = chiemsee in general.config
+l = 2 # lake = chiemsee in sel.general.config 
 s = 1 #species 1
 settings = getsettings(GeneralSettings["lakes"][l], GeneralSettings["species"][s])
 push!(settings, "years" => parse.(Int64,GeneralSettings["years"])[1]) #add "years" from GeneralSettings
