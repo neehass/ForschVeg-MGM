@@ -7,6 +7,7 @@
 
 #Set dir to home_dir of file
 cd(dirname(@__DIR__))
+pwd()
 
 #load packages
 using
@@ -23,22 +24,24 @@ include("functions.jl")
 include("run_simulation.jl")
 include("output.jl")
 
-# Get Settings for selection of lakes, species & depth
+# --- Get Settings for selection of lakes, species & depth -------------------------
 # GeneralSettings = parseconfigGeneral("./input/general.config.txt")
-GeneralSettings = parseconfigGeneral("./input/sel.general.config.txt")
+
+GeneralSettings = parseconfigGeneral("./input/sel.general.config.txt") # 3 slected
+GeneralSettings = parseconfigGeneral("./input/chiem.general.config.txt") # chiemsee only
+
 depths = parse.(Float64, GeneralSettings["depths"])
 
-# Settings for lake fraction parameters
-HypoFrac_dir = "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
-MesoFrac_dir = "./input/lakeFractionParameters/MesoDepth_fraction.config.txt"
+# --- Settings for lake fraction parameters (full path needed) -------------------------
+HypoFrac_dir = "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
+MesoFrac_dir = "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MesoDepth_fraction.config.txt"
 
-# Create output folder name
+# --- Create output folder name ---------------------------------------------------------
 #folder = string(Dates.format(now(), "yyyy_m_d_HH_MM"))
-folder = GeneralSettings["modelrun"][1]
+folder = GeneralSettings["modelrun"][1]  
 
+# --- Simulation Loop ----------------------------------------------------------------------
 # Single Threaded Loop for model run for selected lakes, species and depths
-l = 1
-s = 1
 for l in 1:length(GeneralSettings["lakes"])
 
     println(GeneralSettings["lakes"][l])

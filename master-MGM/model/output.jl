@@ -5,6 +5,8 @@
 #
 #Contains functions that are necessary to write output files
 
+using DelimitedFiles # for function writedlm, used to write output files
+
 """
     writeOutputMacrophytes(PlantResults)
 
