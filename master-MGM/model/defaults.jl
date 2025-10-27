@@ -95,6 +95,11 @@ function defaultSettingsLake()
         #...
         "wDelay" => 280, #Delay of cosine of water level [m]
         #"wDev"
+
+        # Lake Area and Depth
+        "lakeDepth" => -5.0, #Maximum lake depth in m
+        "Areakm2" => 1.0, #Lake area in km^2
+        
     )
 end
 
