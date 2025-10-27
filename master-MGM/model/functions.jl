@@ -193,6 +193,8 @@ end
     k = steepness factor
     default k = 5
 
+    in getPhotosynthesis integrated
+
 """
 function getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth; k=5)
     return tempHypo .+ (tempEpi - tempHypo) ./ (1 .+ exp.((abs.(depth) .- abs.(mesoDepth)) ./ k))
