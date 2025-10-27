@@ -32,6 +32,8 @@ function getsettings(configfileLake::String = "",configfileSpecies::String = "",
     end
 
     settings = merge(defaultsGlobal, defaultsLake, configsLake, defaultsSpecies, configsSpecies)
+    # define area group:  "very.small", "small", "medium", "large", "very.large"
+    push!(settings, "AreaGroup" => getAreaGroup(settings["Areakm2"]))
     return settings
 end
 
