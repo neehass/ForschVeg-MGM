@@ -2,7 +2,7 @@
 # Test Functions for MGM Model
 # simualtionEnviroment()
 # -------------------------------------------------------------------------------------------------
-# sel.general.config: Lakes: chiemsee (large) = 2, AbtsdorfSee (very.small) = 1, Eibsee (medium) = 3
+# sel.general.config: Lakes: chiemsee (large) = 1, AbtsdorfSee (very.small) = 2, Eibsee (medium) = 3
 # general.config: Lakes: chiemsee (large) = 6, AbtsdorfSee (very.small) = 1, Eibsee (medium) = 7
 # 1) load settings
 # 2) load settings for testing the environment simulation
@@ -36,26 +36,24 @@ nspecies = length(GeneralSettings["species"]) #VE
 
 # ---- 2) load settings for testing the environment simulation -------------------------
 l = 6 # lake = chiemsee in general.config
-l = 2 # lake = chiemsee in sel.general.config 
+l = 1 # lake = chiemsee in sel.general.config 
 s = 1 #species 1
 settings = getsettings(GeneralSettings["lakes"][l], GeneralSettings["species"][s])
 push!(settings, "years" => parse.(Int64,GeneralSettings["years"])[1]) #add "years" from GeneralSettings
 push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
 push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
 
-# test parameters
-push!(settings, "Areakm2" => (76.76)) #add "Areakm2" from GeneralSettings
-push!(settings, "lakeDepth" => -60) #add "depths" from GeneralSettings
-
-# area group  "very.small", "small", "medium", "large", "very.large"
-push!(settings, "AreaGroup" => getAreaGroup(settings["Areakm2"]))
-
-# if parameters are added: 
-# push!(settings, "Areakm2" => parse.(Float64, GeneralSettings["Areakm2"])) #add "Areakm2" from GeneralSettings
-# push!(settings, "depth" => parse.(Float64, GeneralSettings["depth"])) #add "depth" from GeneralSettings
+# Show the result
+println("Settings:")
+for (key, value) in  settings #defaultSettingsLake()
+    println("  $key => $value")
+end
 
 # to get insights into the settings
-# df = DataFrame(Key = collect(keys(settings)), Value = collect(values(settings)))
+settings["Areakm2"]
+settings["AreaGroup"]
+keys(settings)
+df = DataFrame(Key = collect(), Value = collect(values(settings)))
 
 lak_nam = settings["Name"]
 lak_group =  settings["AreaGroup"]
