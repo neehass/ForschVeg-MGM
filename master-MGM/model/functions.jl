@@ -459,8 +459,21 @@ Arguments from settings: resp20, q10
 
 Result: (Respiration) #[g g^-1 d^-1]
 """
-function getRespiration(day, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}) #DAILY VALUE
-    Temper = getTemperature(day, settings, dynamicData)
+function getRespiration(day, height1, LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}) #DAILY VALUE
+    
+    # Temper = getTemperature(day, settings, dynamicData)
+
+    # get water depth at LevelOfGrid
+    waterdepth = getWaterDepth(day, LevelOfGrid, settings, dynamicData)
+    distPlantTopFromSurf = waterdepth - height1
+    
+    # Temp at distWaterSurf (at LevelOfGrid)
+    tempEpi = dynamicData[day].tempEpi
+    tempHypo = dynamicData[day].tempHypo
+    mesoDepth = dynamicData[day].mesoDepth
+     
+    Temper  = getTemperatureProfile_depth(distPlantTopFromSurf, tempEpi, tempHypo, mesoDepth, k=5)
+    
     Respiration = settings["resp20"] * settings["q10"]^((Temper - 20.0) / 10)
     return (Respiration) #[g g^-1 d^-1]
 end
@@ -510,6 +523,8 @@ kdDelay, backgrKd, hTurbReduction, pTurbReduction, hPhotoLight, tempDev, maxTemp
 tempDelay, sPhotoTemp, pPhotoTemp, hPhotoTemp, #bicarbonateConc, #hCarbonate, #pCarbonate,
 #nutrientConc, #pNutrient, #hNutrient, pMax
 
+integrated in: getPhotosynthesisPLANTDay
+
 Result: psHour [g / g * h]
 """
 #Photosynthesis (Biomass brutto growth) (g g^-1 h^-1)
@@ -555,6 +570,7 @@ function getPhotosynthesis(
     mesoDepth = dynamicData[day].mesoDepth
      
     temp = getTemperatureProfile_depth(distWaterSurf, tempEpi, tempHypo, mesoDepth, k=5)
+    # temp = getTemperature(day, settings, dynamicData) #Â°C
     tempFactor =
         (settings["sPhotoTemp"] * (temp^settings["pPhotoTemp"])) /
         ((temp^settings["pPhotoTemp"]) + (settings["hPhotoTemp"]^settings["pPhotoTemp"])) #Â°C
@@ -586,6 +602,9 @@ Arguments used from settings: latitude,LevelOfGrid,yearlength,maxW, minW, wDelay
 parFactor, fracReflected, iDev, plantK, fracPeriphyton, maxI, minI, iDelay, kdDev, maxKd, minKd,
 kdDelay, backgrKd, hTurbReduction, pTurbReduction, hPhotoDist, hPhotoLight, tempDev,
 maxTemp, minTemp, tempDelay, sPhotoTemp, pPhotoTemp, hPhotoTemp, pMax
+
+based on getPhotosynthesis()
+integrated in simulation()
 
 Returns: PS daily [g / g * d]
 """

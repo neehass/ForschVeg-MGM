@@ -220,12 +220,12 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                     superIndSeeds[d-1, 4, y] = WaterDepth
                 end
 
-                growthSeeds[d, 2, y] = getRespiration(d, settings, dynamicData) #[g / g*d]
+                growthSeeds[d, 2, y] = getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData) #[g / g*d]
 
                 growthSeeds[d, 1, y] = getPhotosynthesisPLANTDay( #[g / g*d]
                     d,
-                    superIndSeeds[d-1, 4, y], #height yesterday
-                    superIndTubers[d-1, 4, y],
+                    superIndSeeds[d-1, 4, y], #height yesterday = height1
+                    superIndTubers[d-1, 4, y], 
                     ((1 - settings["rootShootRatio"]) * (superIndSeeds[d-1, 1, y]-superIndSeeds[d-1, 5, y]-superIndSeeds[d-1, 6, y])),
                     ((1 - settings["rootShootRatio"]) * (superIndTubers[d-1, 1, y]-superIndTubers[d-1, 5, y]-superIndTubers[d-1, 6, y])),
                     LevelOfGrid,
@@ -366,7 +366,7 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                     superIndTubers[d-1, 4, y] = WaterDepth
                 end
 
-                growthTubers[d, 2, y] = getRespiration(d, settings, dynamicData) #[g / g*d]
+                growthTubers[d, 2, y] =   getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData) #[g / g*d]
 
                 growthTubers[d, 1, y] = getPhotosynthesisPLANTDay( #[g / g*d]
                     d,
@@ -521,8 +521,8 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                 end
 
                 # GROWTH calculation for 2 superInds: Order: first Seeds,
-                growthSeeds[d, 2, y] = getRespiration(d, settings, dynamicData) #[g / g*d]
-                growthTubers[d, 2, y] = getRespiration(d, settings, dynamicData) #[g / g*d]
+                growthSeeds[d, 2, y] =  getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData) #[g / g*d]
+                growthTubers[d, 2, y] =  getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData) #[g / g*d]
 
                 growthSeeds[d, 1, y] = getPhotosynthesisPLANTDay( #[g / g*d]
                     d,
