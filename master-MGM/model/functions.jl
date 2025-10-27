@@ -185,6 +185,10 @@ function getMesolimnion_Depth_area(day, tempEpi, tempHypo, settings::Dict{String
     return (dynamicData[day].mesoDepth)
 end
 
+"""
+    getTemperatureProfile
+    
+"""
 
 """
     getSurfaceIrradianceDay(day; settings; dynamicData)

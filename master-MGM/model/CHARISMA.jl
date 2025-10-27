@@ -24,14 +24,21 @@ include("run_simulation.jl")
 include("output.jl")
 
 # Get Settings for selection of lakes, species & depth
-GeneralSettings = parseconfigGeneral("./input/general.config.txt")
+# GeneralSettings = parseconfigGeneral("./input/general.config.txt")
+GeneralSettings = parseconfigGeneral("./input/sel.general.config.txt")
 depths = parse.(Float64, GeneralSettings["depths"])
+
+# Settings for lake fraction parameters
+HypoFrac_dir = "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
+MesoFrac_dir = "./input/lakeFractionParameters/MesoDepth_fraction.config.txt"
 
 # Create output folder name
 #folder = string(Dates.format(now(), "yyyy_m_d_HH_MM"))
 folder = GeneralSettings["modelrun"][1]
 
 # Single Threaded Loop for model run for selected lakes, species and depths
+l = 1
+s = 1
 for l in 1:length(GeneralSettings["lakes"])
 
     println(GeneralSettings["lakes"][l])
@@ -49,11 +56,12 @@ for l in 1:length(GeneralSettings["lakes"])
         dynamicData = Dict{Int16, DayData}()
 
         # Get climate for default variables . !Gives just one year as environment is not yet changing between years
-        environment = simulateEnvironment(settings, dynamicData)
+        environment = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MesoFrac_dir)
         # Output: temp, irradiance, waterlevel, lightAttenuation
 
         # Get macrophytes in multiple depths
         result = simulateMultipleDepth_parallel(depths,settings, dynamicData) #Biomass, Number, indWeight, Height,
+        
         # Save results as .csv files in new folder;
         writeOutput(settings, depths, environment, result, GeneralSettings, folder)
 
