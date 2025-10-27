@@ -749,7 +749,7 @@ Simulates 1 depth and returns results in a sturctured manner
 """
 function simulate1Depth(depth, settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData})
     #println(depth)
-    Res = simulate(depth, settings, dynamicData)
+    Res = simulate(depth, settings, dynamicData) # depth = LevelOfGrid, depths ion general.config.txt
     ResA = Res[1][:, :, 1] #superInd[day,parameter,year]
     ResB = Res[2][:, :, 1] #superIndSeeds[day,parameter,year]
     ResC = Res[3][:, :, 1] #superIndTubers[day,parameter,year]
