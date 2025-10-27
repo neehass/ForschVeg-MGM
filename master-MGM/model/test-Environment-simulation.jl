@@ -63,11 +63,17 @@ HypoFrac_dir = "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
 MesoFrac_dir = "./input/lakeFractionParameters/MesoDepth_fraction.config.txt"
 
 dynamicData = Dict{Int16, DayData}()
-environment = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MesoFrac_dir)
+env = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MesoFrac_dir)
 
-sim_tempEpi = environment[1]
-sim_tempHypo = environment[2]
-sim_mesoDepth = environment[3] 
+keys(dynamicData)
+
+keys(dynamicData) # keys = days
+dump(dynamicData[5]) # insight of day 5
+dynamicData[5].tempEpi
+
+sim_tempEpi = [dynamicData[d].tempEpi for d in sort(collect(keys(dynamicData)))] # 356 days
+sim_tempHypo = [dynamicData[d].tempHypo for d in sort(collect(keys(dynamicData)))]
+sim_mesoDepth = [dynamicData[d].mesoDepth for d in sort(collect(keys(dynamicData)))]
 
 # ---- 4) plot: check the results -----------------------------------
 plot(1:365, sim_tempEpi, 
@@ -79,7 +85,28 @@ plot(1:365, sim_mesoDepth,
     label = "mesoDepth", title = lak_nam * " - Epi & Hypo Temperature (" * lak_group * ")", xlabel = "Day of the year", ylabel = "Depth [m]", legend = :topright)
 savefig("./plots/1st_Temperature_Epi_Hypo.png")
 
+# ---- 5) test getTemperatureProfile_depth() -----------------------------
+day = 150
+depth = -5 # depth where temp is needed
+tempEpi = dynamicData[day].tempEpi
+tempHypo = dynamicData[day].tempHypo
+mesoDepth = dynamicData[day].mesoDepth
+getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth, k=5)
 
+# ---- 6) plot profile at distinct days -----------------------------
+depths_profile = collect(0:-5:settings["lakeDepth"]) # start:step:stop
+days_profile = [50, 150, 250, 350] # days to plot
+for day in days_profile
+    temp_profile = [getTemperatureProfile_depth(depth, dynamicData[day].tempEpi, dynamicData[day].tempHypo, dynamicData[day].mesoDepth, k=5) for depth in depths_profile]
+    plot(temp_profile, depths_profile, 
+        label = "Day " * string(day), 
+        title = lak_nam * " - Temperature Profile at distinct days (" * lak_group * ")", 
+        xlabel = "Temperature [°C]", 
+        ylabel = "Depth [m]", 
+        legend = :topright, ylim = (settings["lakeDepth"],0))
+    
+    savefig("./plots/1st_Temperature_Profile_Day_" * string(day) * ".png")
+end
 
 
 

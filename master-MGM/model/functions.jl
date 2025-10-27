@@ -186,9 +186,19 @@ function getMesolimnion_Depth_area(day, tempEpi, tempHypo, settings::Dict{String
 end
 
 """
-    getTemperatureProfile
-    
+    getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth, k=5)
+
+    get temp at distinct depth (LevelOfGrid/distWaterSurf)
+    based on tempEpi, tempHypo, mesoDepth, k
+    k = steepness factor
+    default k = 5
+
 """
+function getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth; k=5)
+    return tempHypo .+ (tempEpi - tempHypo) ./ (1 .+ exp.((abs.(depth) .- abs.(mesoDepth)) ./ k))
+end
+
+
 
 """
     getSurfaceIrradianceDay(day; settings; dynamicData)
@@ -509,7 +519,7 @@ function getPhotosynthesis(
     Biomass2,
     height1,
     height2,
-    LevelOfGrid,
+    LevelOfGrid, #depth
     settings::Dict{String,Any},
     dynamicData::Dict{Int16, DayData}
 )
@@ -537,7 +547,12 @@ function getPhotosynthesis(
 
     #lightFactor_new = exp(-((lightPlantHour-mPhotoLight)^ 2)/(2*bPhotoLight^2))
 
-    temp = getTemperature(day, settings, dynamicData)
+    # Temp at distWaterSurf (at LevelOfGrid)
+    tempEpi = dynamicData[day].tempEpi
+    tempHypo = dynamicData[day].tempHypo
+    mesoDepth = dynamicData[day].mesoDepth
+     
+    temp = getTemperatureProfile_depth(distWaterSurf, tempEpi, tempHypo, mesoDepth, k=5)
     tempFactor =
         (settings["sPhotoTemp"] * (temp^settings["pPhotoTemp"])) /
         ((temp^settings["pPhotoTemp"]) + (settings["hPhotoTemp"]^settings["pPhotoTemp"])) #Â°C

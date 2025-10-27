@@ -61,7 +61,7 @@ for l in 1:length(GeneralSettings["lakes"])
 
         # Get macrophytes in multiple depths
         result = simulateMultipleDepth_parallel(depths,settings, dynamicData) #Biomass, Number, indWeight, Height,
-        
+                    # LevelOfGrid = depths 
         # Save results as .csv files in new folder;
         writeOutput(settings, depths, environment, result, GeneralSettings, folder)
 

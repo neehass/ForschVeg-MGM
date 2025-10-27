@@ -813,40 +813,36 @@ Arguments used from settings: yearlength, ...
 Returns: temp, irradiance, waterlevel, lightAttenuation []
 """
 
-function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, HypoFrac_dir::String, MesoFrac_dir::String)
-    # Schleife über alle Tage
-    for d = 1:settings["yearlength"]
-        day = DayData()  # neues DayData-Objekt für jeden Tag
+function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, HypoFrac_dir::String, MesoFrac_dir::String) # DayData in structs.jl
+    tempEpi = Float64[]
+    tempHypo = Float64[]
+    mesoDepth = Float64[]
+    tempprofile = Float64[] #TODO
+    irradiance = Float64[]
+    waterlevel = Float64[]
+    lightAttenuation = Float64[]
 
-        # Temperaturen
-        day.tempEpi = getTemperature_Epi(d, settings, dynamicData)
-        day.tempHypo = getTemperature_Hypo_area(d, settings, dynamicData, HypoFrac_dir)
+    #for y = 1:settings["years"]
+        for d = 1:settings["yearlength"]
+            dynamicData[d] = DayData()
+            push!(tempEpi, getTemperature_Epi(d,settings,dynamicData))
+            # push!(tempHypo, getTemperature_Hypo_mean(d,settings,dynamicData))
+            push!(tempHypo, getTemperature_Hypo_area(d,settings,dynamicData,HypoFrac_dir))
+            push!(irradiance, getSurfaceIrradianceDay(d,settings,dynamicData))
+            push!(waterlevel, getWaterlevel(d,settings,dynamicData))
+            push!(lightAttenuation, getLightAttenuation(d,settings, dynamicData))
+        end
 
-        # Strahlung, Wasserstand, Licht
-        day.irradiance = getSurfaceIrradianceDay(d, settings, dynamicData)
-        day.waterlevel = getWaterlevel(d, settings, dynamicData)
-        day.lightAttenuation = getLightAttenuation(d, settings, dynamicData)
+    #end
+    # seperate loop for mesolimnion depth
+        for d = 1:settings["yearlength"]
+            # dynamicData[d] = DayData() <-- sonst wird überschreiben!
+            push!(mesoDepth, getMesolimnion_Depth_area(d, tempEpi, tempHypo, settings, dynamicData, MesoFrac_dir))
+            #push!(mesoDepth, getMesolimnion_Depth_mean(d, tempEpi, tempHypo, settings, dynamicData)) 
+            
+           # Tempertureprofile will be simulated in depths needed (in simulate function)
+        end
 
-        # Vorübergehend in dynamicData speichern, falls die Berechnung der Mesolimniontiefe sie braucht
-        dynamicData[d] = day
-    end
-
-    # Mesolimniontiefe separat berechnen, auf Basis der bereits gespeicherten Temperaturen
-    for d = 1:settings["yearlength"]
-        day = dynamicData[d]
-        day.mesoDepth = getMesolimnion_Depth_area(d, 
-                                                   [dynamicData[i].tempEpi for i in 1:settings["yearlength"]],
-                                                   [dynamicData[i].tempHypo for i in 1:settings["yearlength"]],
-                                                   settings, dynamicData, MesoFrac_dir)
-        
-
-        # Temperaturprofile is simulated in simulation, just at the depths needed
-        
-        # Aktualisiere dynamicData
-        dynamicData[d] = day
-    end
-
-    return dynamicData
+    return (tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation)
 end
-
 
