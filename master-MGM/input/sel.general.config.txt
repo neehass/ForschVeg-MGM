@@ -1,0 +1,6 @@
+modelrun test
+years 10
+depths -0.5 -1.5 -3 -5
+yearsoutput 2
+lakes  ./input/lakes/lake_6.config.txt ./input/lakes/lake_4.config.txt ./input/lakes/lake_7.config.txt 
+species ./input/species/species_5.config.txt
