@@ -747,9 +747,9 @@ end
 
 Simulates 1 depth and returns results in a sturctured manner
 """
-function simulate1Depth(depth, settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData})
+function simulate1Depth(depth, settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData}, tempProfile)
     #println(depth)
-    Res = simulate(depth, settings, dynamicData) # depth = LevelOfGrid, depths ion general.config.txt
+    Res = simulate(depth, settings, dynamicData, tempProfile) # depth = LevelOfGrid, depths ion general.config.txt
     ResA = Res[1][:, :, 1] #superInd[day,parameter,year]
     ResB = Res[2][:, :, 1] #superIndSeeds[day,parameter,year]
     ResC = Res[3][:, :, 1] #superIndTubers[day,parameter,year]
@@ -775,10 +775,10 @@ end #[day*year,parameter], [day*year,parameter]
 
 Simulates multiple depth and returns Res[depth][dataset][day,parameter]
 """
-function simulateMultipleDepth(depths,settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData})
+function simulateMultipleDepth(depths,settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData}, tempProfile)
     Res = []
     for d in depths
-        push!(Res, simulate1Depth(d,settings,dynamicData))
+        push!(Res, simulate1Depth(d,settings,dynamicData, tempProfile))
     end
     return Res
 end
@@ -788,12 +788,12 @@ end
 
 Simulates multiple depth and returns Res[depth][dataset][day,parameter]
 """
-function simulateMultipleDepth_parallel(depths,settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData})
+function simulateMultipleDepth_parallel(depths,settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData},tempProfile)
     Res = []
     de = zeros(length(depths))
     Threads.@threads for d in eachindex(depths)
         de[d]=depths[d]
-        push!(Res, simulate1Depth(de[d],settings,dynamicData))
+        push!(Res, simulate1Depth(de[d],settings,dynamicData, tempProfile))
         #println(de[d])
     end
     return Res
