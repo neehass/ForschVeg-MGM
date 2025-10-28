@@ -525,8 +525,6 @@ end
 
 #CHARISMA_biomass_N_weight_hight_env2("./input/lakes/lake_1.config.txt","./input/species/species_3.config.txt","-1.0","5")
 
-
-
 """
     CHARISMA_test_15lakes_4depths()
 

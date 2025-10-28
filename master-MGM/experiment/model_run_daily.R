@@ -1,0 +1,323 @@
+# ---------------------------------------------------------------------------------------------------
+# Master script to run model for multiple species in multiple lakes
+# ---------------------------------------------------------------------------------------------------
+# CHARISMA_biomass_N_weight_hight_env()
+# ---------------------------------------------------------------------------------------------------
+# sel.general.config: Lakes: chiemsee (large) = 1, AbtsdorfSee (very.small) = 2, Eibsee (medium) = 3
+# general.config: Lakes: chiemsee (large) = 6, AbtsdorfSee (very.small) = 1, Eibsee (medium) = 7
+# ---------------------------------------------------------------------------------------------------
+
+getwd() # "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/MGM-scripte-data"
+setwd("master-MGM/experiment")
+
+# ---------------------------------------------------------------------------------------------------
+## General configurations ----
+# ---------------------------------------------------------------------------------------------------
+setting <- "local" # "HPC"
+modelrun <- "chiem_test_R_daily" #Name of experiment
+years <- 10 #Number of years to get simulated [n]
+depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
+yearsoutput <- 2
+tempProfile <- "true" # "false"
+
+# (full path needed!)
+HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
+MesoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MesoDepth_fraction.config.txt"
+
+species_id <- 1:2 # c(1:5)
+species <- paste0("species_", species_id)
+
+lakes <- 6:7 # c(1:31)
+#nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
+detectable=1
+lakestemplate = "reallakes_simplifiedVersion"
+
+# ---------------------------------------------------------------------------------------------------
+## Julia and R setup ----
+# ---------------------------------------------------------------------------------------------------
+
+# CORES
+if (setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = nthreads) #Sets number of threads
+if (setting =="local") Sys.setenv(JULIA_NUM_THREADS = "1")
+Sys.getenv("JULIA_NUM_THREADS")
+Sys.getenv()
+
+
+# Setup integration of julia
+# install.packages("JuliaCall")
+library(JuliaCall)
+#if (setting =="HPC") julia_setup(JULIA_HOME = "/home/anl85ck/.julia/bin",installJulia = F) #on HPC
+
+if (setting =="local") julia_setup(JULIA_HOME = "C:/Users/maiim/AppData/Local/Programs/Julia-1.11.5/bin", installJulia = F)
+julia <- julia_setup(verbose = T, install = T)
+julia_eval("Threads.nthreads()") #check N threads
+#julia_command("Threads.nthreads()")
+
+
+# Load julia packages
+#julia_library("HCubature")
+julia_library("DelimitedFiles")
+julia_library("Dates")
+julia_library("Distributions")
+julia_library("Random")
+julia_library("CSV")
+julia_library("DataFrames")
+julia_library("StatsBase")
+
+
+# R Packages
+# install.packages(c("tidyverse", "DEoptim", "data.table", "here"))
+library(tidyverse)
+library(DEoptim)
+library(data.table)
+library(here)
+
+# -----------------------------------------------------------------------------------------------
+#  Settings for Model ----
+# -----------------------------------------------------------------------------------------------
+#Scenario
+scenarios<-data.table(
+  #para=c("maxTemp","maxNutrient", "maxKd"),
+  #base=c(0.0, 0.0, 0.0),  
+  #BLIZ_2.6_Biodiv=c(0.5, -0.25, -0.25),
+  #BLIZ_2.6_Mit=c(0.5, 0.25, 0.25),
+  #BLIZ_2.6_Adap=c(0.5, 0.0, 0.0),
+  #BLIZ_8.6_Biodiv=c(3.0, 0.0, 0.0),
+  #BLIZ_8.6_Mit=c(3.0, 0.5, 0.5),
+  BLIZ_8.6_Adap=c(3.0, 0.25, 0.25)
+)
+
+# Set working directories 
+if (setting =="local") {
+  setwd('../')
+  wd<-getwd()
+  if (str_sub(wd,-3,-1) != "MGM") { #moves you to project folder containing MGM
+    print("Wrong path!")
+    quit(save="no")
+  }
+  print(wd)
+}
+
+if (setting == "HPC"){ # High Performance Computing — a server or cluster environment
+  wd<-here::here()
+  setwd(wd)
+  print(wd)
+  #if (str_sub(wd, start= -9) != "2_Macroph") print("Wrong path!")
+}
+
+# Import julia functions
+julia_source("model/CHARISMA_function.jl")
+julia_source("model/structs.jl")
+julia_source("model/defaults.jl")
+julia_source("model/input.jl")
+julia_source("model/functions.jl")
+julia_source("model/run_simulation.jl")
+julia_source("model/output.jl")
+
+# ---------------------------------------------------------------------------
+##  Model run ----
+# Returns: Daily Biomass, Number of Individuals, indWeight, Height, 
+# for all lakes, species, and multiple depths in the last year of started simulation
+# ---------------------------------------------------------------------------
+# ! Scenario loop wegelassen
+for (S in 1:length(scenarios)){
+  
+  # lake scenario change
+  change<-as.array(scenarios[[S]])
+  scenario_name<-colnames(scenarios)[S]
+  
+  # adapt lake config files
+  for (N in 1:31){
+    # Import template for lakes
+    lak <- read.table(paste0(wd,"/input/template/lakes/lake_",N,".config.txt"), 
+                      header = F, comment.char="#")
+    
+    lak[lak$V1=="maxTemp",]$V2 <- sprintf("%.1f",
+                                          round((as.numeric(lak[lak$V1=="maxTemp",]$V2)+
+                                                   change[1]),1))
+    lak[lak$V1=="maxNutrient",]$V2 <- as.numeric(lak[lak$V1=="maxNutrient",]$V2)+
+      (as.numeric(lak[lak$V1=="maxNutrient",]$V2) *
+         change[2])
+    lak[lak$V1=="maxKd",]$V2 <- as.numeric(lak[lak$V1=="maxKd",]$V2)+
+      (as.numeric(lak[lak$V1=="maxKd",]$V2) *
+         change[3])
+    lak[lak$V1=="minKd",]$V2 <- lak[lak$V1=="maxKd",]$V2
+    
+    # Write adapted lake config file
+    data.table::fwrite(lak, 
+                       file=paste0(wd,"/input/lakes/lake_",N,".config.txt"), 
+                       col.names=F, sep = " ")
+  } # adapt lake - scenario
+  
+
+  # --- print general config file 
+  L1 <- c()
+  S1 <- c()
+  for (l in 1:length(lakes)) {
+      lake = paste("./input/lakes/lake_", lakes[l], ".config.txt", sep = "")
+      L1 <- cbind(L1, lake)
+  }
+  for (l in 1:length(species)) {
+      spec <- paste("./input/species/", species[l], ".config.txt", sep = "")
+      S1 <- cbind(S1, spec)
+  }
+    
+  to_print <- c(
+    paste0("modelrun ", paste0(modelrun, collapse = " ")),
+    paste0("years ", paste0(years, collapse = " ")),
+    paste0("depths ", paste0(depths, collapse = " ")),
+    paste0("yearsoutput ", paste0(yearsoutput, collapse = " ")),
+    paste0("lakes ", paste0(L1, collapse = " ")),
+    paste0("species ", paste0(S1, collapse = " ")),
+    paste0("tempProfile ",  paste0(tempProfile, collapse = " ")),
+    paste0("HypoFrac_dir ",  paste0(HypoFrac_dir, collapse = " ")),
+    paste0("MesoFrac_dir ",  paste0(MesoFrac_dir, collapse = " "))
+  )
+
+  # save general.config-file
+  writeLines(text = to_print)
+  writeLines(text = to_print,
+            con = paste0(wd, "/input/general.config.txt"))
+  # ---------------------------------------------------------------------------
+  # Model run -------------
+  model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")
+  comb_l_s <- seq(1, length(model2), by = 2)
+
+  # ---------------------------------------------------------------------------
+  # save macrophyte data for all lakes, species, depths
+  all_df <- data.frame()
+  for(i in comb_l_s){
+  # figure out which lake/species this corresponds to
+    idx <- ((i - 1) / 2) + 1  # combination index
+    l_ix <- ceiling(idx / length(species))
+    s_ix <- idx - (l_ix - 1) * length(species)
+    print(paste(i, l_ix, s_ix))
+
+    print(paste("res",i, "lake", lakes[l_ix], "species", species_id[s_ix]))
+
+    # data
+    res <- model2[[i]]
+
+    # depth dataframe
+    for(d in 1:4){
+      # print(paste("depth",depths[d]))
+      df <- as.data.frame(res[[d]])
+      colnames(df) <- c("biomass", "numberInd", "indWeight", "height")
+      df$depth <- depths[d]
+      df$speciesID <- species_id[s_ix]
+      df$lakeID <- lakes[l_ix]
+      df$day <- 1:365
+
+      all_df <- rbind(all_df, df)
+    }
+
+  } # save macrophyt
+
+  # unique(all_df$speciesID)
+  # View(all_df)
+  if(!dir.exists("output")){dir.create("output")}
+  if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
+  write.table(all_df, file = paste0(wd,"/output/",modelrun,"/all_res_biomass_number_weight_height_daily.txt"), 
+              col.names = T, row.names = F) 
+
+  # save environment data ------------------------------------------------------
+  # tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation
+  comb_env <- seq(2, length(model2), by = 2)
+  all_env <- data.frame()
+  env_par <-  c("tempEpi", "tempHypo", "mesoDepth", "irradiance", "waterlevel", "lightAttenuation")
+
+  for(pos in 1:length(comb_l_s)){
+
+  # figure out which lake/species this corresponds to
+    i <- comb_l_s[pos]
+    idx <- ((i - 1) / 2) + 1  # combination index
+    l_ix <- ceiling(idx / length(species))
+    s_ix <- idx - (l_ix - 1) * length(species)
+    print(paste(comb_env[pos], l_ix, s_ix))
+
+    print(paste("res",i, "lake", lakes[l_ix], "species", species_id[s_ix]))
+
+    p <- comb_env[pos]
+    # data
+    res <- model2[[p]]
+
+    # env dataframe
+    df <- data.frame(matrix(nrow = 365, ncol = 6))
+
+    for(d in 1:6){
+      # print(paste("env_par", env_par[d]))
+      df[, d] <- as.vector(res[[d]])
+    }
+
+    # set column names and extra info
+    colnames(df) <- env_par
+    df$speciesID <- species_id[s_ix]
+    df$lakeID <- lakes[l_ix]
+    df$day <- 1:365
+
+    # append to master dataframe
+    all_env <- rbind(all_env, df)
+
+  } # svae env
+  # View(all_env)
+  write.table(all_env, file = paste0(wd,"/output/",modelrun,"/env.txt"), 
+              col.names = T, row.names = F) 
+
+} # Scenario loop
+
+
+# --------------------------
+# # Species loop  
+# all_res <- list()
+
+# for (s in 1:length(species)) {
+#   # Write species-specific config file
+#   S1 <- paste("./input/species/",
+#               species[s],
+#               ".config.txt",
+#               sep = "")
+  
+#   # Create temporary general config for each lake
+#   for (l in 1:length(lakes)) {
+#     L1 <- paste("./input/lakes/lake_", lakes[l], ".config.txt", sep = "")
+    
+#     to_print <- c(
+#       paste0("modelrun ", paste0(modelrun, collapse = " ")),
+#       paste0("years ", paste0(years, collapse = " ")),
+#       paste0("depths ", paste0(depths, collapse = " ")),
+#       paste0("yearsoutput ", paste0(yearsoutput, collapse = " ")),
+#       paste0("lakes ", L1),
+#       paste0("species ", S1),
+#       paste0("tempProfile ", tempProfile),
+#       paste0("HypoFrac_dir ", HypoFrac_dir),
+#       paste0("MesoFrac_dir ", MesoFrac_dir)
+#     )
+    
+#     # save general.config-file
+#     writeLines(
+#       text = to_print,
+#       con = paste0(wd, "/input/general.config.txt")
+#     )
+    
+#     print(paste("start model for", species[s], "& lake", lakes[l]))
+    
+#     ###################
+#     # Run Model in Julia
+#     model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")  # 4 depths defined in general.config.file
+    
+#     # output speichern 
+#     res_list <- list()
+#     res_list[["macrophyt"]] <- model2[[1]]
+#     names(res_list[["macrophyt"]]) <- paste0("depth", depths)
+    
+#     # Save results
+#     all_res[[paste0("species_", species_id[s], "_lake_", lakes[l])]] <- res_list
+    
+#   } # end lake
+# } # end species
+
+# names(all_res)
+# # --- save output
+# if(!dir.exists("output")){dir.create("output")}
+# if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
+# saveRDS(all_res, file = file.path(wd,"output",modelrun,"all_res_biomass_number_weight_height.RData"))

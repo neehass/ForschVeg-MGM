@@ -1,6 +1,7 @@
 # ---------------------------------------------------------------------------------------------------
 # Master script to run model for multiple species in multiple lakes
 # ---------------------------------------------------------------------------------------------------
+# CHARISMA_parrallel() and CHARISMA_biomass_N_weight_hight_env()
 ## Run model for multiple species in multiple lakes
 ## Parameter combinations have to be produced first with an extra script and added to the input folder
 ## Script runs all species in one lake per loop and writes ouput per lake
@@ -165,6 +166,7 @@ for (S in 1:length(scenarios)){
       LAK = paste("./input/lakes/lake_", lakes[n], ".config.txt", sep = "")
       L1 <- cbind(L1, LAK)
     }
+
     to_print <- c(
       paste0("modelrun ", paste0(modelrun, collapse = " ")),
       paste0("years ", paste0(years, collapse = " ")),
@@ -218,7 +220,6 @@ for (S in 1:length(scenarios)){
     # Returns: Mean summer biomass for all lakes, species, and multiple depths
     
   }
-  
 } # total scenario loop end
 
 # ---------------------------------------------------------------------------
@@ -226,212 +227,174 @@ for (S in 1:length(scenarios)){
 # Returns: Daily Biomass, Number of Individuals, indWeight, Height, 
 # for all lakes, species, and multiple depths in the last year of started simulation
 # ---------------------------------------------------------------------------
-model2 <-julia_eval("CHARISMA_biomass_N_weight_hight_env()") #? 4 depths defined in general.config.file?
+# ! Scenario loop wegelassen
 
-# output speichern in csv dateien pro see, pro art, pro tiefe
-par_names <- c("Biomass", "Number", "indWeight", "Height")
-length(model2[[1]])
+# Species loop  
+all_res <- list()
 
-# fraqge wie das mit mehreren seen und arten funktioniert?
-
-for(d in 1:4){
-  print(paste("depth:", depths[d]))
-  res_depth <- model2[[1]][[d]] # Biomass, Number, indWeight, Height
-
-  # loop paras
-  for(par in 1:4){
-    print(paste("par:", par_names[par]))
-    par <- res_depth[, par]
-
-    # speichern 
-  }
+for (s in 1:length(species)) {
+  # Write species-specific config file
+  S1 <- paste("./input/species/",
+              species[s],
+              ".config.txt",
+              sep = "")
   
-}
-
-
-
-
-length(model2[[1]])  # Sollte 4 sein, wenn 4 Tiefen
-length(model2[[2]]) # 6 env Variablen
-dim(model2[[1]][[1]])  # (Tag x Parameter: Biomass, Number, indWeight, Height).
-dim(res_depth[[1]][, 1])
-
-# dim(model2[[max 4 depths]][[ max 4 paras]])
-env_list <- model2[seq(2, length(model2), by = 2)]
-length(env_list[[1]]) # Sollte Anzahl Seen sein
-length(env_list[[1]]) # tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation
-
-
-for (S in 1:length(scenarios)){
-  
-  # lake scenario change
-  change<-as.array(scenarios[[S]])
-  scenario_name<-colnames(scenarios)[S]
-  
-  adapt lake config files
-  for (N in 1:31){
-    # Import template for lakes
-    lak <- read.table(paste0(wd,"/input/template/lakes/lake_",N,".config.txt"), 
-                      header = F, comment.char="#")
+  # Create temporary general config for each lake
+  for (l in 1:length(lakes)) {
+    L1 <- paste("./input/lakes/lake_", lakes[l], ".config.txt", sep = "")
     
-    lak[lak$V1=="maxTemp",]$V2 <- sprintf("%.1f",
-                                          round((as.numeric(lak[lak$V1=="maxTemp",]$V2)+
-                                                   change[1]),1))
-    lak[lak$V1=="maxNutrient",]$V2 <- as.numeric(lak[lak$V1=="maxNutrient",]$V2)+
-      (as.numeric(lak[lak$V1=="maxNutrient",]$V2) *
-         change[2])
-    lak[lak$V1=="maxKd",]$V2 <- as.numeric(lak[lak$V1=="maxKd",]$V2)+
-      (as.numeric(lak[lak$V1=="maxKd",]$V2) *
-         change[3])
-    lak[lak$V1=="minKd",]$V2 <- lak[lak$V1=="maxKd",]$V2
-    
-    # Write adapted lake config file
-    data.table::fwrite(lak, 
-                       file=paste0(wd,"/input/lakes/lake_",N,".config.txt"), 
-                       col.names=F, sep = " ")
-  }
-  
-  
-  # Species loop  
-  for (I in 1:length(species_id)){
-    # Write general.config-file
-    S1 <- paste("./input/species/",
-                species[I],
-                ".config.txt",
-                sep = "")
-    
-    L1 <- c()
-    for (n in 1:length(lakes)) {
-      LAK = paste("./input/lakes/lake_", lakes[n], ".config.txt", sep = "")
-      L1 <- cbind(L1, LAK)
-    }
     to_print <- c(
       paste0("modelrun ", paste0(modelrun, collapse = " ")),
       paste0("years ", paste0(years, collapse = " ")),
       paste0("depths ", paste0(depths, collapse = " ")),
       paste0("yearsoutput ", paste0(yearsoutput, collapse = " ")),
-      paste0("lakes ", paste0(L1, collapse = " ")),
-      paste0("species ", paste0(S1, collapse = " ")),
-      paste0("tempProfile ",  paste0(tempProfile, collapse = " ")),
-      paste0("HypoFrac_dir ",  paste0(HypoFrac_dir, collapse = " ")),
-      paste0("MesoFrac_dir ",  paste0(MesoFrac_dir, collapse = " "))
+      paste0("lakes ", L1),
+      paste0("species ", S1),
+      paste0("tempProfile ", tempProfile),
+      paste0("HypoFrac_dir ", HypoFrac_dir),
+      paste0("MesoFrac_dir ", MesoFrac_dir)
     )
     
     # save general.config-file
-    writeLines(text = to_print)
-    writeLines(text = to_print,
-               con = paste0(wd, "/input/general.config.txt"))
+    writeLines(
+      text = to_print,
+      con = paste0(wd, "/input/general.config.txt")
+    )
     
+    print(paste("start model for", species[s], "& lake", lakes[l]))
     
     ###################
-    # Run Model in julia
-    model<-julia_eval("CHARISMA_biomass_parallel()") #? 4 depths defined in general.config.file?
-    model<-as.data.table(model)
+    # Run Model in Julia
+    model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")  # 4 depths defined in general.config.file
     
-    setnames(model, c("V1","V2","V3","V4","V5","V6"), c(depths,"speciesID","lakeID")) # only 4 depths possible here
+    # output speichern 
+    res_list <- list()
+    res_list[["macrophyt"]] <- model2[[1]]
+    names(res_list[["macrophyt"]]) <- paste0("depth", depths)
     
+    # Save results
+    all_res[[paste0("species_", species_id[s], "_lake_", lakes[l])]] <- res_list
+    
+  } # end lake
+} # end species
 
-    for (d in 1:4){
-      for (l in 1:dim(model)[1]){
-        if(model[l,d, with=F]<1) { #if Biomass too small - not found
-          model[l,d]=0
-        }
-      }
-    }
-    
-    
-    modelout <- melt(model, id=5:6)
-    modelout$scenario<-scenario_name
-    
-    
-    # data.table::fwrite(modelout, 
-    #                   file=paste0(wd,"/scenarios/220608_BLIZSCENARIOS_2/results/",
-    #                              species[I],"_",scenario_name,"_scenario.txt"), 
-    #                 col.names=T, sep = " ")
+names(all_res)
+# --- save output
+if(!dir.exists("output")){dir.create("output")}
+if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
+saveRDS(all_res, file = file.path(wd,"output",modelrun,"all_res_biomass_number_weight_height.RData"))
 
-    
-    
-    if(!dir.exists("output")){dir.create("output")}
-    if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
-    write.table(modelout, file = paste0(wd,"/output/",modelrun,"/result_species_",species[I],"_",scenario_name,".txt"), 
-                col.names = T, row.names = F)
-    # Returns: Mean summer biomass for all lakes, species, and multiple depths
-    
+# --- print general config file 
+L1 <- c()
+S1 <- c()
+for (l in 1:length(lakes)) {
+    lake = paste("./input/lakes/lake_", lakes[l], ".config.txt", sep = "")
+    L1 <- cbind(L1, lake)
+}
+for (l in 1:length(species)) {
+    spec <- paste("./input/species/", species[l], ".config.txt", sep = "")
+    S1 <- cbind(S1, spec)
+}
+   
+to_print <- c(
+  paste0("modelrun ", paste0(modelrun, collapse = " ")),
+  paste0("years ", paste0(years, collapse = " ")),
+  paste0("depths ", paste0(depths, collapse = " ")),
+  paste0("yearsoutput ", paste0(yearsoutput, collapse = " ")),
+  paste0("lakes ", paste0(L1, collapse = " ")),
+  paste0("species ", paste0(S1, collapse = " ")),
+  paste0("tempProfile ",  paste0(tempProfile, collapse = " ")),
+  paste0("HypoFrac_dir ",  paste0(HypoFrac_dir, collapse = " ")),
+  paste0("MesoFrac_dir ",  paste0(MesoFrac_dir, collapse = " "))
+)
+
+# save general.config-file
+writeLines(text = to_print)
+writeLines(text = to_print,
+          con = paste0(wd, "/input/general.config.txt"))
+# ---------------------------------------------------------------------------
+
+model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")
+comb_l_s <- seq(1, length(model2), by = 2)
+
+# save macrophyte data for all lakes, species, depths
+all_df <- data.frame()
+for(i in comb_l_s){
+# figure out which lake/species this corresponds to
+  idx <- ((i - 1) / 2) + 1  # combination index
+  l_ix <- ceiling(idx / length(species))
+  s_ix <- idx - (l_ix - 1) * length(species)
+  print(paste(i, l_ix, s_ix))
+
+  print(paste("res",i, "lake", lakes[l_ix], "species", species_id[s_ix]))
+
+  # data
+  res <- model2[[i]]
+
+  # depth dataframe
+  for(d in 1:4){
+    print(paste("depth",depths[d]))
+    df <- as.data.frame(res[[d]])
+    colnames(df) <- c("biomass", "numberInd", "indWeight", "height")
+    df$depth <- depths[d]
+    df$speciesID <- species_id[s_ix]
+    df$lakeID <- lakes[l_ix]
+    df$day <- 1:365
+
+    all_df <- rbind(all_df, df)
   }
-  
-} # total scenario loop end
 
-#######################################################
-# # Rewrite lake files with base parameters -----------------------------------------
-# for (N in 1:31){
-#   # Import template for lakes
-#   lak <- read.table(paste0(wd,"/input/template/lakes/",lakestemplate,"/lake_",N,".config.txt"), 
-#                     header = F, comment.char="#")
-#   
-#   #lak[lak$V1=="maxTemp",]$V2 <- sprintf("%.1f",
-#   #                                      round((as.numeric(as.character(lak[lak$V1=="maxTemp",]$V2))+
-#   #                                               change[1]),1))
-#   #lak[lak$V1=="maxNutrient",]$V2 <- as.numeric(as.character(lak[lak$V1=="maxNutrient",]$V2))+
-#   #  (as.numeric(lak[lak$V1=="maxNutrient",]$V2) *
-#   #     change[2])
-#   #lak[lak$V1=="maxKd",]$V2 <- as.numeric(as.character(lak[lak$V1=="maxKd",]$V2))+
-#   #  (as.numeric(as.character(lak[lak$V1=="maxKd",]$V2)) *
-#   #     change[3])
-#   #lak[lak$V1=="minKd",]$V2 <- lak[lak$V1=="maxKd",]$V2
-#   
-#   # Write adapted lake config file
-#   data.table::fwrite(lak, 
-#                      file=paste0(wd,"/input/lakes/lake_",N,".config.txt"), 
-#                      col.names=F, sep = " ")
-# }
-# 
-# ## Loop over species ---- because over lakes caused errors
-# for (s in 1:length(species)){
-#   
-#   S1<-paste("./input/species/species_",species[s], ".config.txt",sep="")
-#   
-#   ## Create config files LAKES ----
-#   L1<-c()
-#   for (n in 1:length(lakes)){
-#     LAK=paste("./input/lakes/lake_",lakes[n], ".config.txt",sep="")
-#     L1<-cbind(L1, LAK)
-#   }
-# 
-#   ## Combine general config file 
-#   to_print <- c(
-#     paste0("modelrun ", paste0(modelrun, collapse = " ")),
-#     paste0("years ", paste0(years, collapse = " ")),
-#     paste0("depths ", paste0(depths, collapse = " ")),
-#     paste0("yearsoutput ", paste0(yearsoutput, collapse = " ")),
-#     paste0("lakes ", paste0(L1, collapse = " ")),
-#     paste0("species ", paste0(S1, collapse = " "))
-#   )
-#   
-#   ## Write general config file
-#   writeLines(text = to_print)
-#   writeLines(text = to_print, con = paste0(wd,"/input/general.config.txt"))
-#   
-#   ## Run model ----
-#   model<-julia_eval("CHARISMA_biomass_parallel()") 
-#   model<-as.data.table(model)
-#   
-#   model <- model %>% rename(specNr=V5, 
-#                             lakeNr=V6,
-#                             depth_1=V1,
-#                             depth_2=V2,
-#                             depth_3=V3,
-#                             depth_4=V4)
-#   
-#   model <- model %>% mutate(depth_1=ifelse(depth_1<1,0,depth_1),
-#                    depth_2=ifelse(depth_2<1,0,depth_2),
-#                    depth_3=ifelse(depth_3<1,0,depth_3),
-#                    depth_4=ifelse(depth_4<1,0,depth_4))
-#   
-#   print(model)
-# 
-#   ## Save output for each lake ----
-#   if(!dir.exists("output")){dir.create("output")}
-#   if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
-#   save(model, file = paste0(wd,"/output/",modelrun,"/result_species_",species[s],".Rdata"), compress = "gzip")
-#   
-# }
+}
+
+unique(all_df$speciesID)
+View(all_df)
+write.table(all_df, file = paste0(wd,"/output/",modelrun,"/all_res_biomass_number_weight_height_daily.txt"), 
+            col.names = T, row.names = F) 
+
+
+# save environment data ------------------------------------------------------
+# tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation
+comb_env <- seq(2, length(model2), by = 2)
+all_env <- data.frame()
+env_par <-  c("tempEpi", "tempHypo", "mesoDepth", "irradiance", "waterlevel", "lightAttenuation")
+
+for(pos in 1:length(comb_l_s)){
+
+# figure out which lake/species this corresponds to
+  i <- comb_l_s[pos]
+  idx <- ((i - 1) / 2) + 1  # combination index
+  l_ix <- ceiling(idx / length(species))
+  s_ix <- idx - (l_ix - 1) * length(species)
+  print(paste(comb_env[pos], l_ix, s_ix))
+
+  print(paste("res",i, "lake", lakes[l_ix], "species", species_id[s_ix]))
+
+  p <- comb_env[pos]
+  # data
+  res <- model2[[p]]
+
+  # env dataframe
+  df <- data.frame(matrix(nrow = 365, ncol = 6))
+
+  for(d in 1:6){
+    print(paste("env_par", env_par[d]))
+    df[, d] <- as.vector(res[[d]])
+  }
+
+  # set column names and extra info
+  colnames(df) <- env_par
+  df$speciesID <- species_id[s_ix]
+  df$lakeID <- lakes[l_ix]
+  df$day <- 1:365
+
+  # append to master dataframe
+  all_env <- rbind(all_env, df)
+
+}
+View(all_env)
+write.table(all_env, file = paste0(wd,"/output/",modelrun,"/env.txt"), 
+            col.names = T, row.names = F) 
+
+
+
+
