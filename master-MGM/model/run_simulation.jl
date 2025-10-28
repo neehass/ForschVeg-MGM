@@ -6,7 +6,7 @@
 #Contains functions that are necessary to run the simulation
 
 """
-    simulate(LevelOfGrid; settings)
+    simulate(LevelOfGrid; settings, dynamicData, tempProfile)
 
 Simulation function for growth of macrophytes in one depth
 
@@ -24,7 +24,7 @@ thinning
 
 Returns: [superInd]
 """
-function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
+function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, tempProfile)
     #simlog("Starting simulation.", settings)
 
     #Initialisation
@@ -220,7 +220,7 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                     superIndSeeds[d-1, 4, y] = WaterDepth
                 end
 
-                growthSeeds[d, 2, y] = getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData) #[g / g*d]
+                growthSeeds[d, 2, y] = getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData,tempProfile) #[g / g*d]
 
                 growthSeeds[d, 1, y] = getPhotosynthesisPLANTDay( #[g / g*d]
                     d,
@@ -230,7 +230,7 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                     ((1 - settings["rootShootRatio"]) * (superIndTubers[d-1, 1, y]-superIndTubers[d-1, 5, y]-superIndTubers[d-1, 6, y])),
                     LevelOfGrid,
                     settings,
-                    dynamicData,
+                    dynamicData, tempProfile,
                 )
 
                 growthSeeds[d, 3, y] = getDailyGrowth(
@@ -366,7 +366,7 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                     superIndTubers[d-1, 4, y] = WaterDepth
                 end
 
-                growthTubers[d, 2, y] =   getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData) #[g / g*d]
+                growthTubers[d, 2, y] =   getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData, tempProfile) #[g / g*d]
 
                 growthTubers[d, 1, y] = getPhotosynthesisPLANTDay( #[g / g*d]
                     d,
@@ -376,7 +376,7 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                     ((1 - settings["rootShootRatio"]) * (superIndSeeds[d-1, 1, y]-superIndSeeds[d-1, 5, y]-superIndSeeds[d-1, 6, y])),
                     LevelOfGrid,
                     settings,
-                    dynamicData,
+                    dynamicData, tempProfile,
                 )
 
                 growthTubers[d, 3, y] = getDailyGrowth(
@@ -521,8 +521,8 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                 end
 
                 # GROWTH calculation for 2 superInds: Order: first Seeds,
-                growthSeeds[d, 2, y] =  getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData) #[g / g*d]
-                growthTubers[d, 2, y] =  getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData) #[g / g*d]
+                growthSeeds[d, 2, y] =  getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData, tempProfile) #[g / g*d]
+                growthTubers[d, 2, y] =  getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData, tempProfile) #[g / g*d]
 
                 growthSeeds[d, 1, y] = getPhotosynthesisPLANTDay( #[g / g*d]
                     d,
@@ -532,7 +532,7 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                     ((1 - settings["rootShootRatio"]) * (superIndTubers[d-1, 1, y]-superIndTubers[d-1, 5, y]-superIndTubers[d-1, 6, y])),
                     LevelOfGrid,
                     settings,
-                    dynamicData,
+                    dynamicData, tempProfile,
                 )
                 growthTubers[d, 1, y] = getPhotosynthesisPLANTDay( #[g / g*d]
                     d,
@@ -542,7 +542,7 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                     ((1 - settings["rootShootRatio"]) * (superIndSeeds[d-1, 1, y]-superIndSeeds[d-1, 5, y]-superIndSeeds[d-1, 6, y])),
                     LevelOfGrid,
                     settings,
-                    dynamicData,
+                    dynamicData, tempProfile,
                 )
 
                 growthSeeds[d, 3, y] = getDailyGrowth(

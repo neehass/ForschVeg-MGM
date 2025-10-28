@@ -459,7 +459,9 @@ Arguments from settings: resp20, q10
 
 Result: (Respiration) #[g g^-1 d^-1]
 """
-function getRespiration(day, height1, LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}) #DAILY VALUE
+function getRespiration(day, height1, LevelOfGrid, 
+                        settings::Dict{String, Any}, 
+                        dynamicData::Dict{Int16, DayData}, tempProfile) #DAILY VALUE
     
     # Temper = getTemperature(day, settings, dynamicData)
 
@@ -467,13 +469,18 @@ function getRespiration(day, height1, LevelOfGrid, settings::Dict{String, Any}, 
     waterdepth = getWaterDepth(day, LevelOfGrid, settings, dynamicData)
     distPlantTopFromSurf = waterdepth - height1
     
-    # Temp at distWaterSurf (at LevelOfGrid)
-    tempEpi = dynamicData[day].tempEpi
-    tempHypo = dynamicData[day].tempHypo
-    mesoDepth = dynamicData[day].mesoDepth
-     
-    Temper  = getTemperatureProfile_depth(distPlantTopFromSurf, tempEpi, tempHypo, mesoDepth, k=5)
-    
+    if tempProfile == true
+        # Temp at distWaterSurf (at LevelOfGrid)
+        tempEpi = dynamicData[day].tempEpi
+        tempHypo = dynamicData[day].tempHypo
+        mesoDepth = dynamicData[day].mesoDepth
+        # Temp from profile
+        Temper = getTemperatureProfile_depth(distPlantTopFromSurf, dynamicData[day].tempEpi, dynamicData[day].tempHypo, dynamicData[day].mesoDepth, k=5)
+    else
+        # Temp from function
+        Temper = getTemperature(day, settings, dynamicData) #Â°C
+    end
+
     Respiration = settings["resp20"] * settings["q10"]^((Temper - 20.0) / 10)
     return (Respiration) #[g g^-1 d^-1]
 end
@@ -538,7 +545,8 @@ function getPhotosynthesis(
     height2,
     LevelOfGrid, #depth
     settings::Dict{String,Any},
-    dynamicData::Dict{Int16, DayData}
+    dynamicData::Dict{Int16, DayData},
+    tempProfile
 )
 
     waterdepth = getWaterDepth(day, LevelOfGrid, settings, dynamicData)
@@ -564,13 +572,21 @@ function getPhotosynthesis(
 
     #lightFactor_new = exp(-((lightPlantHour-mPhotoLight)^ 2)/(2*bPhotoLight^2))
 
-    # Temp at distWaterSurf (at LevelOfGrid)
-    tempEpi = dynamicData[day].tempEpi
-    tempHypo = dynamicData[day].tempHypo
-    mesoDepth = dynamicData[day].mesoDepth
-     
-    temp = getTemperatureProfile_depth(distWaterSurf, tempEpi, tempHypo, mesoDepth, k=5)
+    if tempProfile == true
+        # Temp at distWaterSurf (at LevelOfGrid)
+        tempEpi = dynamicData[day].tempEpi
+        tempHypo = dynamicData[day].tempHypo
+        mesoDepth = dynamicData[day].mesoDepth
+        # Temp from profile
+        temp = getTemperatureProfile_depth(distWaterSurf, dynamicData[day].tempEpi, dynamicData[day].tempHypo, dynamicData[day].mesoDepth, k=5)
+    else
+        # Temp from function
+        temp = getTemperature(day, settings, dynamicData) #Â°C
+    end
+    
+    # temp = getTemperatureProfile_depth(distWaterSurf, tempEpi, tempHypo, mesoDepth, k=5)
     # temp = getTemperature(day, settings, dynamicData) #Â°C
+
     tempFactor =
         (settings["sPhotoTemp"] * (temp^settings["pPhotoTemp"])) /
         ((temp^settings["pPhotoTemp"]) + (settings["hPhotoTemp"]^settings["pPhotoTemp"])) #Â°C
@@ -618,7 +634,8 @@ function getPhotosynthesisPLANTDay(
     Biomass2,
     LevelOfGrid,
     settings::Dict{String,Any},
-    dynamicData::Dict{Int16, DayData}
+    dynamicData::Dict{Int16, DayData},
+    tempProfile
 )
 
     daylength = getDaylength(day, settings, dynamicData)
@@ -638,7 +655,7 @@ function getPhotosynthesisPLANTDay(
                             j* height1,
                             Biomass1,Biomass2,
                             height1,height2,
-                            LevelOfGrid,settings,dynamicData,
+                            LevelOfGrid,settings,dynamicData, tempProfile,
                         )*1/11 #because it is calculated in 11 steps, to calc the mean
             end
         end
