@@ -156,6 +156,7 @@ function CHARISMA_biomass_parallel()
                 push!(settings, "years" => parse.(Int64,GeneralSettings["years"])[1]) #add "years" from GeneralSettings
                 push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
                 push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
+                push!(settings, "tempProfile" =>to_bool( GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
 
                 #Add Spec & Lake number to output
                 Spec_number_as_string=split(split(GeneralSettings["species"][s],".")[2],"_")[end]
@@ -172,10 +173,10 @@ function CHARISMA_biomass_parallel()
 
                 # Simulate environment
                 dynamicData = Dict{Int16, DayData}()
-                environment = simulateEnvironment(settings, dynamicData)
+                environment = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MesoFrac_dir)
 
                 # Get macrophytes in multiple depths
-                result = simulateMultipleDepth_parallel(depths,settings,dynamicData) #Biomass, Number, indWeight, Height,
+                result = simulateMultipleDepth_parallel(depths,settings,dynamicData, settings["tempProfile"]) #Biomass, Number, indWeight, Height,
                 # [depths][1=superInd][day*year,parameter]]
 
                 # Virtual Ecologist
