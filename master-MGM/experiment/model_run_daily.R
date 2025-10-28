@@ -8,13 +8,13 @@
 # ---------------------------------------------------------------------------------------------------
 
 getwd() # "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/MGM-scripte-data"
-setwd("master-MGM/experiment")
+setwd("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/experiment")
 
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
 setting <- "local" # "HPC"
-modelrun <- "chiem_test_R_daily" #Name of experiment
+modelrun <- "final_Chiem_Abts_Eib_1-5" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
@@ -24,10 +24,10 @@ tempProfile <- "true" # "false"
 HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
 MesoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MesoDepth_fraction.config.txt"
 
-species_id <- 1:2 # c(1:5)
+species_id <- 1:5 # c(1:5)
 species <- paste0("species_", species_id)
 
-lakes <- 6:7 # c(1:31)
+lakes <- c(6,1,7) # c(1:31)
 #nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
 detectable=1
 lakestemplate = "reallakes_simplifiedVersion"
@@ -35,7 +35,6 @@ lakestemplate = "reallakes_simplifiedVersion"
 # ---------------------------------------------------------------------------------------------------
 ## Julia and R setup ----
 # ---------------------------------------------------------------------------------------------------
-
 # CORES
 if (setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = nthreads) #Sets number of threads
 if (setting =="local") Sys.setenv(JULIA_NUM_THREADS = "1")
@@ -207,6 +206,7 @@ for (S in 1:length(scenarios)){
       df$speciesID <- species_id[s_ix]
       df$lakeID <- lakes[l_ix]
       df$day <- 1:365
+      df$scenario <- scenario_name
 
       all_df <- rbind(all_df, df)
     }
@@ -254,6 +254,7 @@ for (S in 1:length(scenarios)){
     df$speciesID <- species_id[s_ix]
     df$lakeID <- lakes[l_ix]
     df$day <- 1:365
+    df$scenario <- scenario_name
 
     # append to master dataframe
     all_env <- rbind(all_env, df)
