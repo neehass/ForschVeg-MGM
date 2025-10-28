@@ -24,7 +24,7 @@ thinning
 
 Returns: [superInd]
 """
-function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, tempProfile)
+function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, tempProfile::Bool)
     #simlog("Starting simulation.", settings)
 
     #Initialisation
@@ -747,7 +747,7 @@ end
 
 Simulates 1 depth and returns results in a sturctured manner
 """
-function simulate1Depth(depth, settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData}, tempProfile)
+function simulate1Depth(depth, settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData}, tempProfile::Bool)
     #println(depth)
     Res = simulate(depth, settings, dynamicData, tempProfile) # depth = LevelOfGrid, depths ion general.config.txt
     ResA = Res[1][:, :, 1] #superInd[day,parameter,year]
@@ -775,7 +775,7 @@ end #[day*year,parameter], [day*year,parameter]
 
 Simulates multiple depth and returns Res[depth][dataset][day,parameter]
 """
-function simulateMultipleDepth(depths,settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData}, tempProfile)
+function simulateMultipleDepth(depths,settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData}, tempProfile::Bool)
     Res = []
     for d in depths
         push!(Res, simulate1Depth(d,settings,dynamicData, tempProfile))
@@ -788,7 +788,7 @@ end
 
 Simulates multiple depth and returns Res[depth][dataset][day,parameter]
 """
-function simulateMultipleDepth_parallel(depths,settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData},tempProfile)
+function simulateMultipleDepth_parallel(depths,settings::Dict{String,Any}, dynamicData::Dict{Int16, DayData},tempProfile::Bool)
     Res = []
     de = zeros(length(depths))
     Threads.@threads for d in eachindex(depths)
@@ -817,7 +817,6 @@ function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int1
     tempEpi = Float64[]
     tempHypo = Float64[]
     mesoDepth = Float64[]
-    tempprofile = Float64[] #TODO
     irradiance = Float64[]
     waterlevel = Float64[]
     lightAttenuation = Float64[]

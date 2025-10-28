@@ -35,6 +35,7 @@ function defaultSettingsGeneral()
         "species" => (".\\input\\species\\CharaAspera_1.config.txt"),
         "lakes" => (".\\input\\lakes\\TurbidWarmLakeNutrientrich.config.txt"),
         "modelrun" => "test", #name of outputfolder
+        "tempProfile" => true, # whether to use temperature profile or not
         )
 end
 

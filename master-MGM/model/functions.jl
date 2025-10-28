@@ -43,6 +43,28 @@ function getDaylength(day, settings::Dict{String, Any}, dynamicData::Dict{Int16,
     return (dynamicData[day].daylength) #[h]
 end
 
+"""
+    getTemperature(day; settings; dynamicData)
+
+Temperature gets modeled with a cosine function
+
+Source: van Nes et al. (2003)
+
+Arguments used from settings: yearlength,tempDev,maxTemp,minTemp,tempDelay
+
+Result: Daily water temperature [°C]
+"""
+function getTemperature(day, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
+    if ismissing(dynamicData[day].temperature)
+        dynamicData[day].temperature =
+            settings["tempDev"] * (
+                settings["maxTemp"] -
+                ((settings["maxTemp"] - settings["minTemp"]) / 2) *
+                (1 + cos((2 * pi / settings["yearlength"]) * (day - settings["tempDelay"])))
+            )
+    end
+    return (dynamicData[day].temperature)
+end
 
 """
     getTemperature_Epi(day; settings; dynamicData)
@@ -449,7 +471,7 @@ end
 
 
 """
-    getRespiration(day, settings, dynamicData)
+    getRespiration(day, settings, dynamicData, tempProfile = ture/fasle)
 
 Temperature dependence of maintenance respiration is formulated using a Q10 of 2
 
@@ -461,7 +483,7 @@ Result: (Respiration) #[g g^-1 d^-1]
 """
 function getRespiration(day, height1, LevelOfGrid, 
                         settings::Dict{String, Any}, 
-                        dynamicData::Dict{Int16, DayData}, tempProfile) #DAILY VALUE
+                        dynamicData::Dict{Int16, DayData}, tempProfile::Bool) #DAILY VALUE
     
     # Temper = getTemperature(day, settings, dynamicData)
 
@@ -478,7 +500,7 @@ function getRespiration(day, height1, LevelOfGrid,
         Temper = getTemperatureProfile_depth(distPlantTopFromSurf, dynamicData[day].tempEpi, dynamicData[day].tempHypo, dynamicData[day].mesoDepth, k=5)
     else
         # Temp from function
-        Temper = getTemperature(day, settings, dynamicData) #Â°C
+        Temper = getTemperature_Epi(day, settings, dynamicData) #Â°C
     end
 
     Respiration = settings["resp20"] * settings["q10"]^((Temper - 20.0) / 10)
@@ -546,7 +568,7 @@ function getPhotosynthesis(
     LevelOfGrid, #depth
     settings::Dict{String,Any},
     dynamicData::Dict{Int16, DayData},
-    tempProfile
+    tempProfile::Bool
 )
 
     waterdepth = getWaterDepth(day, LevelOfGrid, settings, dynamicData)
@@ -581,7 +603,7 @@ function getPhotosynthesis(
         temp = getTemperatureProfile_depth(distWaterSurf, dynamicData[day].tempEpi, dynamicData[day].tempHypo, dynamicData[day].mesoDepth, k=5)
     else
         # Temp from function
-        temp = getTemperature(day, settings, dynamicData) #Â°C
+        temp = getTemperature_Epi(day, settings, dynamicData) #Â°C
     end
     
     # temp = getTemperatureProfile_depth(distWaterSurf, tempEpi, tempHypo, mesoDepth, k=5)
@@ -635,7 +657,7 @@ function getPhotosynthesisPLANTDay(
     LevelOfGrid,
     settings::Dict{String,Any},
     dynamicData::Dict{Int16, DayData},
-    tempProfile
+    tempProfile::Bool
 )
 
     daylength = getDaylength(day, settings, dynamicData)

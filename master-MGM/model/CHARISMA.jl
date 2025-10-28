@@ -10,6 +10,8 @@ cd(dirname(@__DIR__))
 pwd()
 
 #load packages
+using Pkg
+Pkg.add("HCubature")
 using
     HCubature, #for Integration
     DelimitedFiles, # for function writedlm, used to write output files
@@ -42,6 +44,9 @@ folder = GeneralSettings["modelrun"][1]
 
 # --- Simulation Loop ----------------------------------------------------------------------
 # Single Threaded Loop for model run for selected lakes, species and depths
+l = 1
+s = 1
+
 for l in 1:length(GeneralSettings["lakes"])
 
     println(GeneralSettings["lakes"][l])
@@ -55,6 +60,15 @@ for l in 1:length(GeneralSettings["lakes"])
         push!(settings, "years" => parse.(Int64,GeneralSettings["years"])[1]) #add "years" from GeneralSettings
         push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
         push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
+        push!(settings, "tempProfile" =>to_bool( GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
+
+        if !(settings["tempProfile"] isa Bool)
+            error("tempProfile must be a Boolean (true or false)")
+        elseif settings["tempProfile"] == true
+            println("Using temperature profile for simulation")
+        else
+            println("Using epilimnion temperature (surface temp) for simulation")
+        end
 
         dynamicData = Dict{Int16, DayData}()
 
@@ -63,7 +77,7 @@ for l in 1:length(GeneralSettings["lakes"])
         # Output: temp, irradiance, waterlevel, lightAttenuation
 
         # Get macrophytes in multiple depths
-        result = simulateMultipleDepth_parallel(depths,settings, dynamicData, tempProfile) #Biomass, Number, indWeight, Height,
+        result = simulateMultipleDepth_parallel(depths,settings, dynamicData, settings["tempProfile"]) #Biomass, Number, indWeight, Height,
         #  depths = LevelOfGrid
         # Save results as .csv files in new folder;
         writeOutput(settings, depths, environment, result, GeneralSettings, folder)

@@ -274,4 +274,15 @@ function getAreaGroup(area::Float64) # from settings["Areakm2"]
 end
 
 
- 
+ """
+ to_bool(x)
+
+ helpfunction to convert string to Bool
+ """
+function to_bool(x::String)
+    if lowercase(x) == "true"
+        return true
+    else
+        return false
+    end
+end
