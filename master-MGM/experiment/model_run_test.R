@@ -232,6 +232,7 @@ model2 <-julia_eval("CHARISMA_biomass_N_weight_hight_env()") #? 4 depths defined
 par_names <- c("Biomass", "Number", "indWeight", "Height")
 length(model2[[1]])
 
+# fraqge wie das mit mehreren seen und arten funktioniert?
 
 for(d in 1:4){
   print(paste("depth:", depths[d]))
@@ -241,6 +242,8 @@ for(d in 1:4){
   for(par in 1:4){
     print(paste("par:", par_names[par]))
     par <- res_depth[, par]
+
+    # speichern 
   }
   
 }
