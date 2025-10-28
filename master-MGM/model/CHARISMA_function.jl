@@ -379,8 +379,6 @@ Returns: Daily Biomass, Number of Individuals, indWeight, Height, for all lakes,
 
 """
 
-
-
 function CHARISMA_biomass_N_weight_hight_env()
 
         # Get Settings for selection of lakes, species & depth
