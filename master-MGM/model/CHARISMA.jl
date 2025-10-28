@@ -74,7 +74,7 @@ for l in 1:length(GeneralSettings["lakes"])
 
         # Get climate for default variables . !Gives just one year as environment is not yet changing between years
         environment = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MesoFrac_dir)
-        # Output: temp, irradiance, waterlevel, lightAttenuation
+        # tempprofile: tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation
 
         # Get macrophytes in multiple depths
         result = simulateMultipleDepth_parallel(depths,settings, dynamicData, settings["tempProfile"]) #Biomass, Number, indWeight, Height,
@@ -84,8 +84,6 @@ for l in 1:length(GeneralSettings["lakes"])
 
     end
 end
-
-
 
 """
 # Multi Threaded Loop for model run for selected lakes, species and depths

@@ -174,7 +174,8 @@ function CHARISMA_biomass_parallel()
                 # Simulate environment
                 dynamicData = Dict{Int16, DayData}()
                 environment = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MesoFrac_dir)
-
+                # tempprofile: tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation
+                
                 # Get macrophytes in multiple depths
                 result = simulateMultipleDepth_parallel(depths,settings,dynamicData, settings["tempProfile"]) #Biomass, Number, indWeight, Height,
                 # [depths][1=superInd][day*year,parameter]]
