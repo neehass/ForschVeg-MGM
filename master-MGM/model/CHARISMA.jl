@@ -34,10 +34,6 @@ GeneralSettings = parseconfigGeneral("./input/chiem.general.config.txt") # chiem
 
 depths = parse.(Float64, GeneralSettings["depths"])
 
-# --- Settings for lake fraction parameters (full path needed) -------------------------
-HypoFrac_dir = "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
-MesoFrac_dir = "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MesoDepth_fraction.config.txt"
-
 # --- Create output folder name ---------------------------------------------------------
 #folder = string(Dates.format(now(), "yyyy_m_d_HH_MM"))
 folder = GeneralSettings["modelrun"][1]  
@@ -60,7 +56,9 @@ for l in 1:length(GeneralSettings["lakes"])
         push!(settings, "years" => parse.(Int64,GeneralSettings["years"])[1]) #add "years" from GeneralSettings
         push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
         push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
-        push!(settings, "tempProfile" =>to_bool( GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
+        push!(settings, "tempProfile" =>to_bool(GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
+        push!(settings, "HypoFrac_dir" => GeneralSettings["HypoFrac_dir"][1]) # add HypoFrac_dir
+        push!(settings, "MesoFrac_dir" => GeneralSettings["MesoFrac_dir"][1])
 
         if !(settings["tempProfile"] isa Bool)
             error("tempProfile must be a Boolean (true or false)")
@@ -73,7 +71,7 @@ for l in 1:length(GeneralSettings["lakes"])
         dynamicData = Dict{Int16, DayData}()
 
         # Get climate for default variables . !Gives just one year as environment is not yet changing between years
-        environment = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MesoFrac_dir)
+        environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MesoFrac_dir"])
         # tempprofile: tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation
 
         # Get macrophytes in multiple depths

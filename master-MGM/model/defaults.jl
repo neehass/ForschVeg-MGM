@@ -36,6 +36,8 @@ function defaultSettingsGeneral()
         "lakes" => (".\\input\\lakes\\TurbidWarmLakeNutrientrich.config.txt"),
         "modelrun" => "test", #name of outputfolder
         "tempProfile" => true, # whether to use temperature profile or not
+        "HypoFrac_dir" => "./input/lakeFractionParameters/HypoTemp_fraction.config.txt",
+        "MesoFrac_dir" => "./input/lakeFractionParameters/MesoDepth_fraction.config.txt",
         )
 end
 
