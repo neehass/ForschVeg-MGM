@@ -11,7 +11,10 @@
 #* CHARISMA_biomass_parallel() : same output, but runs parallalised
 #* CHARISMA_biomass_parallel_lastNyears(): same output, but for multiple years
 #* CHARISMA_biomass_onedepth() : same output, but just for one depth
-#
+#* CHARISMA_biomass_N_weight_hight_env():  Daily Biomass, Number of Individuals, indWeight, Height, 
+    # for all lakes, species, and multiple depths in the last year of started simulation
+#* CHARISMA_biomass_N_weight_hight_env2()
+
 #Functions that where used during development of the code to test connection with R
 #* CHARISMA_test_15lakes_4depths()
 #* CHARISMA_parallel_test_15lakes_4depths()
@@ -157,7 +160,9 @@ function CHARISMA_biomass_parallel()
                 push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
                 push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
                 push!(settings, "tempProfile" =>to_bool( GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
-
+                push!(settings, "HypoFrac_dir" => GeneralSettings["HypoFrac_dir"][1]) # add HypoFrac_dir
+                push!(settings, "MesoFrac_dir" => GeneralSettings["MesoFrac_dir"][1])
+                
                 #Add Spec & Lake number to output
                 Spec_number_as_string=split(split(GeneralSettings["species"][s],".")[2],"_")[end]
                 Spec_number=parse(Int, Spec_number_as_string)
@@ -173,9 +178,9 @@ function CHARISMA_biomass_parallel()
 
                 # Simulate environment
                 dynamicData = Dict{Int16, DayData}()
-                environment = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MesoFrac_dir)
+                environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MesoFrac_dir"])
                 # tempprofile: tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation
-                
+
                 # Get macrophytes in multiple depths
                 result = simulateMultipleDepth_parallel(depths,settings,dynamicData, settings["tempProfile"]) #Biomass, Number, indWeight, Height,
                 # [depths][1=superInd][day*year,parameter]]
@@ -411,13 +416,16 @@ function CHARISMA_biomass_N_weight_hight_env()
                 push!(settings, "years" => parse.(Int64,GeneralSettings["years"])[1]) #add "years" from GeneralSettings
                 push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
                 push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
-
+                push!(settings, "tempProfile" =>to_bool( GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
+                push!(settings, "HypoFrac_dir" => GeneralSettings["HypoFrac_dir"][1]) # add HypoFrac_dir
+                push!(settings, "MesoFrac_dir" => GeneralSettings["MesoFrac_dir"][1])
+                
                 # Simulate environment
                 dynamicData = Dict{Int16, DayData}()
-                environment = simulateEnvironment(settings, dynamicData)
+                environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MesoFrac_dir"])
 
                 # Get macrophytes in multiple depths
-                result = simulateMultipleDepth(depths,settings,dynamicData) #Biomass, Number, indWeight, Height,
+                result = simulateMultipleDepth(depths,settings,dynamicData, settings["tempProfile"]) #Biomass, Number, indWeight, Height,
                 # [depths][1=superInd][day*year,parameter]]
 
                 # Extract result of last year
@@ -518,12 +526,6 @@ end
 
 
 #CHARISMA_biomass_N_weight_hight_env2("./input/lakes/lake_1.config.txt","./input/species/species_3.config.txt","-1.0","5")
-
-
-
-
-
-
 
 
 

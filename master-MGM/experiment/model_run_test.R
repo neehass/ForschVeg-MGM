@@ -17,18 +17,19 @@ setwd("master-MGM/experiment")
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
-setting = "local" # "HPC"
-modelrun = "chiem_test_R" #Name of experiment
-years = 10 #Number of years to get simulated [n]
-depths = c(-0.5, -1.5, -3.0, -5.0, -10, -20)
-yearsoutput = 2
-tempProfile = "true" # "false"
+setting <- "local" # "HPC"
+modelrun <- "chiem_test_R" #Name of experiment
+years <- 10 #Number of years to get simulated [n]
+depths <- c(-0.5, -1.5, -10, -20) # -3.0, -5.0, # only 4 depths possible here
+yearsoutput <- 2
+tempProfile <- "true" # "false"
 
-HypoFrac_dir = "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
-MesoFrac_dir = "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MesoDepth_fraction.config.txt"
+# (full path needed!)
+HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
+MesoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MesoDepth_fraction.config.txt"
 
-species_id= 5 # c(1:5)
-species = paste0("species_", species_id)
+species_id <- 5 # c(1:5)
+species <- paste0("species_", species_id)
 lakes <- 6 # c(1:31)
 #nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
 detectable=1
@@ -66,7 +67,8 @@ julia_library("CSV")
 julia_library("DataFrames")
 julia_library("StatsBase")
 
-# Packages
+
+# R Packages
 # install.packages(c("tidyverse", "DEoptim", "data.table", "here"))
 library(tidyverse)
 library(DEoptim)
@@ -99,7 +101,7 @@ if (setting =="local") {
   print(wd)
 }
 
-if (setting == "HPC"){
+if (setting == "HPC"){ # High Performance Computing — a server or cluster environment
   wd<-here::here()
   setwd(wd)
   print(wd)
@@ -116,7 +118,7 @@ julia_source("model/run_simulation.jl")
 julia_source("model/output.jl")
 
 # ---------------------------------------------------------------------------------------------------
-## Model run ----
+## Model run # Returns: Mean summer biomass for all lakes, species, and multiple depths ----
 # ---------------------------------------------------------------------------------------------------
 
 for (S in 1:length(scenarios)){
@@ -125,27 +127,27 @@ for (S in 1:length(scenarios)){
   scenario_name<-colnames(scenarios)[S]
   
   # adapt lake config files
-  for (N in 1:31){
-    # Import template for lakes
-    lak <- read.table(paste0(wd,"/input/template/lakes/lake_",N,".config.txt"), 
-                      header = F, comment.char="#")
+  # for (N in 1:31){
+  #   # Import template for lakes
+  #   lak <- read.table(paste0(wd,"/input/template/lakes/lake_",N,".config.txt"), 
+  #                     header = F, comment.char="#")
     
-    lak[lak$V1=="maxTemp",]$V2 <- sprintf("%.1f",
-                                          round((as.numeric(lak[lak$V1=="maxTemp",]$V2)+
-                                                   change[1]),1))
-    lak[lak$V1=="maxNutrient",]$V2 <- as.numeric(lak[lak$V1=="maxNutrient",]$V2)+
-      (as.numeric(lak[lak$V1=="maxNutrient",]$V2) *
-         change[2])
-    lak[lak$V1=="maxKd",]$V2 <- as.numeric(lak[lak$V1=="maxKd",]$V2)+
-      (as.numeric(lak[lak$V1=="maxKd",]$V2) *
-         change[3])
-    lak[lak$V1=="minKd",]$V2 <- lak[lak$V1=="maxKd",]$V2
+  #   lak[lak$V1=="maxTemp",]$V2 <- sprintf("%.1f",
+  #                                         round((as.numeric(lak[lak$V1=="maxTemp",]$V2)+
+  #                                                  change[1]),1))
+  #   lak[lak$V1=="maxNutrient",]$V2 <- as.numeric(lak[lak$V1=="maxNutrient",]$V2)+
+  #     (as.numeric(lak[lak$V1=="maxNutrient",]$V2) *
+  #        change[2])
+  #   lak[lak$V1=="maxKd",]$V2 <- as.numeric(lak[lak$V1=="maxKd",]$V2)+
+  #     (as.numeric(lak[lak$V1=="maxKd",]$V2) *
+  #        change[3])
+  #   lak[lak$V1=="minKd",]$V2 <- lak[lak$V1=="maxKd",]$V2
     
-    # Write adapted lake config file
-    data.table::fwrite(lak, 
-                       file=paste0(wd,"/input/lakes/lake_",N,".config.txt"), 
-                       col.names=F, sep = " ")
-  }
+  #   # Write adapted lake config file
+  #   data.table::fwrite(lak, 
+  #                      file=paste0(wd,"/input/lakes/lake_",N,".config.txt"), 
+  #                      col.names=F, sep = " ")
+  # }
   
   
   # Species loop  
@@ -168,7 +170,9 @@ for (S in 1:length(scenarios)){
       paste0("yearsoutput ", paste0(yearsoutput, collapse = " ")),
       paste0("lakes ", paste0(L1, collapse = " ")),
       paste0("species ", paste0(S1, collapse = " ")),
-      paste0("tempProfile ",  paste0(tempProfile, collapse = " "))
+      paste0("tempProfile ",  paste0(tempProfile, collapse = " ")),
+      paste0("HypoFrac_dir ",  paste0(HypoFrac_dir, collapse = " ")),
+      paste0("MesoFrac_dir ",  paste0(MesoFrac_dir, collapse = " "))
     )
     
     # save general.config-file
@@ -181,8 +185,10 @@ for (S in 1:length(scenarios)){
     # Run Model in julia
     model<-julia_eval("CHARISMA_biomass_parallel()") #? 4 depths defined in general.config.file?
     model<-as.data.table(model)
-    setnames(model, c("V1","V2","V3","V4","V5","V6"), c(depths,"speciesID","lakeID"))
     
+    setnames(model, c("V1","V2","V3","V4","V5","V6"), c(depths,"speciesID","lakeID")) # only 4 depths possible here
+    
+
     for (d in 1:4){
       for (l in 1:dim(model)[1]){
         if(model[l,d, with=F]<1) { #if Biomass too small - not found
@@ -200,16 +206,21 @@ for (S in 1:length(scenarios)){
     #                   file=paste0(wd,"/scenarios/220608_BLIZSCENARIOS_2/results/",
     #                              species[I],"_",scenario_name,"_scenario.txt"), 
     #                 col.names=T, sep = " ")
+
+    
     
     if(!dir.exists("output")){dir.create("output")}
     if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
     write.table(modelout, file = paste0(wd,"/output/",modelrun,"/result_species_",species[I],"_",scenario_name,".txt"), 
                 col.names = T, row.names = F)
+    # Returns: Mean summer biomass for all lakes, species, and multiple depths
     
   }
   
-  
-}
+} # total scenario loop end
+model<-julia_eval("CHARISMA_biomass_N_weight_hight_env()") #? 4 depths defined in general.config.file?
+    model<-as.data.table(model)
+
 
 #######################################################
 # # Rewrite lake files with base parameters -----------------------------------------
