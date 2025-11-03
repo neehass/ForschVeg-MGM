@@ -14,18 +14,18 @@ setwd("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scrip
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
 setting <- "local" # "HPC"
-modelrun <- "final_Chiem_Abts_Eib_1-5" #Name of experiment
+modelrun <- "final_Chiem_Abts_Eib_refSpec_T" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
-tempProfile <- "true" # "false"
+tempProfile <- "false" # "false"
 k <- 5
 
 # (full path needed!)
 HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
 MesoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MesoDepth_fraction.config.txt"
 
-species_id <- 1:5 
+species_id <- c(3,21,33,36,56,57)
 species <- paste0("species_", species_id)
 
 lakes <- c(6,1,7) # c(1:31)
@@ -176,6 +176,9 @@ for (S in 1:length(scenarios)){
   writeLines(text = to_print)
   writeLines(text = to_print,
             con = paste0(wd, "/input/general.config.txt"))
+            
+  if(!dir.exists("output")){dir.create("output")}
+  if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
   writeLines(text = to_print,
             con =paste0(wd,"/output/",modelrun,"/general.config.txt"))
   # ---------------------------------------------------------------------------
@@ -216,8 +219,6 @@ for (S in 1:length(scenarios)){
 
   # unique(all_df$speciesID)
   # View(all_df)
-  if(!dir.exists("output")){dir.create("output")}
-  if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
   write.table(all_df, file = paste0(wd,"/output/",modelrun,"/all_res_biomass_number_weight_height_daily.txt"), 
               col.names = T, row.names = F) 
 

@@ -14,9 +14,12 @@ source("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scri
 
 # working directory
 getwd()
-dir <- "master-MGM/output/final_Chiem_Abts_Eib_1-5"
-dir <- "output/final_Chiem_Abts_Eib_1-5"
-setwd(dir)
+tprof <- "master-MGM/output/final_Chiem_Abts_Eib_refSpec_Tprof"
+ohneTprof <- "master-MGM/output/final_Chiem_Abts_Eib_refSpec_T"
+
+# !! Vergelich 
+# dir <- "output/final_Chiem_Abts_Eib_1-5"
+# setwd(dir)
 
 # load data
 res <- read.table("all_res_biomass_number_weight_height_daily.txt", header =TRUE)
