@@ -24,6 +24,7 @@ years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
 tempProfile <- "true" # "false"
+k <- 5 # steepness factor for tempprofile
 
 # (full path needed!)
 HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"

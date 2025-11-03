@@ -218,8 +218,11 @@ end
     in getPhotosynthesis integrated
 
 """
-function getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth; k=5)
-    return tempHypo .+ (tempEpi - tempHypo) ./ (1 .+ exp.((abs.(depth) .- abs.(mesoDepth)) ./ k))
+function getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth; k)
+    t = tempHypo .+ (tempEpi - tempHypo) ./ (1 .+ exp.((abs.(depth) .- abs.(mesoDepth)) ./ k))
+    t[1] = tempEpi
+    t[end] = tempHypo
+    return t
 end
 
 
@@ -497,7 +500,9 @@ function getRespiration(day, height1, LevelOfGrid,
         tempHypo = dynamicData[day].tempHypo
         mesoDepth = dynamicData[day].mesoDepth
         # Temp from profile
-        Temper = getTemperatureProfile_depth(distPlantTopFromSurf, dynamicData[day].tempEpi, dynamicData[day].tempHypo, dynamicData[day].mesoDepth, k=5)
+        Temper = getTemperatureProfile_depth(distPlantTopFromSurf, dynamicData[day].tempEpi, 
+                                            dynamicData[day].tempHypo, dynamicData[day].mesoDepth,
+                                             settings["k"])
     else
         # Temp from function
         Temper = getTemperature_Epi(day, settings, dynamicData) #Â°C
@@ -600,7 +605,8 @@ function getPhotosynthesis(
         tempHypo = dynamicData[day].tempHypo
         mesoDepth = dynamicData[day].mesoDepth
         # Temp from profile
-        temp = getTemperatureProfile_depth(distWaterSurf, dynamicData[day].tempEpi, dynamicData[day].tempHypo, dynamicData[day].mesoDepth, k=5)
+        temp = getTemperatureProfile_depth(distWaterSurf, dynamicData[day].tempEpi, 
+                    dynamicData[day].tempHypo, dynamicData[day].mesoDepth, settings["k"])
     else
         # Temp from function
         temp = getTemperature_Epi(day, settings, dynamicData) #Â°C

@@ -159,6 +159,7 @@ function CHARISMA_biomass_parallel()
                 push!(settings, "years" => parse.(Int64,GeneralSettings["years"])[1]) #add "years" from GeneralSettings
                 push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
                 push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
+                push!(settings, "k" =>  parse.(Int64,GeneralSettings["k"][1])) # seepness factor for temp profile
                 push!(settings, "tempProfile" =>to_bool( GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
                 push!(settings, "HypoFrac_dir" => GeneralSettings["HypoFrac_dir"][1]) # add HypoFrac_dir
                 push!(settings, "MesoFrac_dir" => GeneralSettings["MesoFrac_dir"][1])
@@ -415,6 +416,7 @@ function CHARISMA_biomass_N_weight_hight_env()
                 push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
                 push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
                 push!(settings, "tempProfile" =>to_bool( GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
+                push!(settings, "k" =>  parse.(Int64,GeneralSettings["k"][1])) # steepness factor for temp profile
                 push!(settings, "HypoFrac_dir" => GeneralSettings["HypoFrac_dir"][1]) # add HypoFrac_dir
                 push!(settings, "MesoFrac_dir" => GeneralSettings["MesoFrac_dir"][1])
                 
