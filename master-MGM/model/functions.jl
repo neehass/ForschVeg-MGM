@@ -218,10 +218,12 @@ end
     in getPhotosynthesis integrated
 
 """
-function getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth; k)
+function getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth, k)
     t = tempHypo .+ (tempEpi - tempHypo) ./ (1 .+ exp.((abs.(depth) .- abs.(mesoDepth)) ./ k))
-    t[1] = tempEpi
-    t[end] = tempHypo
+    if length(depth) > 1
+        t[1] = tempEpi
+        t[end] = tempHypo
+    end
     return t
 end
 

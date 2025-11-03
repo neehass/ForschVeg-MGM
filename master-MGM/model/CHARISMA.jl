@@ -11,12 +11,16 @@ pwd()
 
 #load packages
 using Pkg
-Pkg.add("HCubature")
+# Pkg.add("HCubature") 
+# Pkg.add("DataFrames")
+
 using
     HCubature, #for Integration
     DelimitedFiles, # for function writedlm, used to write output files
     Dates, #to create output folder
     Distributions, Random #for killWithProbability
+using CSV
+using DataFrames
 
 # Include functions
 include("structs.jl")
@@ -57,6 +61,7 @@ for l in 1:length(GeneralSettings["lakes"])
         push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1]) #add "years" from GeneralSettings
         push!(settings, "modelrun" => GeneralSettings["modelrun"][1]) #add "modelrun" from GeneralSettings
         push!(settings, "tempProfile" =>to_bool(GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
+        push!(settings, "k" =>  parse.(Int64,GeneralSettings["k"][1])) # seepness factor for temp profile
         push!(settings, "HypoFrac_dir" => GeneralSettings["HypoFrac_dir"][1]) # add HypoFrac_dir
         push!(settings, "MesoFrac_dir" => GeneralSettings["MesoFrac_dir"][1])
 
