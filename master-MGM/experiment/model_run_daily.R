@@ -42,7 +42,6 @@ if (setting =="local") Sys.setenv(JULIA_NUM_THREADS = "1")
 Sys.getenv("JULIA_NUM_THREADS")
 Sys.getenv()
 
-
 # Setup integration of julia
 # install.packages("JuliaCall")
 library(JuliaCall)
@@ -53,7 +52,6 @@ julia <- julia_setup(verbose = T, install = T)
 julia_eval("Threads.nthreads()") #check N threads
 #julia_command("Threads.nthreads()")
 
-
 # Load julia packages
 #julia_library("HCubature")
 julia_library("DelimitedFiles")
@@ -63,7 +61,6 @@ julia_library("Random")
 julia_library("CSV")
 julia_library("DataFrames")
 julia_library("StatsBase")
-
 
 # R Packages
 # install.packages(c("tidyverse", "DEoptim", "data.table", "here"))
@@ -119,7 +116,7 @@ julia_source("model/output.jl")
 # Returns: Daily Biomass, Number of Individuals, indWeight, Height, 
 # for all lakes, species, and multiple depths in the last year of started simulation
 # ---------------------------------------------------------------------------
-# ! Scenario loop wegelassen
+
 for (S in 1:length(scenarios)){
   
   # lake scenario change
@@ -170,6 +167,7 @@ for (S in 1:length(scenarios)){
     paste0("lakes ", paste0(L1, collapse = " ")),
     paste0("species ", paste0(S1, collapse = " ")),
     paste0("tempProfile ",  paste0(tempProfile, collapse = " ")),
+     paste0("k ",  paste0(k, collapse = " ")),
     paste0("HypoFrac_dir ",  paste0(HypoFrac_dir, collapse = " ")),
     paste0("MesoFrac_dir ",  paste0(MesoFrac_dir, collapse = " "))
   )
@@ -178,6 +176,8 @@ for (S in 1:length(scenarios)){
   writeLines(text = to_print)
   writeLines(text = to_print,
             con = paste0(wd, "/input/general.config.txt"))
+  writeLines(text = to_print,
+            con =paste0(wd,"/output/",modelrun,"/general.config.txt"))
   # ---------------------------------------------------------------------------
   # Model run -------------
   model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")
