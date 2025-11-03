@@ -7,12 +7,12 @@ library(patchwork)
 T_profile <- function(z, T_epi, T_hypo, z0, k) {
   t <- T_hypo + (T_epi - T_hypo) / (1+exp((abs(z) - abs(z0)) / k))
   t[1] <- T_epi
-  t[length(t)] <- T_hypo
+  #t[length(t)] <- T_hypo
   return(t)
 }
 
 # ---- Plot results -------------------------------
-func_plot_macro <- function(macrodata, speciesID_nam, name, days, scenario) {
+func_plot_macroDay <- function(macrodata, speciesID_nam, name, days, scenario) {
     
     # Plot
     p_macro <- ggplot(data = macrodata, aes(x = day, y = biomass, 
@@ -27,11 +27,32 @@ func_plot_macro <- function(macrodata, speciesID_nam, name, days, scenario) {
     # p_macro
 
     # Save
-    ggsave(paste0(name, "_macrophytes.png"), plot = p_macro, width = 10, height = 8)
+    ggsave(paste0(name, "_macrophytesDay.png"), plot = p_macro, width = 10, height = 8)
 
 
 }
 
+func_plot_macroDepth <- function(macrodata, speciesID_nam, name, days, scenario) {
+     macrodata$depth <- as.numeric(as.character(macrodata$depth))
+    p_macro <- ggplot(data = macrodata, aes(x = depth, y = biomass, 
+        color = as.factor(day), group = as.factor(day))) +
+      geom_line() +
+      theme_bw() +
+        theme(legend.position = "none") +
+      labs(title = paste("Biomass per Species per Depth:",name,
+            "\n(grouped by day)",
+            "\nScenario: ", scenario), 
+      x = "Depth [m]", y = "Biomass") + 
+      facet_wrap(~ speciesID, labeller = labeller(speciesID = speciesID_nam))+
+      scale_x_reverse()
+  # p_macro
+
+    # Save
+    ggsave(paste0(name, "_macrophytesDepth.png"), plot = p_macro, width = 10, height = 8)
+
+}
+
+# plot ENV -----------------------------------
 func_plot_env <- function(envdata, name, days, scenario){
     # --- Env 
     p_temp <- ggplot(envdata, aes(x = day)) +
@@ -123,6 +144,9 @@ func_plot_Tprofile <- function(envdata, depth, name, days, scenario, k){
             scale_color_manual(values = c("max" = "red", "mid" =  "orange", "min" = "blue"),
               labels = c("Max Temp.", "mean Temp.", "Min. Temp"),
               name = "Parameter") + theme_bw() +
+            annotate("text", x = max(prof_max)-2, y = depth, 
+                label = paste("steepness parameter \nk = ", k), 
+                color = "black", size = 3) +
             labs(
               title = paste("Temperature Profile: ",name,
                 "\nat the max, min and mean Temp. of timespan \nDays: ", dmax[1] , dmin[1], 
