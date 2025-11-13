@@ -87,7 +87,7 @@ function writeOutputEnvironmentSettings(
     #cd(dirname)
     writedlm("TempEpi.csv", Env[1], ',')
     writedlm("TempHypo.csv", Env[2], ',')
-    writedlm("mesoDepth.csv", Env[3], ',')
+    writedlm("metaDepth.csv", Env[3], ',')
 
     writedlm("Irradiance.csv", Env[4], ',')
     writedlm("Waterlevel.csv", Env[5], ',')

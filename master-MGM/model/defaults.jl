@@ -38,7 +38,7 @@ function defaultSettingsGeneral()
         "tempProfile" => true, # whether to use temperature profile or not
         "k" => 5, # set steepness parameter for temp profile 
         "HypoFrac_dir" => "./input/lakeFractionParameters/HypoTemp_fraction.config.txt",
-        "MesoFrac_dir" => "./input/lakeFractionParameters/MesoDepth_fraction.config.txt",
+        "MetaFrac_dir" => "./input/lakeFractionParameters/MetaDepth_fraction.config.txt",
         )
 end
 

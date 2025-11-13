@@ -22,8 +22,8 @@ Base.@kwdef mutable struct DayData
         # getTemperature_Hypo_mean(day, settings::Dict{String, Any})
         tempHypo::Union{Missing, Float64} = missing
 
-        # getMesolimnion_Depth_mean(day, settings::Dict{String, Any})
-        mesoDepth::Union{Missing, Float64} = missing
+        # getMetalimnion_Depth_mean(day, settings::Dict{String, Any})
+        metaDepth::Union{Missing, Float64} = missing
 
         # getDaylength(day, settings::Dict{String, Any})
         daylength::Union{Missing, Float64} = missing

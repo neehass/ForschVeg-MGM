@@ -813,10 +813,10 @@ Arguments used from settings: yearlength, ...
 Returns: temp, irradiance, waterlevel, lightAttenuation []
 """
 
-function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, HypoFrac_dir::String, MesoFrac_dir::String) # DayData in structs.jl
+function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, HypoFrac_dir::String, MetaFrac_dir::String) # DayData in structs.jl
     tempEpi = Float64[]
     tempHypo = Float64[]
-    mesoDepth = Float64[]
+    metaDepth = Float64[]
     irradiance = Float64[]
     waterlevel = Float64[]
     lightAttenuation = Float64[]
@@ -833,15 +833,15 @@ function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int1
         end
 
     #end
-    # seperate loop for mesolimnion depth
+    # seperate loop for metalimnion depth
         for d = 1:settings["yearlength"]
             # dynamicData[d] = DayData() <-- sonst wird überschreiben!
-            push!(mesoDepth, getMesolimnion_Depth_area(d, tempEpi, tempHypo, settings, dynamicData, MesoFrac_dir))
-            #push!(mesoDepth, getMesolimnion_Depth_mean(d, tempEpi, tempHypo, settings, dynamicData)) 
+            push!(metaDepth, getMetalimnion_Depth_area(d, tempEpi, tempHypo, settings, dynamicData, MetaFrac_dir))
+            #push!(metaDepth, getMetalimnion_Depth_mean(d, tempEpi, tempHypo, settings, dynamicData)) 
             
            # Tempertureprofile will be simulated in depths needed (in simulate function)
         end
 
-    return (tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation)
+    return (tempEpi, tempHypo, metaDepth, irradiance, waterlevel, lightAttenuation)
 end
 

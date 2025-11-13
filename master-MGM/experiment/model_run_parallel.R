@@ -28,7 +28,7 @@ k <- 5 # steepness factor for tempprofile
 
 # (full path needed!)
 HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
-MesoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MesoDepth_fraction.config.txt"
+MetaFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MetaDepth_fraction.config.txt"
 
 species_id <- 1:2 # c(1:5)
 species <- paste0("species_", species_id)
@@ -177,7 +177,7 @@ for (S in 1:length(scenarios)){
       paste0("species ", paste0(S1, collapse = " ")),
       paste0("tempProfile ",  paste0(tempProfile, collapse = " ")),
       paste0("HypoFrac_dir ",  paste0(HypoFrac_dir, collapse = " ")),
-      paste0("MesoFrac_dir ",  paste0(MesoFrac_dir, collapse = " "))
+      paste0("MetaFrac_dir ",  paste0(MetaFrac_dir, collapse = " "))
     )
     
     # save general.config-file

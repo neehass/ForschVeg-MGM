@@ -23,7 +23,7 @@ k <- 5
 
 # (full path needed!)
 HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
-MesoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MesoDepth_fraction.config.txt"
+MetaFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MetaDepth_fraction.config.txt"
 
 species_id <- c(3,21,33,36,56,57)
 species <- paste0("species_", species_id)
@@ -169,7 +169,7 @@ for (S in 1:length(scenarios)){
     paste0("tempProfile ",  paste0(tempProfile, collapse = " ")),
      paste0("k ",  paste0(k, collapse = " ")),
     paste0("HypoFrac_dir ",  paste0(HypoFrac_dir, collapse = " ")),
-    paste0("MesoFrac_dir ",  paste0(MesoFrac_dir, collapse = " "))
+    paste0("MetaFrac_dir ",  paste0(MetaFrac_dir, collapse = " "))
   )
 
   # save general.config-file
@@ -223,10 +223,10 @@ for (S in 1:length(scenarios)){
               col.names = T, row.names = F) 
 
   # save environment data ------------------------------------------------------
-  # tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation
+  # tempEpi, tempHypo, metaDepth, irradiance, waterlevel, lightAttenuation
   comb_env <- seq(2, length(model2), by = 2)
   all_env <- data.frame()
-  env_par <-  c("tempEpi", "tempHypo", "mesoDepth", "irradiance", "waterlevel", "lightAttenuation")
+  env_par <-  c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
 
   for(pos in 1:length(comb_l_s)){
 
@@ -293,7 +293,7 @@ for (S in 1:length(scenarios)){
 #       paste0("species ", S1),
 #       paste0("tempProfile ", tempProfile),
 #       paste0("HypoFrac_dir ", HypoFrac_dir),
-#       paste0("MesoFrac_dir ", MesoFrac_dir)
+#       paste0("MetaFrac_dir ", MetaFrac_dir)
 #     )
     
 #     # save general.config-file

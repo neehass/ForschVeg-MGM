@@ -60,10 +60,10 @@ lak_group =  settings["AreaGroup"]
 
 # ---- 3) test the environment simulation -----------------------------
 HypoFrac_dir = "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
-MesoFrac_dir = "./input/lakeFractionParameters/MesoDepth_fraction.config.txt"
+MetaFrac_dir = "./input/lakeFractionParameters/MetaDepth_fraction.config.txt"
 
 dynamicData = Dict{Int16, DayData}()
-env = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MesoFrac_dir)
+env = simulateEnvironment(settings, dynamicData, HypoFrac_dir, MetaFrac_dir)
 
 keys(dynamicData)
 
@@ -73,7 +73,7 @@ dynamicData[5].tempEpi
 
 sim_tempEpi = [dynamicData[d].tempEpi for d in sort(collect(keys(dynamicData)))] # 356 days
 sim_tempHypo = [dynamicData[d].tempHypo for d in sort(collect(keys(dynamicData)))]
-sim_mesoDepth = [dynamicData[d].mesoDepth for d in sort(collect(keys(dynamicData)))]
+sim_metaDepth = [dynamicData[d].metaDepth for d in sort(collect(keys(dynamicData)))]
 
 # ---- 4) plot: check the results -----------------------------------
 plot(1:365, sim_tempEpi, 
@@ -81,8 +81,8 @@ plot(1:365, sim_tempEpi,
 plot!(1:365, sim_tempHypo, label = "Hypo", legend = :topright)
 savefig("./plots/1st_Temperature_Epi_Hypo.png")
 
-plot(1:365, sim_mesoDepth, 
-    label = "mesoDepth", title = lak_nam * " - Epi & Hypo Temperature (" * lak_group * ")", xlabel = "Day of the year", ylabel = "Depth [m]", legend = :topright)
+plot(1:365, sim_metaDepth, 
+    label = "metaDepth", title = lak_nam * " - Epi & Hypo Temperature (" * lak_group * ")", xlabel = "Day of the year", ylabel = "Depth [m]", legend = :topright)
 savefig("./plots/1st_Temperature_Epi_Hypo.png")
 
 # ---- 5) test getTemperatureProfile_depth() -----------------------------
@@ -90,14 +90,14 @@ day = 150
 depth = -5 # depth where temp is needed
 tempEpi = dynamicData[day].tempEpi
 tempHypo = dynamicData[day].tempHypo
-mesoDepth = dynamicData[day].mesoDepth
-getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth, k=5)
+metaDepth = dynamicData[day].metaDepth
+getTemperatureProfile_depth(depth, tempEpi, tempHypo, metaDepth, k=5)
 
 # ---- 6) plot profile at distinct days -----------------------------
 depths_profile = collect(0:-5:settings["lakeDepth"]) # start:step:stop
 days_profile = [50, 150, 250, 350] # days to plot
 for day in days_profile
-    temp_profile = [getTemperatureProfile_depth(depth, dynamicData[day].tempEpi, dynamicData[day].tempHypo, dynamicData[day].mesoDepth, k=5) for depth in depths_profile]
+    temp_profile = [getTemperatureProfile_depth(depth, dynamicData[day].tempEpi, dynamicData[day].tempHypo, dynamicData[day].metaDepth, k=5) for depth in depths_profile]
     plot(temp_profile, depths_profile, 
         label = "Day " * string(day), 
         title = lak_nam * " - Temperature Profile at distinct days (" * lak_group * ")", 

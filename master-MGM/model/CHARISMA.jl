@@ -63,7 +63,7 @@ for l in 1:length(GeneralSettings["lakes"])
         push!(settings, "tempProfile" =>to_bool(GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
         push!(settings, "k" =>  parse.(Int64,GeneralSettings["k"][1])) # seepness factor for temp profile
         push!(settings, "HypoFrac_dir" => GeneralSettings["HypoFrac_dir"][1]) # add HypoFrac_dir
-        push!(settings, "MesoFrac_dir" => GeneralSettings["MesoFrac_dir"][1])
+        push!(settings, "MetaFrac_dir" => GeneralSettings["MetaFrac_dir"][1])
 
         if !(settings["tempProfile"] isa Bool)
             error("tempProfile must be a Boolean (true or false)")
@@ -76,8 +76,8 @@ for l in 1:length(GeneralSettings["lakes"])
         dynamicData = Dict{Int16, DayData}()
 
         # Get climate for default variables . !Gives just one year as environment is not yet changing between years
-        environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MesoFrac_dir"])
-        # tempprofile: tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation
+        environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MetaFrac_dir"])
+        # tempprofile: tempEpi, tempHypo, metaDepth, irradiance, waterlevel, lightAttenuation
 
         # Get macrophytes in multiple depths
         result = simulateMultipleDepth_parallel(depths,settings, dynamicData, settings["tempProfile"]) #Biomass, Number, indWeight, Height,

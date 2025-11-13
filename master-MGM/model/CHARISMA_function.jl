@@ -162,7 +162,7 @@ function CHARISMA_biomass_parallel()
                 push!(settings, "k" =>  parse.(Int64,GeneralSettings["k"][1])) # seepness factor for temp profile
                 push!(settings, "tempProfile" =>to_bool( GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
                 push!(settings, "HypoFrac_dir" => GeneralSettings["HypoFrac_dir"][1]) # add HypoFrac_dir
-                push!(settings, "MesoFrac_dir" => GeneralSettings["MesoFrac_dir"][1])
+                push!(settings, "MetaFrac_dir" => GeneralSettings["MetaFrac_dir"][1])
                 
                 #Add Spec & Lake number to output
                 Spec_number_as_string=split(split(GeneralSettings["species"][s],".")[2],"_")[end]
@@ -179,8 +179,8 @@ function CHARISMA_biomass_parallel()
 
                 # Simulate environment
                 dynamicData = Dict{Int16, DayData}()
-                environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MesoFrac_dir"])
-                # tempprofile: tempEpi, tempHypo, mesoDepth, irradiance, waterlevel, lightAttenuation
+                environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MetaFrac_dir"])
+                # tempprofile: tempEpi, tempHypo, metaDepth, irradiance, waterlevel, lightAttenuation
 
                 # Get macrophytes in multiple depths
                 result = simulateMultipleDepth_parallel(depths,settings,dynamicData, settings["tempProfile"]) #Biomass, Number, indWeight, Height,
@@ -418,11 +418,11 @@ function CHARISMA_biomass_N_weight_hight_env()
                 push!(settings, "tempProfile" =>to_bool( GeneralSettings["tempProfile"][1])) # add "tempProfile" true or false
                 push!(settings, "k" =>  parse.(Int64,GeneralSettings["k"][1])) # steepness factor for temp profile
                 push!(settings, "HypoFrac_dir" => GeneralSettings["HypoFrac_dir"][1]) # add HypoFrac_dir
-                push!(settings, "MesoFrac_dir" => GeneralSettings["MesoFrac_dir"][1])
+                push!(settings, "MetaFrac_dir" => GeneralSettings["MetaFrac_dir"][1])
                 
                 # Simulate environment
                 dynamicData = Dict{Int16, DayData}()
-                environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MesoFrac_dir"])
+                environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MetaFrac_dir"])
 
                 # Get macrophytes in multiple depths
                 result = simulateMultipleDepth(depths,settings,dynamicData, settings["tempProfile"]) #Biomass, Number, indWeight, Height,

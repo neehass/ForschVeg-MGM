@@ -156,45 +156,45 @@ end
 
 
 """
-    getMesolimnion_Depth_mean(day; settings; dynamicData)
+    getmetalimnion_Depth_mean(day; settings; dynamicData)
     Fmin = 0.51 by mean 
 """
-function getMesolimnion_Depth_mean(day, tempHypo, tempEpi, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
-    if ismissing(dynamicData[day].mesoDepth)
+function getMetalimnion_Depth_mean(day, tempHypo, tempEpi, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData})
+    if ismissing(dynamicData[day].metaDepth)
        # get delay day, 2nd point where tempEpi and tempHypo are equal / have smallest diff
         dif = abs.(tempEpi .- tempHypo)
         delay_day = sortperm(dif)[2]  # 2nd day where temperature difference is minimal
         Tepi_max = maximum(tempEpi)
         Thypo_max = maximum(tempHypo)
-        # calculate max MesoDepth by fraction and Temp diff
+        # calculate max metaDepth by fraction and Temp diff
         Fmin = 0.51
         depth = settings["depth"]
         # depth = -60
         Z0_max = (Fmin * depth) * (abs.(Thypo_max - Tepi_max)/Tepi_max)
 
         # Compute temperature using cosine-based seasonal model
-        mesoDepth = (Z0_max/2) * (1 + cos((2 * pi / settings["yearlength"]) * (day - delay_day - settings["yearlength"]/2))) # * (day - delay_day - yearlength/2)
-        dynamicData[day].mesoDepth = mesoDepth
+        metaDepth = (Z0_max/2) * (1 + cos((2 * pi / settings["yearlength"]) * (day - delay_day - settings["yearlength"]/2))) # * (day - delay_day - yearlength/2)
+        dynamicData[day].metaDepth = metaDepth
     end
-    return (dynamicData[day].mesoDepth)
+    return (dynamicData[day].metaDepth)
 end
 
 """
-    getMesolimnion_Depth_area(day; settings; dynamicData)
+    getmetalimnion_Depth_area(day; settings; dynamicData)
     by area group
 """
-function getMesolimnion_Depth_area(day, tempEpi, tempHypo, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, MesoFrac_dir::String)
-     MesoFrac = CSV.read(MesoFrac_dir, DataFrame) 
+function getMetalimnion_Depth_area(day, tempEpi, tempHypo, settings::Dict{String, Any}, dynamicData::Dict{Int16, DayData}, MetaFrac_dir::String)
+     metaFrac = CSV.read(MetaFrac_dir, DataFrame) 
 
-    if ismissing(dynamicData[day].mesoDepth)
+    if ismissing(dynamicData[day].metaDepth)
        # get delay day, 2nd point where tempEpi and tempHypo are equal / have smallest diff
         dif = abs.(tempEpi .- tempHypo)
         delay_day = sortperm(dif)[2]  # 2nd day where temperature difference is minimal
         Tepi_max = maximum(tempEpi)
         Thypo_max = maximum(tempHypo)
 
-        # calculate max MesoDepth by fraction and Temp diff
-        Fmin = MesoFrac.min[MesoFrac.AreaGroup .== settings["AreaGroup"]][1]
+        # calculate max metaDepth by fraction and Temp diff
+        Fmin = metaFrac.min[metaFrac.AreaGroup .== settings["AreaGroup"]][1]
         depth = settings["lakeDepth"]
 
         z0_max = (Fmin * depth) * (abs.(Thypo_max - Tepi_max)/Tepi_max)
@@ -202,24 +202,24 @@ function getMesolimnion_Depth_area(day, tempEpi, tempHypo, settings::Dict{String
         # Compute temperature using cosine-based seasonal model
         z0 = (z0_max/2) * (1 + cos((2 * pi / settings["yearlength"]) * (day - delay_day - settings["yearlength"]/2))) # * (day - delay_day - yearlength/2)
         
-        dynamicData[day].mesoDepth = z0
+        dynamicData[day].metaDepth = z0
     end
-    return (dynamicData[day].mesoDepth)
+    return (dynamicData[day].metaDepth)
 end
 
 """
-    getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth, k=5)
+    getTemperatureProfile_depth(depth, tempEpi, tempHypo, metaDepth, k=5)
 
     get temp at distinct depth (LevelOfGrid/distWaterSurf)
-    based on tempEpi, tempHypo, mesoDepth, k
+    based on tempEpi, tempHypo, metaDepth, k
     k = steepness factor
     default k = 5
 
     in getPhotosynthesis integrated
 
 """
-function getTemperatureProfile_depth(depth, tempEpi, tempHypo, mesoDepth, k)
-    t = tempHypo .+ (tempEpi - tempHypo) ./ (1 .+ exp.((abs.(depth) .- abs.(mesoDepth)) ./ k))
+function getTemperatureProfile_depth(depth, tempEpi, tempHypo, metaDepth, k)
+    t = tempHypo .+ (tempEpi - tempHypo) ./ (1 .+ exp.((abs.(depth) .- abs.(metaDepth)) ./ k))
     if length(depth) > 1
         t[1] = tempEpi
         t[end] = tempHypo
@@ -500,10 +500,10 @@ function getRespiration(day, height1, LevelOfGrid,
         # Temp at distWaterSurf (at LevelOfGrid)
         tempEpi = dynamicData[day].tempEpi
         tempHypo = dynamicData[day].tempHypo
-        mesoDepth = dynamicData[day].mesoDepth
+        metaDepth = dynamicData[day].metaDepth
         # Temp from profile
         Temper = getTemperatureProfile_depth(distPlantTopFromSurf, dynamicData[day].tempEpi, 
-                                            dynamicData[day].tempHypo, dynamicData[day].mesoDepth,
+                                            dynamicData[day].tempHypo, dynamicData[day].metaDepth,
                                              settings["k"])
     else
         # Temp from function
@@ -605,16 +605,16 @@ function getPhotosynthesis(
         # Temp at distWaterSurf (at LevelOfGrid)
         tempEpi = dynamicData[day].tempEpi
         tempHypo = dynamicData[day].tempHypo
-        mesoDepth = dynamicData[day].mesoDepth
+        metaDepth = dynamicData[day].metaDepth
         # Temp from profile
         temp = getTemperatureProfile_depth(distWaterSurf, dynamicData[day].tempEpi, 
-                    dynamicData[day].tempHypo, dynamicData[day].mesoDepth, settings["k"])
+                    dynamicData[day].tempHypo, dynamicData[day].metaDepth, settings["k"])
     else
         # Temp from function
         temp = getTemperature_Epi(day, settings, dynamicData) #Â°C
     end
     
-    # temp = getTemperatureProfile_depth(distWaterSurf, tempEpi, tempHypo, mesoDepth, k=5)
+    # temp = getTemperatureProfile_depth(distWaterSurf, tempEpi, tempHypo, metaDepth, k=5)
     # temp = getTemperature(day, settings, dynamicData) #Â°C
 
     tempFactor =
