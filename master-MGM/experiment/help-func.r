@@ -2,6 +2,38 @@
 # Model run and Visual
 library(ggplot2)
 library(patchwork)
+set.seed(42)
+
+# --- select species ----------------------------------------
+# 14xxx oligotroph
+# 15xxx mesotroph
+# 16xxx eutroph
+
+# random selection of certain number (n) per species group
+
+func_sel_spec <- function(n, species_path){
+    files <- list.files(species_path)
+    # select groups 
+    oli <- files[grepl("species_14\\d*", files)]
+    meso <- files[grepl("species_15\\d*", files)]
+    eut <- files[grepl("species_16\\d*", files)]
+
+
+
+    oli_n  <- sample(oli,  min(n, length(oli)))
+    meso_n <- sample(meso, min(n, length(meso)))
+    eut_n <- sample(eut,  min(n, length(eut)))
+
+    selected_files <- c(oli_n, meso_n, eut_n)
+    # length(selected_files)
+    return(selected_files)
+}
+
+
+
+# --------------------------------------------
+
+
 
 # ---- Temp profiles ------------------------------
 T_profile <- function(z, T_epi, T_hypo, z0, k) {
