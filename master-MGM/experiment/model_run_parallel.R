@@ -56,7 +56,8 @@ library(JuliaCall)
 if (setting =="local") julia_setup(JULIA_HOME = "C:/Users/maiim/AppData/Local/Programs/Julia-1.11.5/bin", installJulia = F)
 julia <- julia_setup(verbose = T, install = T)
 julia_eval("Threads.nthreads()") #check N threads
-#julia_command("Threads.nthreads()")
+Sys.setenv(JULIA_NUM_THREADS = 8) # set cores for parallelizing
+julia_command("Threads.nthreads()")
 
 
 # Load julia packages
@@ -68,6 +69,7 @@ julia_library("Random")
 julia_library("CSV")
 julia_library("DataFrames")
 julia_library("StatsBase")
+julia_library("Base.Threads") # parallel
 
 
 # R Packages

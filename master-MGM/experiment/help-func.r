@@ -18,13 +18,13 @@ func_sel_spec <- function(n, species_path){
     meso <- files[grepl("species_15\\d*", files)]
     eut <- files[grepl("species_16\\d*", files)]
 
-
-
+    # select random 
     oli_n  <- sample(oli,  min(n, length(oli)))
     meso_n <- sample(meso, min(n, length(meso)))
     eut_n <- sample(eut,  min(n, length(eut)))
 
     selected_files <- c(oli_n, meso_n, eut_n)
+    
     # length(selected_files)
     return(selected_files)
 }

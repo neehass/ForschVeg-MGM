@@ -458,6 +458,57 @@ end
 #          (Environment of lake2)
 # ....
 
+function CHARISMA_biomass_N_weight_hight_env_parallel()
+
+        # Get Settings for selection of lakes, species & depth
+        cd(dirname(@__DIR__))
+        GeneralSettings = parseconfigGeneral("./input/general.config.txt")
+        depths = parse.(Float64, GeneralSettings["depths"])
+        nyears = parse.(Int64, GeneralSettings["years"])
+        nlakes = length(GeneralSettings["lakes"]) #VE
+        nspecies = length(GeneralSettings["species"]) #VE
+        ndepths = length(depths)
+
+        # Define output structure
+        MacrophAll = Vector{Any}()
+        lock = ReentrantLock()  # prevent concurrent push! issues
+
+        @threads for l in 1:length(GeneralSettings["lakes"])
+            for s in 1:length(GeneralSettings["species"])
+                settings = getsettings(GeneralSettings["lakes"][l], GeneralSettings["species"][s])
+
+                if testSettings(settings) != 0
+                    continue
+                end
+
+                push!(settings, "years" => parse.(Int64,GeneralSettings["years"])[1])
+                push!(settings, "yearsoutput" => parse.(Int64,GeneralSettings["yearsoutput"])[1])
+                push!(settings, "modelrun" => GeneralSettings["modelrun"][1])
+                push!(settings, "tempProfile" => to_bool(GeneralSettings["tempProfile"][1]))
+                push!(settings, "k" => parse.(Int64,GeneralSettings["k"][1]))
+                push!(settings, "HypoFrac_dir" => GeneralSettings["HypoFrac_dir"][1])
+                push!(settings, "MetaFrac_dir" => GeneralSettings["MetaFrac_dir"][1])
+
+                dynamicData = Dict{Int16, DayData}()
+                environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MetaFrac_dir"])
+                result = simulateMultipleDepth(depths, settings, dynamicData, settings["tempProfile"])
+
+                nyears = parse.(Int64, GeneralSettings["years"])
+                ndepths = length(depths)
+                Res = []
+                for d in 1:ndepths
+                    push!(Res, result[d][1][(((nyears[1]-1)*365)+1):(nyears[1]*365), 1:4])
+                end
+
+                lock(lock) do
+                    push!(MacrophAll, Res)
+                    push!(MacrophAll, environment)
+                end
+            end
+        end
+    return (MacrophAll) #Table For all lakes (&species) together
+end
+
 
 # Information inputs of vactors do not yet work
 function CHARISMA_biomass_N_weight_hight_env2(lake,species,depth,years)
