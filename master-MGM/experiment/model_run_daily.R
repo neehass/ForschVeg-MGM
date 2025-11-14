@@ -12,16 +12,16 @@ Sys.getenv("PATH")
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
-machine <- "NoMachine" # home
+machine <- "home" # home
 n <- 50 # number of species per group (oligotroph, mesotroph, eutroph)
-n <- 1
+n <- 100
 
 setting <- "local" # "HPC" # HPC = parallel
-modelrun <- "test_NoMachine" #Name of experiment
+modelrun <- "all_lakes_100spec_Tprofile"# "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
-tempProfile <- "false" # "false"
+tempProfile <- "true" # "false"
 k <- 5
 
 # (full path needed!)
