@@ -1,0 +1,7 @@
+"AreaGroup","min"
+"mean",0.51
+"very.small",0.48
+"small",0.4
+"medium",0.58
+"large",0.3
+"very.large",0.35
