@@ -1,8 +1,43 @@
 # help-functions
 # Model run and Visual
+.libPaths(c("/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.2", "/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.5")) # packages Path NoMachine
+# install.packages("gtable") # reinstall, to update ggplot
+# install.packages("scales") # reinstall, to update ggplot
+# install.packages("ggplot2")
+# install.packages("patchwork")
+
 library(ggplot2)
 library(patchwork)
 set.seed(42)
+
+# Function to detect Julia (CHatGPT) ---------------------------------------
+find_julia <- function() {
+  # Common locations
+  candidates <- c(
+    Sys.which("julia"),             # julia in PATH
+    "/usr/local/bin/julia",         # typical symlink
+    list.files("/opt", pattern="^julia-", full.names=TRUE) # /opt/julia-*
+  )
+  
+  # Filter only existing files/folders
+  candidates <- Filter(file.exists, candidates)
+  
+  # Resolve symlinks if needed
+  for (path in candidates) {
+    if (file.info(path)$isdir) {
+      julia_bin <- file.path(path, "bin")
+      if (file.exists(file.path(julia_bin, "julia"))) {
+        return(normalizePath(julia_bin))
+      }
+    } else if (basename(path) == "julia") {
+      return(normalizePath(dirname(path)))
+    }
+  }
+  
+  stop("Julia not found on the system. Please install Julia.")
+}
+
+
 
 # --- select species ----------------------------------------
 # 14xxx oligotroph
@@ -28,9 +63,6 @@ func_sel_spec <- function(n, species_path){
     # length(selected_files)
     return(selected_files)
 }
-
-
-
 # --------------------------------------------
 
 

@@ -13,6 +13,8 @@ pwd()
 using Pkg
 # Pkg.add("HCubature") 
 # Pkg.add("DataFrames")
+# Pkg.add("CSV")
+# Pkg.add("Distributions")
 
 using
     HCubature, #for Integration

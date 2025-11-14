@@ -8,27 +8,63 @@
 # ---------------------------------------------------------------------------------------------------
 
 getwd() # "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/MGM-scripte-data"
-setwd("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/experiment")
-
+Sys.getenv("PATH")
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
-setting <- "local" # "HPC"
-modelrun <- "test_Chiem_Abts_Eib_newSpecies" #Name of experiment
+machine <- "NoMachine" # home
+n <- 50 # number of species per group (oligotroph, mesotroph, eutroph)
+n <- 1
+
+setting <- "local" # "HPC" # HPC = parallel
+modelrun <- "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
 tempProfile <- "false" # "false"
 k <- 5
-parallel <- "true"
 
 # (full path needed!)
-HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
-MetaFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MetaDepth_fraction.config.txt"
+if(machine == "home") {
+  print("home")
+  setwd("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/experiment")
+  library(stringr)
+  
+  HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
+  MetaFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MetaDepth_fraction.config.txt"
+
+  species_path <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/species"
+
+  juliaDIR <- "C:/Users/maiim/AppData/Local/Programs/Julia-1.11.5/bin"
+  # juliaHPC
+
+} else if (machine == "NoMachine") {
+  print("NoMachine")
+
+  setwd("/media/ifgg1/E: data (1 TB)/Neele/Forsch_Veg/ForschVeg-MGM/master-MGM/experiment") # NoMachine
+  source("/media/ifgg1/E: data (1 TB)/Neele/Forsch_Veg/ForschVeg-MGM/master-MGM/experiment/help-func.r")
+  .libPaths(c("/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.2", "/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.5")) # packages Path NoMachine
+  # install.packages("Rcpp") # fix install.packages bug
+  library(stringr)
+  Sys.setenv(PATH = paste("/opt/julia-1.12.1/bin", Sys.getenv("PATH"), sep=":"))
+
+  HypoFrac_dir <- "/media/ifgg1/E: data (1 TB)/Neele/Forsch_Veg/ForschVeg-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
+  MetaFrac_dir <- "/media/ifgg1/E: data (1 TB)/Neele/Forsch_Veg/ForschVeg-MGM/master-MGM/input/lakeFractionParameters/MetaDepth_fraction.config.txt"
+
+  species_path <- "/media/ifgg1/E: data (1 TB)/Neele/Forsch_Veg/ForschVeg-MGM/master-MGM/input/species"
+
+  juliaDIR <- "/opt/julia-1.12.1/bin"
+  juliaHPC <- "/opt/julia-1.12.1/bin"
+  juliaDIR <- find_julia()
+  message("Using Julia at: ", juliaDIR)
+  Sys.setenv(JULIA_HOME = juliaDIR)
+
+} else {print("define dir")}
+
+# Detect Julia path
+
 
 # species selection -----------------------
-species_path <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/species"
-n <- 50 # number of species per group (oligotroph, mesotroph, eutroph)
 species <- func_sel_spec(n, species_path)
 species_id <- unlist(str_extract_all(species, "\\d+"))
 species_id <- as.numeric(species_id)
@@ -49,28 +85,34 @@ lakestemplate = "reallakes_simplifiedVersion"
 # CORES
 if (setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = nthreads) #Sets number of threads
 if (setting =="local") Sys.setenv(JULIA_NUM_THREADS = "1")
-if(parallel == "true") Sys.setenv(JULIA_NUM_THREADS = "8") # set cores for parallelizing
+if(setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = "8") # set cores for parallelizing
 # Sys.getenv("JULIA_NUM_THREADS")
 # Sys.getenv()
 
 # Setup integration of julia
 # install.packages("JuliaCall")
 library(JuliaCall)
+
 #if (setting =="HPC") julia_setup(JULIA_HOME = "/home/anl85ck/.julia/bin",installJulia = F) #on HPC
 if ("julia" %in% ls()) {
   julia_exit()  # terminates the running Julia session
 }
-Sys.setenv(JULIA_NUM_THREADS = "8")
-if (setting == "local") {
+
+if (setting == "home") {
   julia <- julia_setup(
-    JULIA_HOME = "C:/Users/maiim/AppData/Local/Programs/Julia-1.11.5/bin",
+    JULIA_HOME = juliaDIR,
     installJulia = FALSE,
     verbose = TRUE
   )
+} else if (setting == "NoMAchine") { # still doeasnt work!!
+  Sys.setenv(JULIA_HOME = juliaDIR)
+  julia_setup(installJulia = FALSE)
+
 }
 
+julia_command("using Base.Threads")
 julia_command("Threads.nthreads()") #check N threads
-julia_help("")
+
 # Load julia packages
 #julia_library("HCubature")
 julia_library("DelimitedFiles")
