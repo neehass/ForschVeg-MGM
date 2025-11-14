@@ -50,19 +50,27 @@ lakestemplate = "reallakes_simplifiedVersion"
 if (setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = nthreads) #Sets number of threads
 if (setting =="local") Sys.setenv(JULIA_NUM_THREADS = "1")
 if(parallel == "true") Sys.setenv(JULIA_NUM_THREADS = "8") # set cores for parallelizing
-Sys.getenv("JULIA_NUM_THREADS")
-Sys.getenv()
+# Sys.getenv("JULIA_NUM_THREADS")
+# Sys.getenv()
 
 # Setup integration of julia
 # install.packages("JuliaCall")
 library(JuliaCall)
 #if (setting =="HPC") julia_setup(JULIA_HOME = "/home/anl85ck/.julia/bin",installJulia = F) #on HPC
+if ("julia" %in% ls()) {
+  julia_exit()  # terminates the running Julia session
+}
+Sys.setenv(JULIA_NUM_THREADS = "8")
+if (setting == "local") {
+  julia <- julia_setup(
+    JULIA_HOME = "C:/Users/maiim/AppData/Local/Programs/Julia-1.11.5/bin",
+    installJulia = FALSE,
+    verbose = TRUE
+  )
+}
 
-if (setting =="local") julia_setup(JULIA_HOME = "C:/Users/maiim/AppData/Local/Programs/Julia-1.11.5/bin", installJulia = F)
-julia <- julia_setup(verbose = T, install = T)
-julia_eval("Threads.nthreads()") #check N threads
-julia_command("Threads.nthreads()")
-
+julia_command("Threads.nthreads()") #check N threads
+julia_help("")
 # Load julia packages
 #julia_library("HCubature")
 julia_library("DelimitedFiles")
