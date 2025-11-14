@@ -1,4 +1,5 @@
 # Ubunut-Julia-Workaround
+# based on CHatGPT
 
 .libPaths(c("/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.2", "/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.5")) # packages Path
 
@@ -23,4 +24,12 @@ julia_exec <- function(code) {
 
 # Now call it
 julia_exec("println(2 + 2)")
+
+julia_exec("using Base.Threads")
+file_path <- "master-MGM/model/CHARISMA_function.jl"
+code <- paste0(
+  "using Base.Threads; ",
+  "include(\"", file_path, "\")"
+)
+output <- julia_exec(code)
 
