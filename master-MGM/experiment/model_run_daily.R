@@ -12,12 +12,12 @@ Sys.getenv("PATH")
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
-machine <- "home" # home
+machine <- "home" # NoMachine !! doesnt work yet !!
 n <- 50 # number of species per group (oligotroph, mesotroph, eutroph)
 n <- 100
 
 setting <- "local" # "HPC" # HPC = parallel
-modelrun <- "all_lakes_100spec_Tprofile"# "test_NoMachine" #Name of experiment
+modelrun <- "all_lakes_100spec_base_Tprofile"# "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
@@ -55,14 +55,13 @@ if(machine == "home") {
 
   juliaDIR <- "/opt/julia-1.12.1/bin"
   juliaHPC <- "/opt/julia-1.12.1/bin"
+
+  # Detect Julia path
   juliaDIR <- find_julia()
   message("Using Julia at: ", juliaDIR)
   Sys.setenv(JULIA_HOME = juliaDIR)
 
 } else {print("define dir")}
-
-# Detect Julia path
-
 
 # species selection -----------------------
 species <- func_sel_spec(n, species_path)
@@ -84,8 +83,8 @@ lakestemplate = "reallakes_simplifiedVersion"
 # ---------------------------------------------------------------------------------------------------
 # CORES
 if (setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = nthreads) #Sets number of threads
-if (setting =="local") Sys.setenv(JULIA_NUM_THREADS = "1")
 if(setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = "8") # set cores for parallelizing
+if (setting =="local") Sys.setenv(JULIA_NUM_THREADS = "1")
 # Sys.getenv("JULIA_NUM_THREADS")
 # Sys.getenv()
 
@@ -94,12 +93,12 @@ if(setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = "8") # set cores for parallel
 library(JuliaCall)
 
 #if (setting =="HPC") julia_setup(JULIA_HOME = "/home/anl85ck/.julia/bin",installJulia = F) #on HPC
-if ("julia" %in% ls()) {
-  julia_exit()  # terminates the running Julia session
-}
+# if ("julia" %in% ls()) {
+#   julia_exit()  # terminates the running Julia session
+# }
 
-if (setting == "home") {
-  julia <- julia_setup(
+if (setting == "local") {
+  julia_setup(
     JULIA_HOME = juliaDIR,
     installJulia = FALSE,
     verbose = TRUE
@@ -135,15 +134,15 @@ library(here)
 #  Settings for Model ----
 # -----------------------------------------------------------------------------------------------
 #Scenario
-scenarios<-data.table(
+scenarios <-data.table(
   #para=c("maxTemp","maxNutrient", "maxKd"),
-  #base=c(0.0, 0.0, 0.0),  
+  base=c(0.0, 0.0, 0.0) #,  
   #BLIZ_2.6_Biodiv=c(0.5, -0.25, -0.25),
   #BLIZ_2.6_Mit=c(0.5, 0.25, 0.25),
   #BLIZ_2.6_Adap=c(0.5, 0.0, 0.0),
   #BLIZ_8.6_Biodiv=c(3.0, 0.0, 0.0),
   #BLIZ_8.6_Mit=c(3.0, 0.5, 0.5),
-  BLIZ_8.6_Adap=c(3.0, 0.25, 0.25)
+  #BLIZ_8.6_Adap=c(3.0, 0.25, 0.25)
 )
 
 # Set working directories 
