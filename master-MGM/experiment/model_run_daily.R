@@ -74,7 +74,7 @@ species_id <- as.numeric(species_id)
 # species <- paste0("species_", species_id)
 
 # lakes -----------------------
-lakes <- c(6,1,7) # c(1:31)
+lakes <- c(1:31) # c(6,1,7) 
 #nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
 detectable=1
 lakestemplate = "reallakes_simplifiedVersion"
@@ -110,7 +110,7 @@ if (setting == "local") {
 
 }
 
-julia_command("using Base.Threads")
+# julia_command("using Base.Threads")
 julia_command("Threads.nthreads()") #check N threads
 
 # Load julia packages
@@ -246,9 +246,12 @@ for (S in 1:length(scenarios)){
   # ---------------------------------------------------------------------------
   # Model run -------------
   start_time <- Sys.time()
-
-  # model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")
-  model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env_parallel()")
+  if(setting == "HPC"){
+    model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env_parallel()")
+  } else if (setting == "local") {
+     model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")
+  }
+  
   comb_l_s <- seq(1, length(model2), by = 2)
 
   end_time <- Sys.time()
