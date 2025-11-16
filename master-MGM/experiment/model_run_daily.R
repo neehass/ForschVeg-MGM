@@ -17,7 +17,7 @@ n <- 50 # number of species per group (oligotroph, mesotroph, eutroph)
 n <- 100
 
 setting <- "local" # "HPC" # HPC = parallel
-modelrun <- "all_lakes_100spec_base_Tprofile"# "test_NoMachine" #Name of experiment
+modelrun <- "all_lakes_100spec_base_Tprofile" #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
@@ -66,16 +66,40 @@ if(machine == "home") {
 
 # species selection -----------------------
 species <- func_sel_spec(n, species_path)
+ex <- paste0("species_", c(14249, 14264, 14121, 14233, 14251,
+                          15040, 15044, 15174, 15191,
+                          16043, 16231, 16233, 16299, 16300)) # error check
+species <- species[!species %in% ex]
 species_id <- unlist(str_extract_all(species, "\\d+"))
 species_id <- as.numeric(species_id)
-# length(species)
+if(length(species) != 300){stop("stop species ERORR")}
 
-# species_id <- c(3,21,33,36,56,57)
+# test species
+# ERROR: reproDay < germinationDay + seedsEndAge
+# ./input/species/species_14249.config.txt
+# ./input/species/species_14264.config.txt
+# ./input/species/species_14121.config.txt
+# ./input/species/species_14233.config.txt
+# ./input/species/species_14251.config.txt
+
+# ./input/species/species_15040.config.txt
+# ./input/species/species_15044.config.txt
+# ./input/species/species_15174.config.txt
+# ./input/species/species_15191.config.txt
+
+# ./input/species/species_16043.config.txt
+# ./input/species/species_16231.config.txt
+# ./input/species/species_16233.config.txt
+# ./input/species/species_16299.config.txt
+# ./input/species/species_16300.config.txt
+
+# species_id <- c(16001:16300)
+# species_id <- species_id[species_id > 16299]
 # species <- paste0("species_", species_id)
 
 # lakes -----------------------
 lakes <- c(1:31) # c(6,1,7) 
-exclude <- c(11, 12, 30, 4) # # 11 12 30 4 > -10 Depth (excluding)
+exclude <- c(11, 12, 30, 4) # # ID (11, 12, 30, 4) > -10 Depth (excluding)
 lakes <- lakes[!lakes %in% exclude]
 #nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
 detectable=1
@@ -344,8 +368,6 @@ for (S in 1:length(scenarios)){
   print("env data saved")
 } # Scenario loop
 
-# ./input/species/species_14249.config.txt
-# ERROR: reproDay < germinationDay + seedsEndAge
 
 # --------------------------
 # # Species loop  
@@ -402,3 +424,4 @@ for (S in 1:length(scenarios)){
 # if(!dir.exists("output")){dir.create("output")}
 # if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
 # saveRDS(all_res, file = file.path(wd,"output",modelrun,"all_res_biomass_number_weight_height.RData"))
+
