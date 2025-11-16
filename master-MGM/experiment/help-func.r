@@ -48,10 +48,12 @@ find_julia <- function() {
 
 func_sel_spec <- function(n, species_path){
     files <- list.files(species_path)
+    cleaned <- sub("\\.config\\.txt$", "", files)
+
     # select groups 
-    oli <- files[grepl("species_14\\d*", files)]
-    meso <- files[grepl("species_15\\d*", files)]
-    eut <- files[grepl("species_16\\d*", files)]
+    oli <- cleaned[grepl("species_14\\d*", cleaned)]
+    meso <- cleaned[grepl("species_15\\d*", cleaned)]
+    eut <- cleaned[grepl("species_16\\d*", cleaned)]
 
     # select random 
     oli_n  <- sample(oli,  min(n, length(oli)))

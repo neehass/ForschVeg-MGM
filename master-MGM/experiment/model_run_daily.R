@@ -75,6 +75,8 @@ species_id <- as.numeric(species_id)
 
 # lakes -----------------------
 lakes <- c(1:31) # c(6,1,7) 
+exclude <- c(11, 12, 30, 4) # # 11 12 30 4 > -10 Depth (excluding)
+lakes <- lakes[!lakes %in% exclude]
 #nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
 detectable=1
 lakestemplate = "reallakes_simplifiedVersion"
