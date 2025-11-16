@@ -344,7 +344,8 @@ for (S in 1:length(scenarios)){
   print("env data saved")
 } # Scenario loop
 
-
+# ./input/species/species_14249.config.txt
+# ERROR: reproDay < germinationDay + seedsEndAge
 
 # --------------------------
 # # Species loop  
