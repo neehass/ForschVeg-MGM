@@ -75,3 +75,29 @@ for(i in 1:length(lakes_path)){
     # lines <- paste(lake$V1, as.character(lake$V2))
 } # for add depth & Area
 
+# test in Scenario:
+# lake scenario change
+S <- 1
+change<-as.array(scenarios[[S]])
+scenario_name<-colnames(scenarios)[S]
+
+# adapt lake config files
+# add depth & Areakm2 in template 
+N <- 1
+# Import template for lakes
+lak <- read.table(paste0(wd,"/input/template/lakes/lake_",N,".config.txt"), 
+                    header = F, comment.char="#")
+
+lak[lak$V1=="maxTemp",]$V2 <- sprintf("%.1f",
+                                        round((as.numeric(lak[lak$V1=="maxTemp",]$V2)+
+                                                change[1]),1))
+lak[lak$V1=="maxNutrient",]$V2 <- as.numeric(lak[lak$V1=="maxNutrient",]$V2)+
+    (as.numeric(lak[lak$V1=="maxNutrient",]$V2) *
+        change[2])
+lak[lak$V1=="maxKd",]$V2 <- as.numeric(lak[lak$V1=="maxKd",]$V2)+
+    (as.numeric(lak[lak$V1=="maxKd",]$V2) *
+        change[3])
+lak[lak$V1=="minKd",]$V2 <- lak[lak$V1=="maxKd",]$V2
+
+lak
+
