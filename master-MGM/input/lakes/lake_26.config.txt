@@ -21,3 +21,5 @@ levelCorrection 0
 maxW 0
 minW 0
 wDelay 0
+lakeDepth -14
+Areakm2 2.31
