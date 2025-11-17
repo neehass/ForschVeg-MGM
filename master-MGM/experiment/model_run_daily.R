@@ -212,6 +212,7 @@ for (S in 1:length(scenarios)){
   scenario_name<-colnames(scenarios)[S]
   
   # adapt lake config files
+  # add depth & Areakm2 in template 
   for (N in 1:31){
     # Import template for lakes
     lak <- read.table(paste0(wd,"/input/template/lakes/lake_",N,".config.txt"), 

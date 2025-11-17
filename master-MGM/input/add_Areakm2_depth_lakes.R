@@ -14,7 +14,7 @@ head(all_depths)
 all_depths$Name <- gsub("-", "", all_depths$Name)
 
 # load lake config files -------------------------
-lakes_path <- list.files("input/lakes", full.name = TRUE)
+lakes_path <- list.files("input/template/lakes", full.name = TRUE)
 
 names <- c()
 for(i in 1:length(lakes_path)){
@@ -23,15 +23,12 @@ for(i in 1:length(lakes_path)){
     names[i] <- name
 }
 
-
 # check names -------------------
 # rename 
 setdiff(Area$Name, depth$Name)   # in Area aber nicht in depth
 setdiff(depth$Name, Area$Name) 
 
-setdiff(all_depths$Name, names) # in  names aber nicht in alldepths
-names[!names %in% all_depths$Name] # alle names die nicht in Area$Name
-names[!names %in% depth$Name] == names[!names %in% Area$Name]
+setdiff(all_depths$Name, names) # in  alldepths aber nicht in names
 
 x <- c("NiedersonthofenerSee", "GrosserAlpseebeiImmenstadt", "AlpseebeiSchwangau", "Barmsee", "LangbuergnerSee")
 rep <- c("NiedersonthofnerSee", "GrosserAlpsee", "AlpseeSchongau", "Barmseesee", "LangbuergenerSee")
@@ -40,6 +37,8 @@ for(i in 1:length(x)){
     depth$Name[depth$Name == x[i]] <- rep[i]
     all_depths$Name[all_depths$Name == x[i]] <- rep[i]
 }
+names[!names %in% all_depths$Name] # alle names die nicht in Area$Name
+names[!names %in% depth$Name] == names[!names %in% Area$Name]
 
 names[!names %in% Area$Name] # > -10 
 all_depths$Depth[all_depths$Name %in% names[!names %in% Area$Name]] # DEPTHS
@@ -50,17 +49,29 @@ skip <- which(names %in% names[!names %in% Area$Name])
 
 for(i in 1:length(lakes_path)){
     if(i %in% skip) next
-    
-    lake <- read.table(lakes_path[i])
-    name <- lake$V2[lake$V1 == "Name"]
 
-    dm <- depth$Depth[depth$Name == name]
-    lake <- rbind(lake, c("lakeDepth", dm))
+    lake <- readLines(lakes_path[i]) # igrnore warnings 
+    check <- any(grepl("DEPTH & AREA", lake))
+    if(check == FALSE){
+         name <- strsplit(lake[grepl("Name", lake)], " ")[[1]][2] 
 
-    km2 <- Area$Area_km2[Area$Name == name]
-    lake <- rbind(lake, c("Areakm2", km2))
+        dm <- depth$Depth[depth$Name == name]
+        
+        km2 <- Area$Area_km2[Area$Name == name]
 
-    lines <- paste(lake$V1, as.character(lake$V2))
-    writeLines(lines, lakes_path[i])
-}
+        lines <- c(lake,
+                    "",
+                    "# DEPTH & AREA [km2]",
+                    paste("lakeDepth", dm),
+                    paste("Areakm2", km2))
+        
+        writeLines(lines, lakes_path[i])
+    }
+   
+    # read.table(lakes_path[i])
+    # name <- lake$V2[lake$V1 == "Name"]
+    # lake <- rbind(lake, c("Areakm2", km2))
+    # lake <- rbind(lake, c("\n# Depth & Areakm2 \nlakeDepth", dm))
+    # lines <- paste(lake$V1, as.character(lake$V2))
+} # for add depth & Area
 

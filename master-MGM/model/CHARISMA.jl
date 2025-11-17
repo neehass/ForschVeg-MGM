@@ -35,8 +35,8 @@ include("output.jl")
 # --- Get Settings for selection of lakes, species & depth -------------------------
 # GeneralSettings = parseconfigGeneral("./input/general.config.txt")
 
-GeneralSettings = parseconfigGeneral("./input/sel.general.config.txt") # 3 slected
-GeneralSettings = parseconfigGeneral("./input/chiem.general.config.txt") # chiemsee only
+GeneralSettings = parseconfigGeneral("./input/sel.general.config.txt") # test error species: reproDay < germinationDay + seedsEndAge
+# GeneralSettings = parseconfigGeneral("./input/chiem.general.config.txt") # chiemsee only
 
 depths = parse.(Float64, GeneralSettings["depths"])
 

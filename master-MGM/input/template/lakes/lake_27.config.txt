@@ -47,3 +47,7 @@ minW 0.0 #Minimal water level [m] below MWL
 #...
 wDelay 0 #Delay of cosine of water level [m] 
 #wDev
+
+# DEPTH & AREA [km2]
+lakeDepth -70
+Areakm2 8.71

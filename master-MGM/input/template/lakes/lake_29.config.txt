@@ -48,3 +48,7 @@ minW 442.08 #Minimal water level [m] 441.86 gdk.bayern.de
 #...
 wDelay 0 #Delay of cosine of water level [m] 7
 #wDev
+
+# DEPTH & AREA [km2]
+lakeDepth -20
+Areakm2 1.27
