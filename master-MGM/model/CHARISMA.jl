@@ -31,6 +31,7 @@ include("input.jl")
 include("functions.jl")
 include("run_simulation.jl")
 include("output.jl")
+include("CHARISMA_function.jl")
 
 # --- Get Settings for selection of lakes, species & depth -------------------------
 # GeneralSettings = parseconfigGeneral("./input/general.config.txt")
@@ -89,6 +90,19 @@ for l in 1:length(GeneralSettings["lakes"])
 
     end
 end
+
+# RUN CHARISMA_biomass_N_weight_hight_env()
+
+CHARISMA_biomass_N_weight_hight_env()
+
+# find bug in CHARISMA_biomass_N_weight_hight_env function !!
+# bug: 
+ #Test if setting are logic; if not break
+# if testSettings(settings)!=0
+#         # break # << causing bug, skipping all other species!
+#         continue  # <-- skip to next iteration of species loop
+# end
+
 
 """
 # Multi Threaded Loop for model run for selected lakes, species and depths

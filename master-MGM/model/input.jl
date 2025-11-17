@@ -41,8 +41,10 @@ end
 
 """
     testSettings
-Function to test for logic of settings to break the look for faster optimization
+Function to test for logic of settings to break the loop for faster optimization
 Further improvement: Print output if not fulfilled
+# if xx break --> skips all following species for this lake!!
+# if xxx continue --> just skips this certain species!!
 """
 function testSettings(settings::Dict{String, Any})
     # Check setting for logic input
