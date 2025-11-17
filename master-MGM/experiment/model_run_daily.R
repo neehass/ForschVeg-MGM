@@ -17,7 +17,7 @@ n <- 50 # number of species per group (oligotroph, mesotroph, eutroph)
 n <- 100
 
 setting <- "local" # "HPC" # HPC = parallel
-modelrun <- "test_spec_14xxx" # "all_lakes_100spec_base_Tprofile" #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+modelrun <- "all_lakes_100spec_base_Tprofile" #  #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
@@ -95,11 +95,11 @@ if(length(species) != 300){stop("stop species ERORR")}
 
 # species_id <- c(16001:16300)
 # species_id <- species_id[species_id > 16299]
-species_id <- 14121
-species <- paste0("species_", species_id)
+# species_id <- 14121
+# species <- paste0("species_", species_id)
 
 # lakes -----------------------
-lakes <- 1 #c(1:31) # c(6,1,7) 
+lakes <- c(1:31) # c(6,1,7) 
 exclude <- c(11, 12, 30, 4) # # ID (11, 12, 30, 4) > -10 Depth (excluding)
 lakes <- lakes[!lakes %in% exclude]
 #nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
