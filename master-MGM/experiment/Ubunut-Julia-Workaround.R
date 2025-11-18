@@ -5,6 +5,7 @@
 
 
 Sys.setenv(LD_LIBRARY_PATH = "/opt/julia-1.12.1/lib:$LD_LIBRARY_PATH")
+
 system("/opt/julia-1.12.1/bin/julia --version")
 
 library(JuliaCall)
