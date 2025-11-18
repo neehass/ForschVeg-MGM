@@ -8,6 +8,7 @@
 
 library(ggplot2)
 library(patchwork)
+library(stringr)
 set.seed(42)
 
 # Function to detect Julia (CHatGPT) ---------------------------------------
