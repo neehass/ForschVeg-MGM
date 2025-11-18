@@ -67,6 +67,18 @@ func_sel_spec <- function(n, species_path){
 }
 # --------------------------------------------
 
+# ---- func_getSpecies_config ------------------------------
+func_getSpecies_config <- function(path_configFile){
+  file <- readLines(path_configFile)
+  spec <- strsplit(file[grep("species", file)][[1]], " ")[[1]][-1]
+  cleaned <- sub(".*(?=species_)", "", spec, perl = TRUE)
+  species <- sub("\\.config\\.txt$", "", cleaned)
+  # species_id <- as.numeric(sub(".*species_", "", species))
+
+  return(species)
+}
+
+# --------------------------------------------
 
 
 # ---- Temp profiles ------------------------------

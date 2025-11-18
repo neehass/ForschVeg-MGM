@@ -17,11 +17,11 @@ n <- 50 # number of species per group (oligotroph, mesotroph, eutroph)
 n <- 100
 
 setting <- "local" # "HPC" # HPC = parallel
-modelrun <- "all_lakes_100spec_base_Tprofile" #  #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+modelrun <- "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
-tempProfile <- "true" # "false"
+tempProfile <- "false" # "false" true
 k <- 5
 
 # (full path needed!)
@@ -65,7 +65,12 @@ if(machine == "home") {
 } else {print("define dir")}
 
 # species selection -----------------------
-species <- func_sel_spec(n, species_path)
+# first run, select species randomly
+# species <- func_sel_spec(n, species_path) 
+
+# second run/ want to take same species as path_configFile
+path_configFile <- "master-MGM/output/dep10_lakes_100spec_base_Tprofile/general.config.txt"
+species <- func_getSpecies_config(path_configFile)
 ex <- paste0("species_", c(14249, 14264, 14121, 14233, 14251,
                           15040, 15044, 15174, 15191,
                           16043, 16231, 16233, 16299, 16300)) # error check

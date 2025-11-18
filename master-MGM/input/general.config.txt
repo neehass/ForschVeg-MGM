@@ -1,4 +1,4 @@
-modelrun all_lakes_100spec_base_Tprofile
+modelrun dep10_lakes_100spec_base_Tsteady
 years 10
 depths -0.5 -1.5 -3 -5
 yearsoutput 2
