@@ -11,24 +11,50 @@ library(patchwork)
 library(stringr)
 set.seed(42)
 
-# getAreaGroup ----------------------------
+# func_getAreaKm2 ----------------------------------
+func_getAreaKm2 <- function(lake_path) {
+  files <- list.files(lake_path, full.name = TRUE)
+
+  areakm2 <- c()
+  id <- c()
+  for(i in 1:length(files)){
+   
+    lake <- read.table(files[i])
+    a <- lake$V2[lake$V1 == "Areakm2"]
+    if(identical(a, character(0))){
+      print("Areakm2 NA")
+      areakm2[i] <- NA
+      
+    } else {areakm2[i] <- as.numeric(a)}
+    
+
+    id[i] <- as.numeric(unlist(str_extract_all(lake$V2[lake$V1 == "Lake"], "\\d+")))
+  }
+  return(list(areakm2 = areakm2, id = id))
+
+}
+
+# func_getAreaGroup ----------------------------
 # same like in input.jl
 # by Areakm2 --> AreaGroup is derived
     # ”very.small”: <1, ”small”: <2, ”medium”: 2km2, ”large”: 5km2 and ”very.large”: 20km2
 
     # Returns the area group for a given lake configuration file.
-getAreaGroup <- function(areakm2) {
-  if (area <= 1.0) {
-    "very.small"
-  } else if (area <= 2.0) {
-    "small"
-  } else if (area <= 5.0) {
-    "medium"
-  } else if (area <= 20.0) {
-    "large"
+func_getAreaGroup <- function(areakm2) {
+  if(is.na(areakm2)){
+    g <- NA
+  } else if (areakm2 <= 1) {
+    g <- "very.small"
+  } else if (areakm2 <= 2) {
+    g <- "small"
+  } else if (areakm2 <= 5) {
+    g <- "medium"
+  } else if (areakm2 <= 20) {
+    g <- "large"
   } else {
-    "very.large"
+    g <- "very.large"
   }
+  return(g)
 }
 
 

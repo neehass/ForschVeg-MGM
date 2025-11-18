@@ -12,7 +12,7 @@ Sys.getenv("PATH")
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
-machine <- "NoMachine" # "home" #  !! doesnt work yet !!
+machine <- "home" # "home" # NoMachine !! doesnt work yet !!
 n <- 10 # number of species per group (oligotroph, mesotroph, eutroph)
 # n <- 100
 

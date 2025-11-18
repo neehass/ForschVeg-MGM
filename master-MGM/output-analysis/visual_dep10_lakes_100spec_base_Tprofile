@@ -17,7 +17,7 @@ getwd()
 dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM"
 setwd(dir)
 output <- "output/dep10_lakes_100spec_base_Tprofile"
-input <- "input/species"
+lake_path <- "input/lakes"
 
 # load data --------------------------------------------------------------------------------
 res <- read.table(file.path(output, "all_res_biomass_number_weight_height_daily.txt"), header =TRUE)
@@ -42,12 +42,13 @@ unique(group)
 
 # add group
 res$speciesGroup <- NA
-res$speciesGroup[( res$speciesID > 14001) & (res$speciesID < 14301)] <- "oligotroph"
-res$speciesGroup[( res$speciesID > 15001) & (res$speciesID < 15301)] <- "mesotroph"
-res$speciesGroup[( res$speciesID > 16001) & (res$speciesID < 16301)] <- "eutroph"
+res$speciesGroup[( res$speciesID > 14000) & (res$speciesID < 14301)] <- "oligotroph"
+res$speciesGroup[( res$speciesID > 15000) & (res$speciesID < 15301)] <- "mesotroph"
+res$speciesGroup[( res$speciesID > 16000) & (res$speciesID < 16301)] <- "eutroph"
 res$speciesGroup <- as.factor(res$speciesGroup)
 
-# --- sorting lakes -------------------------------------------------------------------------------------------
+res$speciesID[is.na(res$speciesGroup)]
+# --- addinf lake groups -------------------------------------------------------------------------------------------
 # Turbidity: clear, intermediate, Turbid 
 # size: very.small, small, medium, large, very.large
 
@@ -71,6 +72,37 @@ unique(res$lakeClass)
 
 # --- size: Areagroup 
 # get Areakm2
+lake_area <- func_getAreaKm2(lake_path)
 
+lake_Agroup <- sapply(lake_area$areakm2, func_getAreaGroup)
 
-getAreaGroup(areakm2) # same like in input.jl
+res$lakeGroup_Area <- NA
+res$lakeGroup_Area <- lake_Agroup[match(res$lakeID, lake_area$id)]
+
+# --------------------------------------------------
+# ---- sort data ----------------------------------------------------------------------
+
+valid_res <- res[res$biomass > 0, ]
+
+sort_res <- valid_res %>%
+    group_by(lakeClass, speciesGroup, lakeGroup_Area, depth, day) %>%
+    summarise(
+        biomass_mean = mean(biomass), 
+        numberInd_mean = mean(numberInd),
+        indWeight_mean = mean(indWeight),
+        height_mean = mean(height)
+    ) %>% ungroup()
+head(sort_res)
+nrow(sort_res)
+
+unique(sort_res$day)
+
+# ---- plot ------------------
+p <- ggplot(sort_res, aes(x = day, y = biomass_mean,
+                     color = lakeGroup_Area, linetype = factor(depth))) +
+    geom_line() +
+    facet_grid(speciesGroup ~ lakeClass) +
+    theme_bw() +
+    labs(title = "Biomass over Active Days",
+         y = "Mean Biomass", x = "Days", linetype = "Depth")
+p
