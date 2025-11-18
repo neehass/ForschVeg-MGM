@@ -11,6 +11,27 @@ library(patchwork)
 library(stringr)
 set.seed(42)
 
+# getAreaGroup ----------------------------
+# same like in input.jl
+# by Areakm2 --> AreaGroup is derived
+    # ”very.small”: <1, ”small”: <2, ”medium”: 2km2, ”large”: 5km2 and ”very.large”: 20km2
+
+    # Returns the area group for a given lake configuration file.
+getAreaGroup <- function(areakm2) {
+  if (area <= 1.0) {
+    "very.small"
+  } else if (area <= 2.0) {
+    "small"
+  } else if (area <= 5.0) {
+    "medium"
+  } else if (area <= 20.0) {
+    "large"
+  } else {
+    "very.large"
+  }
+}
+
+
 # Function to detect Julia (CHatGPT) ---------------------------------------
 find_julia <- function() {
   # Common locations

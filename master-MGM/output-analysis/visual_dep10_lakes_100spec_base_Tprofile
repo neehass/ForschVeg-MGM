@@ -47,11 +47,11 @@ res$speciesGroup[( res$speciesID > 15001) & (res$speciesID < 15301)] <- "mesotro
 res$speciesGroup[( res$speciesID > 16001) & (res$speciesID < 16301)] <- "eutroph"
 res$speciesGroup <- as.factor(res$speciesGroup)
 
-# sorting lakes -------------------------------------------------------------------------------------------
+# --- sorting lakes -------------------------------------------------------------------------------------------
 # Turbidity: clear, intermediate, Turbid 
 # size: very.small, small, medium, large, very.large
 
-# Turbidity:  maximal summer temperature, nutrient content, and turbidity. 
+# --- Turbidity:  maximal summer temperature, nutrient content, and turbidity. 
 # Based on these four parameters we classified the lakes into 
 # clear, medium, and turbid lakes  
 # performing a hierarchical clustering using Euclidean distance and the Ward linkage method on normalized environmental data of the lakes. 
@@ -60,4 +60,17 @@ head(Morphology)
 load("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/LewerentzEtAl2023_ModelledMacrophyteSpeciesRichness-1.0/data/data_lakes_env_class.rda")
 head(data_lakes_env_class) # Turbidity classes 
 
+lake_id <- data_lakes_env_class$Lake 
+lake_class <- data_lakes_env_class$class
 
+res$lakeClass <- NA
+
+res$lakeClass <- lake_class[ match(res$lakeID, lake_id)]
+res$lakeClass <- as.factor(res$lakeClass)
+unique(res$lakeClass)
+
+# --- size: Areagroup 
+# get Areakm2
+
+
+getAreaGroup(areakm2) # same like in input.jl
