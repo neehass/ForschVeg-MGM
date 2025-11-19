@@ -183,6 +183,9 @@ func_sortENV_plot(sort_env, save_figures, scenario) # defined in help-func.R
 # --- plot TempProfiles for all Groups ------
 # .....
 
+# --- plot nutrients / lake parameters per day ---
+# .....
+
 # ---------------------------------------------------------------------------------------------------------
 # Observed and Potential species Richness ??
 
