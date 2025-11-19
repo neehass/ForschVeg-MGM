@@ -137,6 +137,68 @@ T_profile <- function(z, T_epi, T_hypo, z0, k) {
   return(t)
 }
 
+# --- env plot function -----------------------------
+func_sortENV_plot <- function(sort_env, save_figures, scenario){
+    p_temp <- ggplot(sort_env, aes(x = day)) +
+        geom_line(aes(y = tempEpi_mean, color = lakeClass, linetype = "TempEpi")) +
+                        # color = "TempEpi", linetype = lakeClass)) +
+        geom_line(aes(y = tempHypo_mean, color = lakeClass, linetype = "TempHypo")) +
+                        #color = "TempHypo", linetype = lakeClass)) +
+        
+        theme_bw() +
+        scale_color_brewer(palette = "Accent", name = "Turbidity") +
+        scale_linetype_manual(values = c("TempEpi" = "solid", "TempHypo" = "dashed"), name = "a)") +
+        # scale_color_manual(values = c("TempEpi" = "red", "TempHypo" = "blue"), name = "a)") +
+        labs(title = "a) Temperatur Data",
+            y = "Temp [°C]", x = "Days",  linetype = "Turbidity",color = "Linecolor") + 
+        facet_grid( ~  lakeGroup_Area) 
+    # p_temp
+
+    p_metadepth <- ggplot(sort_env, aes(x = day)) +
+            geom_line(aes(y = metaDepth_mean, color = lakeClass, linetype = "meatDpeth")) + # color = "metaDepth", linetype = lakeClass)) +
+            geom_line(aes(y = waterlevel_mean, color = lakeClass, linetype = "waterlevel")) + # color ="waterlevel",  linetype = lakeClass)) +
+            # scale_color_manual(values = c("metaDepth" = "magenta", "waterlevel" = "darkgreen"),
+            #     labels = c("Mesolimnion Depth", "Waterlevel"), name = "b)") +
+            scale_linetype_manual(values = c("meatDpeth" = "solid", "waterlevel" = "dashed"), name = "b)") +
+            scale_color_brewer(palette = "Accent", name = "Turbidity") +
+            facet_grid( ~  lakeGroup_Area) +
+            # annotate("rect",
+            #         xmin = min(days), xmax = max(days),
+            #         ymin = -Inf, ymax = Inf,
+            #         alpha = 0.2, fill = "grey") +
+            labs(title = "b) Waterlevel & Mesolimnion Depth",
+            y = "Depth [m]", x = "Days",  linetype = "Turbidity",color = "Linecolor") +
+            theme_bw()
+    # p_metadepth
+
+    p_light <- ggplot(sort_env, aes(x = day)) +
+        geom_line(aes(y = irradiance_mean, color = "irradiance")) +
+        facet_grid( ~  lakeGroup_Area) +
+        scale_color_manual(values = c("irradiance" = "orange"),
+            labels = c("Irradiance"), name = "c)") +
+        # annotate("rect",
+        #         xmin = min(days), xmax = max(days),
+        #         ymin = -Inf, ymax = Inf,
+        #         alpha = 0.2, fill = "grey") +
+        labs(title= "c) Irradiance related", x = "Day",y = "[W/m2]") +
+        theme_bw()
+    # p_light
+
+
+    p_env <- p_temp + p_metadepth + p_light + plot_layout(ncol = 1, guides = "collect") &  # collect all legends
+        theme(legend.position = "right")               # move legend to left
+
+    p_env <- p_env + 
+        plot_annotation(title = paste("Environmental Data","\nScenario: ", scenario))
+    
+    # save
+    ggsave(file.path(save_figures, "env_day.png"), p_env, height = 20, width = 15)
+    
+    return(p_env)
+}
+
+
+# test plot functions ------------------------------------------------
 # ---- Plot results -------------------------------
 func_plot_macroDay <- function(macrodata, speciesID_nam, name, days, scenario) {
     
