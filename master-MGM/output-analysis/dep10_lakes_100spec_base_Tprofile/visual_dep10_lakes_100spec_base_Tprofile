@@ -78,6 +78,7 @@ sort_env_Tprof <- sort_env[sort_env$day %in% unique(sort_res$day), ] %>%
         tempEpi_av = mean(tempEpi_mean, na.rm = TRUE),
         tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
         metaDepth_av = mean(metaDepth_mean, na.rm = TRUE),
+        # !! depth_mean = # max depth per lake group, 
         T_prof = list(T_profile(z = depth, T_epi = tempEpi_av, T_hypo = tempHypo_av,
                            z0 = metaDepth_av,k = k))) %>% 
         ungroup()
