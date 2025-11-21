@@ -100,9 +100,16 @@ res$lakeGroup_Area <- NA
 env$lakeGroup_Area <- NA
 
 res$lakeGroup_Area <- lake_Agroup[match(res$lakeID, lake_area$id)]
-
 env$lakeGroup_Area <- lake_Agroup[match(env$lakeID, lake_area$id)]
 
+# --- lake Depth
+lake_depth <- func_getLakeDepth(lake_path)
+res$lakeDepth <- NA
+env$lakeDepth <- NA
+
+res$lakeDepth <- lake_depth$lakeDepth[match(res$lakeID, lake_depth$id)]
+env$lakeDepth <- lake_depth$lakeDepth[match(env$lakeID, lake_depth$id)]
+# head(res)
 save(env, file = file.path(save_figures, "env_dep10_Tprofile.RData"))
 save(res, file = file.path(save_figures, "res_dep10_Tprofile.RData"))
 
@@ -117,7 +124,8 @@ sort_res <- valid_res %>%
         biomass_mean = mean(biomass), 
         numberInd_mean = mean(numberInd),
         indWeight_mean = mean(indWeight),
-        height_mean = mean(height)
+        height_mean = mean(height),
+        lakeDepth_mean = mean(lakeDepth)
     ) %>% ungroup()  %>%
     mutate(lakeGroup_Area = factor(lakeGroup_Area,
                                  levels = c("very.small", "small", "medium", "large", "very.large")))
@@ -138,7 +146,8 @@ sort_env <- env %>%
         metaDepth_mean = mean(metaDepth),
         irradiance_mean = mean(irradiance),
         waterlevel_mean = mean(waterlevel),
-        lightAttenuation_mean = mean(lightAttenuation)
+        lightAttenuation_mean = mean(lightAttenuation), 
+        lakeDepth_mean = mean(lakeDepth)
     ) %>% ungroup()  %>%
     mutate(lakeGroup_Area = factor(lakeGroup_Area,
                                  levels = c("very.small", "small", "medium", "large", "very.large")))

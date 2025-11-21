@@ -68,8 +68,9 @@ func_sortENV_plot(sort_env, save_figures, scenario) # defined in help-func.R
 
 # --- plot TempProfiles for all Groups ------
 # !!! # mean Depths per lakeClass and lakeGroup_Area needed !!!!
-
+head(res)
 depth <- unique(sort_res$depth)
+depth <- 0:-60
 k <- as.numeric(strsplit(gen.conf[8], " ")[[1]][2])
 
 sort_env_Tprof <- sort_env[sort_env$day %in% unique(sort_res$day), ] %>%
@@ -89,7 +90,7 @@ sort_env_Tprof_long <- sort_env_Tprof %>%
 
 p_Tprofile <- ggplot(sort_env_Tprof_long, aes(x = depth, y = T_prof, color = lakeClass)) +
   geom_line(linewidth = 2) +
-  scale_x_reverse(breaks = c(-5.0, -3.0, -1.5, -0.5)) +
+  scale_x_reverse( breaks = c(-5.0, -3.0, -1.5, -0.5),  limits = c(0, -5)) + # limits = c(0, -5),
   facet_wrap(~ lakeGroup_Area, nrow = 1) +
   theme_bw() +
   labs(title = paste("mean Temperature Profiles, days", minDay, "to", maxDay),
