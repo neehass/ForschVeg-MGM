@@ -1,14 +1,13 @@
 # -------------------------------------------------------------------------------------------
 # Visualise Results
 # -------------------------------------------------------------------------------------------
-# beginne nur mit Chiemsee = lake 6
-# general.config: Lakes: chiemsee (large) = 6, AbtsdorfSee (very.small) = 1, Eibsee (medium) = 7
 # projekt: all_lakes_100spec_base_Tprofile
 
 # packages & functions
 library(ggplot2)
 library(patchwork)
 library(dplyr)
+library(tidyr)
 library(stringr)
 library(RColorBrewer)
 
@@ -23,114 +22,16 @@ lake_path <- "input/lakes"
 save_figures <- "output-analysis/dep10_lakes_100spec_base_Tprofile"
 
 dir.create(save_figures)
-
 # ---------------------------------------------------------------------------------------------------------
-# load data --------------------------------------------------------------------------------
-res <- read.table(file.path(output, "all_res_biomass_number_weight_height_daily.txt"), header =TRUE)
-env <- read.table(file.path(output,"env.txt"), header =TRUE)
+# load data (Data preparation should be run before data_prep.R) ------------------------------------------------
+load(file.path(save_figures, "res_dep10_Tprofile.RData"))   # res # all data
+load(file.path(save_figures, "sortRES_dep10_Tprofile.RData")) # sort_res # biomass > 0 sorted macrophyte data (grouped by lakeClass, speciesGroup, lakeGroup_Area, depth, day)
+
+load(file.path(save_figures, "env_dep10_Tprofile.RData"))  # env # all environmental data
+load(file.path(save_figures, "sortENV_dep10_Tprofile.RData")) # env_sort # sorted environmental data (grouped by llakeClass, lakeGroup_Area, day)
+
 gen.conf <- readLines(file.path(output,"general.config.txt"))
-# head(res)
-# head(res[res$biomass >0,])
-
-# scenario
-scenario <- unique(res$scenario)
-
-# get species group name
-species_raw <- strsplit(gen.conf[[6]][[1]], " ")[[1]] 
-species_path <- species_raw[-1]
-cleand <- sub("\\.config\\.txt$", "", species_path)
-species <- sub(".*(?=species_)", "", cleand, perl = TRUE)
-species_id <- as.numeric(unlist(str_extract_all(species, "\\d+")))
-
-group <- c()
-for(i in 1:length(species_path)){
-    n <- read.table(species_path[i])
-    group[i] <- n$V2[n$V1 == "Group"]
-}
-unique(group) 
-
-# add group
-res$speciesGroup <- NA
-env$speciesGroup <- NA
-
-res$speciesGroup[( res$speciesID > 14000) & (res$speciesID < 14301)] <- "oligotroph"
-res$speciesGroup[( res$speciesID > 15000) & (res$speciesID < 15301)] <- "mesotroph"
-res$speciesGroup[( res$speciesID > 16000) & (res$speciesID < 16301)] <- "eutroph"
-res$speciesGroup <- as.factor(res$speciesGroup)
-
-res$speciesID[is.na(res$speciesGroup)]
-
-env$speciesGroup[( env$speciesID > 14000) & (env$speciesID < 14301)] <- "oligotroph"
-env$speciesGroup[( env$speciesID > 15000) & (env$speciesID < 15301)] <- "mesotroph"
-env$speciesGroup[( env$speciesID > 16000) & (env$speciesID < 16301)] <- "eutroph"
-env$speciesGroup <- as.factor(env$speciesGroup)
-
-env$speciesID[is.na(env$speciesGroup)]
-
 # ---------------------------------------------------------------------------------------------------------
-# --- add lake groups -------------------------------------------------------------------------------------------
-# Turbidity: clear, intermediate, Turbid 
-# size: very.small, small, medium, large, very.large
-
-# --- Turbidity:  maximal summer temperature, nutrient content, and turbidity. 
-# Based on these four parameters we classified the lakes into 
-# clear, medium, and turbid lakes  
-# performing a hierarchical clustering using Euclidean distance and the Ward linkage method on normalized environmental data of the lakes. 
-load("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/LewerentzEtAl2023_ModelledMacrophyteSpeciesRichness-1.0/data-raw/observed/Morphology.rda")
-head(Morphology)
-load("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/LewerentzEtAl2023_ModelledMacrophyteSpeciesRichness-1.0/data/data_lakes_env_class.rda")
-head(data_lakes_env_class) # Turbidity classes 
-
-lake_id <- data_lakes_env_class$Lake 
-lake_class <- data_lakes_env_class$class
-
-res$lakeClass <- NA
-env$lakeClass <- NA
-
-res$lakeClass <- lake_class[ match(res$lakeID, lake_id)]
-res$lakeClass <- as.factor(res$lakeClass)
-unique(res$lakeClass)
-
-env$lakeClass <- lake_class[ match(env$lakeID, lake_id)]
-env$lakeClass <- as.factor(env$lakeClass)
-unique(env$lakeClass)
-
-# --- size: Areagroup 
-# get Areakm2
-lake_area <- func_getAreaKm2(lake_path)
-
-lake_Agroup <- sapply(lake_area$areakm2, func_getAreaGroup)
-
-res$lakeGroup_Area <- NA
-env$lakeGroup_Area <- NA
-
-res$lakeGroup_Area <- lake_Agroup[match(res$lakeID, lake_area$id)]
-
-env$lakeGroup_Area <- lake_Agroup[match(env$lakeID, lake_area$id)]
-
-save(env, file = file.path(save_figures, "env_dep10_Tprofile.RData"))
-save(res, file = file.path(save_figures, "res_dep10_Tprofile.RData"))
-# ---------------------------------------------------------------------------------------------------------
-# ---- sort data Macrophyts ----------------------------------------------------------------------
-
-valid_res <- res[res$biomass > 0, ]
-
-sort_res <- valid_res %>%
-    group_by(lakeClass, speciesGroup, lakeGroup_Area, depth, day) %>%
-    summarise(
-        biomass_mean = mean(biomass), 
-        numberInd_mean = mean(numberInd),
-        indWeight_mean = mean(indWeight),
-        height_mean = mean(height)
-    ) %>% ungroup()  %>%
-    mutate(lakeGroup_Area = factor(lakeGroup_Area,
-                                 levels = c("very.small", "small", "medium", "large", "very.large")))
-head(sort_res)
-nrow(sort_res)
-
-unique(sort_res$day)
-save(sort_res, file = file.path(save_figures, "sortRES_dep10_Tprofile.RData"))
-
 # ---- plot ------------------------------------------------------------------------------------------
 p_macro <- ggplot(sort_res, aes(x = day, y = biomass_mean,
                      color = lakeClass, linetype = factor(depth))) +
@@ -144,44 +45,64 @@ p_macro
 ggsave(file.path(save_figures, "biomass_day.png"), p_macro, height = 20, width = 15)
 
 # ---- boxplot per dephts ------------------------------------------------------------------------------------------
+maxDay <- max(unique(sort_res$day))
+minDay <- min(unique(sort_res$day))
+
 p_box <- ggplot(sort_res, aes(x = factor(depth, levels = rev(sort(unique(depth)))), 
             y = biomass_mean, fill = lakeClass)) +
     geom_boxplot() +
     facet_grid(speciesGroup ~  lakeGroup_Area) +
     theme_bw() +
-    labs(title = "Biomass over Active Days",
+    labs(title = paste("Biomass over Active Days, days", minDay, "to", maxDay),
          y = "Mean Biomass", x = "Depths [m]", fill = "Turbidity")+
-    scale_fill_brewer(palette = "Accent")
+    scale_fill_brewer(palette = "Accent") 
 p_box
 ggsave(file.path(save_figures, "BOX_biomass_day.png"), p_box, height = 20, width = 15)
 
 # ---------------------------------------------------------------------------------------------------------
-# ---- sort data Environment ----------------------------------------------------------------------
 
-sort_env <- env %>%
-    group_by(lakeClass, lakeGroup_Area, day) %>%
-    summarise(
-        tempEpi_mean = mean(tempEpi), 
-        tempHypo_mean = mean(tempHypo),
-        metaDepth_mean = mean(metaDepth),
-        irradiance_mean = mean(irradiance),
-        waterlevel_mean = mean(waterlevel),
-        lightAttenuation_mean = mean(lightAttenuation)
-    ) %>% ungroup()  %>%
-    mutate(lakeGroup_Area = factor(lakeGroup_Area,
-                                 levels = c("very.small", "small", "medium", "large", "very.large")))
-head(sort_env)
-nrow(sort_env)
-
-unique(sort_env$day)
-save(sort_env, file = file.path(save_figures, "sortENV_dep10_Tprofile.RData"))
+# ---- Environmental variables ----------------------------------------------------------------------
 # ---- plot ------------------
-
 func_sortENV_plot(sort_env, save_figures, scenario) # defined in help-func.R
 # lightAttenuation_mean missing 
 
 # --- plot TempProfiles for all Groups ------
-# .....
+# !!! # mean Depths per lakeClass and lakeGroup_Area needed !!!!
+
+depth <- unique(sort_res$depth)
+k <- as.numeric(strsplit(gen.conf[8], " ")[[1]][2])
+
+sort_env_Tprof <- sort_env[sort_env$day %in% unique(sort_res$day), ] %>%
+    group_by(lakeClass, lakeGroup_Area) %>%
+    summarise(
+        tempEpi_av = mean(tempEpi_mean, na.rm = TRUE),
+        tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
+        metaDepth_av = mean(metaDepth_mean, na.rm = TRUE),
+        T_prof = list(T_profile(z = depth, T_epi = tempEpi_av, T_hypo = tempHypo_av,
+                           z0 = metaDepth_av,k = k))) %>% 
+        ungroup()
+
+sort_env_Tprof_long <- sort_env_Tprof %>%
+  mutate(depth = list(depth)) %>%  # depth for each T_prof
+  unnest(c(T_prof, depth))
+
+p_Tprofile <- ggplot(sort_env_Tprof_long, aes(x = depth, y = T_prof, color = lakeClass)) +
+  geom_line(linewidth = 2) +
+  scale_x_reverse(breaks = c(-5.0, -3.0, -1.5, -0.5)) +
+  facet_wrap(~ lakeGroup_Area, nrow = 1) +
+  theme_bw() +
+  labs(title = paste("mean Temperature Profiles, days", minDay, "to", maxDay),
+       y =  "mean Temperature [°C]",
+       x = "Depth [m]",
+       color = "Turbidity") +
+  scale_color_brewer(palette = "Accent")
+
+p_combo <-  p_box + p_Tprofile + plot_layout(ncol = 1, heights = c(3, 1))
+p_combo
+ggsave(file.path(save_figures, "BOX-Tprof_biomass_day.png"), p_combo, height = 25, width = 15)
+
+# --- TProfile Development over Days ------
+# mean Depths per lakeClass and lakeGroup_Area
 
 # --- plot nutrients / lake parameters per day ---
 # .....
