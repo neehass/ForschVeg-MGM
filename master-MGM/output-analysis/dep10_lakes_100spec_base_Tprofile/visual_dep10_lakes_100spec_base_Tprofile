@@ -10,7 +10,7 @@ library(dplyr)
 library(tidyr)
 library(stringr)
 library(RColorBrewer)
-
+library(viridis)
 # library(tidyverse)
 source("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/experiment/help-func.r")
 
@@ -69,8 +69,7 @@ func_sortENV_plot(sort_env, save_figures, scenario) # defined in help-func.R
 # --- plot TempProfiles for all Groups ------
 # !!! # mean Depths per lakeClass and lakeGroup_Area needed !!!!
 head(res)
-depth <- unique(sort_res$depth)
-depth <- 0:-60
+depth <- c(0, sort(unique(sort_res$depth), decreasing = TRUE))
 k <- as.numeric(strsplit(gen.conf[8], " ")[[1]][2])
 
 sort_env_Tprof <- sort_env[sort_env$day %in% unique(sort_res$day), ] %>%
@@ -79,14 +78,16 @@ sort_env_Tprof <- sort_env[sort_env$day %in% unique(sort_res$day), ] %>%
         tempEpi_av = mean(tempEpi_mean, na.rm = TRUE),
         tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
         metaDepth_av = mean(metaDepth_mean, na.rm = TRUE),
-        # !! depth_mean = # max depth per lake group, 
-        T_prof = list(T_profile(z = depth, T_epi = tempEpi_av, T_hypo = tempHypo_av,
+        lakeDepth_mean = mean(lakeDepth_mean, na.rm = TRUE), 
+        T_prof = list(T_profile(z = c(depth, lakeDepth_mean), T_epi = tempEpi_av, T_hypo = tempHypo_av,
                            z0 = metaDepth_av,k = k))) %>% 
         ungroup()
-
+# head(sort_env_Tprof)
 sort_env_Tprof_long <- sort_env_Tprof %>%
-  mutate(depth = list(depth)) %>%  # depth for each T_prof
-  unnest(c(T_prof, depth))
+    group_by(lakeClass, lakeGroup_Area) %>%
+    mutate(depth = list(c(depth, lakeDepth_mean))) %>%  # depth for each T_prof
+    unnest(c(T_prof, depth))
+# View(sort_env_Tprof_long)
 
 p_Tprofile <- ggplot(sort_env_Tprof_long, aes(x = depth, y = T_prof, color = lakeClass)) +
   geom_line(linewidth = 2) +
@@ -105,6 +106,49 @@ ggsave(file.path(save_figures, "BOX-Tprof_biomass_day.png"), p_combo, height = 2
 
 # --- TProfile Development over Days ------
 # mean Depths per lakeClass and lakeGroup_Area
+sort_env_Tprof_DAY <- sort_env %>% # sort_env[sort_env$day %in% unique(sort_res$day), ] 
+    group_by(lakeClass, lakeGroup_Area, day) %>%
+    summarise(
+        tempEpi_av = mean(tempEpi_mean, na.rm = TRUE),
+        tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
+        metaDepth_av = mean(metaDepth_mean, na.rm = TRUE),
+        lakeDepth_mean = mean(lakeDepth_mean, na.rm = TRUE), 
+        T_prof = list(T_profile(z = c(depth, lakeDepth_mean), T_epi = tempEpi_av, T_hypo = tempHypo_av,
+                           z0 = metaDepth_av,k = k))) %>% 
+        ungroup()
+
+sort_env_Tprof_DAY_long <- sort_env_Tprof_DAY %>%
+    group_by(lakeClass, lakeGroup_Area, day) %>%
+    mutate(depth = list(c(depth, lakeDepth_mean))) %>%  # depth for each T_prof
+    unnest(c(T_prof, depth)) %>%
+    mutate(day_bin = floor((day - 1) / 7) * 7 + 1)  # days 1–7 → 1, 8–14 → 8, etc.
+# View(sort_env_Tprof_DAY_long)
+
+all_days <- sort(unique(sort_env_Tprof_DAY_long$day_bin))
+mid_idx <- round(quantile(1:length(all_days), probs = c(0.25, 0.5, 0.75)))
+q25 <- c(mid_idx[1]-1, mid_idx[1], mid_idx[1]+1)
+mid <- c(mid_idx[2]-1, mid_idx[2], mid_idx[2]+1)
+q75 <-  c(mid_idx[3]-1, mid_idx[3], mid_idx[3]+1)
+show_days <- as.character(c(head(all_days, 3), all_days[q25], 
+                            all_days[mid], all_days[q75], tail(all_days, 3)))
+
+p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth, color = factor(day_bin))) +
+  geom_line(linewidth = 1) +
+  # scale_x_reverse( breaks = c(-5.0, -3.0, -1.5, -0.5),  limits = c(0, -5)) + # limits = c(0, -5),
+  facet_wrap(lakeGroup_Area ~lakeClass, ncol = 3) +
+  theme_bw() +
+  labs(title = paste("mean Temperature Profiles, Days 1-365 (summairsed in 7 day steps)" ),
+       y =  "mean Temperature [°C]",
+       x = "Depth [m]",
+       color = "e.g. Days")  +
+    scale_color_discrete(breaks = show_days) +   # << show only selected days
+  theme(legend.position = "right")
+
+    # theme(legend.position = "none") # + 
+    # scale_color_viridis(option = "inferno", discrete = is.factor(sort_env_Tprof_DAY_long$day))
+
+p_Tprofile_DAY
+ggsave(file.path(save_figures, "Tprof_perDAY_biomass_day.png"), p_Tprofile_DAY, height = 20, width = 15)
 
 # --- plot nutrients / lake parameters per day ---
 # .....
