@@ -69,7 +69,7 @@ func_sortENV_plot(sort_env, save_figures, scenario) # defined in help-func.R
 # --- plot TempProfiles for all Groups ------
 # !!! # mean Depths per lakeClass and lakeGroup_Area needed !!!!
 head(res)
-depth <- c(0, sort(unique(sort_res$depth), decreasing = TRUE))
+depth_bio <- c(0, sort(unique(sort_res$depth), decreasing = TRUE))
 k <- as.numeric(strsplit(gen.conf[8], " ")[[1]][2])
 
 sort_env_Tprof <- sort_env[sort_env$day %in% unique(sort_res$day), ] %>%
@@ -79,19 +79,21 @@ sort_env_Tprof <- sort_env[sort_env$day %in% unique(sort_res$day), ] %>%
         tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
         metaDepth_av = mean(metaDepth_mean, na.rm = TRUE),
         lakeDepth_mean = mean(lakeDepth_mean, na.rm = TRUE), 
-        T_prof = list(T_profile(z = c(depth, lakeDepth_mean), T_epi = tempEpi_av, T_hypo = tempHypo_av,
+        T_prof = list(T_profile(z = c(0:lakeDepth_mean), T_epi = tempEpi_av, T_hypo = tempHypo_av,
                            z0 = metaDepth_av,k = k))) %>% 
         ungroup()
 # head(sort_env_Tprof)
 sort_env_Tprof_long <- sort_env_Tprof %>%
     group_by(lakeClass, lakeGroup_Area) %>%
-    mutate(depth = list(c(depth, lakeDepth_mean))) %>%  # depth for each T_prof
+    mutate(depth = list(0:lakeDepth_mean)) %>%  # depth for each T_prof
     unnest(c(T_prof, depth))
-View(sort_env_Tprof_long)
+sort_env_Tprof_long <- sort_env_Tprof_long[sort_env_Tprof_long$depth >= -5,]
+# View(sort_env_Tprof_long)
+unique(sort_env_Tprof_long$depth)
 
 p_Tprofile <- ggplot(sort_env_Tprof_long, aes(x = depth, y = T_prof, color = lakeClass)) +
-  geom_line(linewidth = 2) +
-  scale_x_reverse( breaks = c(-5.0, -3.0, -1.5, -0.5),  limits = c(0, -5)) + # limits = c(0, -5),
+  geom_line(linewidth = 1) +
+  scale_x_reverse(breaks = depth_bio) + # limits = c(0, -5),
   facet_wrap(~ lakeGroup_Area, nrow = 1) +
   theme_bw() +
   labs(title = paste("mean Temperature Profiles, days", minDay, "to", maxDay),
@@ -107,7 +109,6 @@ ggsave(file.path(save_figures, "BOX-Tprof_biomass_day.png"), p_combo, height = 2
 # --- TProfile Development over Days ------
 # mean Depths per lakeClass and lakeGroup_Area
 sort_env_Tprof_DAY <- sort_env %>% # sort_env[sort_env$day %in% unique(sort_res$day), ] 
-     
     group_by(lakeClass, lakeGroup_Area, day) %>%
     # mutate(day_bin = floor((day - 1) / 30) * 30 + 1) %>%  # days 1–7 → 1, 8–14 → 8, etc.
     mutate(month_bin = floor((day - 1) / 30) + 1) %>%  # month 1, 2, 3...
