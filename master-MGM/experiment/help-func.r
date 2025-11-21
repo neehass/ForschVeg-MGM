@@ -161,6 +161,12 @@ T_profile <- function(z, T_epi, T_hypo, z0, k) {
   return(t)
 }
 
+T_profile_1 <- function(z, T_epi, T_hypo, z0, k) {
+  t <- T_hypo + (T_epi - T_hypo) / (1+exp((abs(z) - abs(z0)) / k))
+ 
+  return(t)
+}
+
 # --- env plot function -----------------------------
 func_sortENV_plot <- function(sort_env, save_figures, scenario){
     p_temp <- ggplot(sort_env, aes(x = day)) +
