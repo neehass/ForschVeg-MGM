@@ -8,13 +8,15 @@
 # ---------------------------------------------------------------------------------------------------
 
 getwd() # "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/MGM-scripte-data"
+dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025"
+setwd(dir)
 Sys.getenv("PATH")
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
-machine <- "home" # "home" # NoMachine !! doesnt work yet !!
+machine <- "NoMachine" # "home" # NoMachine !! doesnt work yet !!
 n <- 10 # number of species per group (oligotroph, mesotroph, eutroph)
-# n <- 100
+n <- 100
 
 setting <- "local" # "HPC" # HPC = parallel
 modelrun <- "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
@@ -42,31 +44,31 @@ if(machine == "home") {
 } else if (machine == "NoMachine") {
   print("NoMachine")
 
-  setwd("/media/ifgg1/E: data (1 TB)/Neele/ForschVeg-MGM/master-MGM/experiment") # NoMachine
-  source("/media/ifgg1/E: data (1 TB)/Neele/ForschVeg-MGM/master-MGM/experiment/help-func.r")
+  # setwd("/media/ifgg1/E: data (1 TB)/Neele/ForschVeg-MGM/master-MGM/experiment") # NoMachine
+  # source("/media/ifgg1/E: data (1 TB)/Neele/ForschVeg-MGM/master-MGM/experiment/help-func.r")
   .libPaths(c("/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.2", "/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.5")) # packages Path NoMachine
   # install.packages("Rcpp") # fix install.packages bug
   library(stringr)
-  Sys.setenv(PATH = paste("/opt/julia-1.12.1/bin", Sys.getenv("PATH"), sep=":"))
+  # Sys.setenv(PATH = paste("/opt/julia-1.12.1/bin", Sys.getenv("PATH"), sep=":"))
 
-  HypoFrac_dir <- "/media/ifgg1/E: data (1 TB)/Neele/ForschVeg-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
-  MetaFrac_dir <- "/media/ifgg1/E: data (1 TB)/Neele/ForschVeg-MGM/master-MGM/input/lakeFractionParameters/MetaDepth_fraction.config.txt"
+  HypoFrac_dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
+  MetaFrac_dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/input/lakeFractionParameters/MetaDepth_fraction.config.txt"
 
-  species_path <- "/media/ifgg1/E: data (1 TB)/Neele/ForschVeg-MGM/master-MGM/input/species"
+  species_path <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/master-MGM/input/species"
 
-  juliaDIR <- "/opt/julia-1.12.1/bin"
-  juliaHPC <- "/opt/julia-1.12.1/bin"
-
-  # Detect Julia path
-  juliaDIR <- find_julia()
-  message("Using Julia at: ", juliaDIR)
-  Sys.setenv(JULIA_HOME = juliaDIR)
+  # juliaDIR <- "/opt/julia-1.12.1/bin"
+  # juliaHPC <- "/opt/julia-1.12.1/bin"
+  # 
+  # # Detect Julia path
+  # juliaDIR <- find_julia()
+  # message("Using Julia at: ", juliaDIR)
+  # Sys.setenv(JULIA_HOME = juliaDIR)
 
 } else {print("define dir")}
 
 # species selection -----------------------
 # first run, select species randomly
-species <- func_sel_spec(n, species_path) 
+# species <- func_sel_spec(n, species_path) 
 
 # second run/ want to take same species as path_configFile
 path_configFile <- "master-MGM/output/dep10_lakes_100spec_base_Tprofile/general.config.txt"
@@ -106,7 +108,7 @@ if(length(species) != 300){stop("stop species ERORR")}
 # species <- paste0("species_", species_id)
 
 # lakes -----------------------
-lakes <- 1 # c(1:31) # c(6,1,7) 
+lakes <- c(1:31) # c(6,1,7) 
 exclude <- c(11, 12, 30, 4) # # ID (11, 12, 30, 4) > -10 Depth (excluding)
 lakes <- lakes[!lakes %in% exclude]
 #nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
@@ -139,9 +141,7 @@ if (setting == "local") {
     verbose = TRUE
   )
 } else if (setting == "NoMAchine") { # still doeasnt work!!
-  Sys.setenv(JULIA_HOME = juliaDIR)
-  julia_setup(installJulia = FALSE)
-
+  julia_setup()
 }
 
 # julia_command("using Base.Threads")
