@@ -11,17 +11,27 @@ library(tidyr)
 library(stringr)
 library(RColorBrewer)
 library(viridis)
+library(ggrepel)
+library(ggpmisc)
+library(ggpubr)
 # library(tidyverse)
 source("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/experiment/help-func.r")
 
 getwd()
 dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM"
 setwd(dir)
+
+# Folder output of MGM experiment and Analysis results folder
 output <- "output/dep10_lakes_100spec_base_Tprofile"
-lake_path <- "input/lakes"
+
 save_figures <- "output-analysis/dep10_lakes_100spec_base_Tprofile"
 
 dir.create(save_figures)
+
+# input files
+lake_path <- "input/lakes"
+lewSpec_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/LewerentzEtAl2023_ModelledMacrophyteSpeciesRichness-1.0"
+
 # ---------------------------------------------------------------------------------------------------------
 # load data (Data preparation should be run before data_prep.R) ------------------------------------------------
 load(file.path(save_figures, "res_dep10_Tprofile.RData"))   # res # all data
@@ -31,6 +41,14 @@ load(file.path(save_figures, "env_dep10_Tprofile.RData"))  # env # all environme
 load(file.path(save_figures, "sortENV_dep10_Tprofile.RData")) # env_sort # sorted environmental data (grouped by llakeClass, lakeGroup_Area, day)
 
 gen.conf <- readLines(file.path(output,"general.config.txt"))
+
+load(file.path(lewSpec_dir, "data-raw/observed/Morphology.rda"))
+load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
+head(Morphology)
+head(data_lakes_env_class) # Turbidity classes 
+
+load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
+
 # ---------------------------------------------------------------------------------------------------------
 # ---- plot ------------------------------------------------------------------------------------------
 p_macro <- ggplot(sort_res, aes(x = day, y = biomass_mean,
@@ -93,6 +111,9 @@ sort_env_Tprof_long <- sort_env_Tprof %>%
 # unique(sort_env_Tprof_long$depth)
 # test <- sort_env_Tprof_long[1, ]
 
+maxDay <- max(unique(sort_res$day))
+minDay <- min(unique(sort_res$day))
+
 p_Tprofile <- ggplot(sort_env_Tprof_long, aes(x = depth, y = T_prof, color = lakeClass)) +
   geom_line(linewidth = 1) +
   # geom_point(data = test, aes(x = -0.5, y = T_profile(z = -0.5, T_epi = test$tempEpi_av, T_hypo = test$tempHypo_av, z0 = test$metaDepth_av, k = 5)), color = "red") +
@@ -103,7 +124,8 @@ p_Tprofile <- ggplot(sort_env_Tprof_long, aes(x = depth, y = T_prof, color = lak
        y =  "mean Temperature [°C]",
        x = "Depth [m]",
        color = "Turbidity") +
-  scale_color_brewer(palette = "Accent")
+  scale_color_brewer(palette = "Accent") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 p_combo <-  p_box + p_Tprofile + plot_layout(ncol = 1, heights = c(3, 1))
 p_combo
@@ -161,9 +183,7 @@ ggsave(file.path(save_figures, "Tprof_perAproxMonth.png"), p_Tprofile_DAY, heigh
 
 # --- plot nutrients / lake parameters per day ---
 # .....
-
-# ---------------------------------------------------------------------------------------------------------
-# Observed and Potential species Richness ??
-
-# Potential aus eigenen Daten berechen (in analysis.Rmd) 
-# Observed mit Makroph_comm_S (in analysis.Rmd) 
+# -----------
+----------------------------------------------------------------------------------------------
+# Gradient potential species richness vs observed species richness  --------------------------------
+# in data&visual_specPot-Observed. R

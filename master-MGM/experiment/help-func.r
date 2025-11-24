@@ -158,8 +158,8 @@ func_getSpecies_config <- function(path_configFile){
 T_profile <- function(z, T_epi, T_hypo, z0, k) {
   t <- T_hypo + (T_epi - T_hypo) / (1+exp((abs(z) - abs(z0)) / k))
   if (length(z) > 1) {
-    t[1] = tempEpi
-    t[end] = tempHypo
+    t[1] = T_epi
+    t[length(t)] = T_hypo
   }
   return(t)
 }

@@ -13,11 +13,17 @@ source("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scri
 getwd()
 dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM"
 setwd(dir)
+
+# Folder output of MGM experiment and Analysis results folder
 output <- "output/dep10_lakes_100spec_base_Tprofile"
-lake_path <- "input/lakes"
+
 save_figures <- "output-analysis/dep10_lakes_100spec_base_Tprofile"
 
 dir.create(save_figures)
+
+# input files
+lake_path <- "input/lakes"
+lewSpec_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/LewerentzEtAl2023_ModelledMacrophyteSpeciesRichness-1.0"
 
 # ---------------------------------------------------------------------------------------------------------
 # load data --------------------------------------------------------------------------------
@@ -26,7 +32,10 @@ env <- read.table(file.path(output,"env.txt"), header =TRUE)
 gen.conf <- readLines(file.path(output,"general.config.txt"))
 # head(res)
 # head(res[res$biomass >0,])
-
+load(file.path(lewSpec_dir, "data-raw/observed/Morphology.rda"))
+load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
+# ---------------------------------------------------------------------------------------------------------
+# --- add species group -------------------------------------------------------------------------------------------
 # scenario
 scenario <- unique(res$scenario)
 
@@ -71,9 +80,7 @@ env$speciesID[is.na(env$speciesGroup)]
 # Based on these four parameters we classified the lakes into 
 # clear, medium, and turbid lakes  
 # performing a hierarchical clustering using Euclidean distance and the Ward linkage method on normalized environmental data of the lakes. 
-load("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/LewerentzEtAl2023_ModelledMacrophyteSpeciesRichness-1.0/data-raw/observed/Morphology.rda")
 head(Morphology)
-load("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/LewerentzEtAl2023_ModelledMacrophyteSpeciesRichness-1.0/data/data_lakes_env_class.rda")
 head(data_lakes_env_class) # Turbidity classes 
 
 lake_id <- data_lakes_env_class$Lake 
@@ -156,3 +163,7 @@ nrow(sort_env)
 
 unique(sort_env$day)
 save(sort_env, file = file.path(save_figures, "sortENV_dep10_Tprofile.RData"))
+
+# ---------------------------------------------------------------------------------------------------------
+# Gradient potential species richness vs observed species richness  --------------------------------
+# in data&visual_specPot-Observed. R
