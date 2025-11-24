@@ -26,7 +26,7 @@
 **/experiment/211128_theoreticalSpecies.R
 **/experiment/220218_theoreticalSpecies_scenarios_selectedSpec.R
 
-**/master-MGM/output/
+master-MGM/output/**
 # BUT keep all general.config.txt files inside subfolders
 !master-MGM/output/**/general.config.txt
 
