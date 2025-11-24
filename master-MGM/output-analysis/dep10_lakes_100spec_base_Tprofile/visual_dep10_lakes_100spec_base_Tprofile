@@ -47,8 +47,6 @@ load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
 head(Morphology)
 head(data_lakes_env_class) # Turbidity classes 
 
-load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
-
 # ---------------------------------------------------------------------------------------------------------
 # ---- plot ------------------------------------------------------------------------------------------
 p_macro <- ggplot(sort_res, aes(x = day, y = biomass_mean,

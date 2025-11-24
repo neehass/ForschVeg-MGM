@@ -33,11 +33,12 @@ lewSpec_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationsku
 
 # Potential aus eigenen Daten berechen (in analysis.Rmd) 
 # Observed mit Makroph_comm_S (in analysis.Rmd) 
-load(file.path(lewSpec_dir, "data/data.rda"))
-View(data)
+# load(file.path(lewSpec_dir, "data/data.rda"))
+# View(data)
 
 # potential species richness
 ### Bavaria: N of species -----------------------
+load(file.path(save_figures, "res_dep10_Tprofile.RData"))   # res # all data
 head(res)
 colnames(res)
 
