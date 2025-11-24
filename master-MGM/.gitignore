@@ -27,13 +27,13 @@
 **/experiment/220218_theoreticalSpecies_scenarios_selectedSpec.R
 
 **/master-MGM/output/
-# BUT keep all general.config.txt files inside subfolders
-!output/**/general.config.txt
 
 **/output-test1/
 **/output-test/
 **/output/all_lakes_100spec_base_Tprofile/
 **/output/ 
+# BUT keep all general.config.txt files inside subfolders
+!output/**/general.config.txt
 
 **/input_backup/
 
