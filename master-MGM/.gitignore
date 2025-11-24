@@ -32,7 +32,7 @@
 **/output-test/
 **/output/all_lakes_100spec_base_Tprofile/
 **/output/ 
-# !output/**/general.config.txt
+!output/**/general.config.txt
 
 **/input_backup/
 
