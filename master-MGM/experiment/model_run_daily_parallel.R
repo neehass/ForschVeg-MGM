@@ -8,6 +8,7 @@
 # ---------------------------------------------------------------------------------------------------
 
 getwd() # "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/MGM-scripte-data"
+dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM"
 dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025"
 setwd(dir)
 # Sys.getenv("PATH")
@@ -16,12 +17,12 @@ library(parallel)
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
-machine <- "NoMachine" # "home" # NoMachine !! doesnt work yet !!
-n <- 100 # number of species per group (oligotroph, mesotroph, eutroph)
+machine <- "home" # "home" # NoMachine !! doesnt work yet !!
+n <- 2 # number of species per group (oligotroph, mesotroph, eutroph)
 # n <- 10
 
-setting <- "parallel" # "HPC" # HPC, # parallel
-modelrun <- "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+setting <- "local" # "HPC" # local # parallel
+modelrun <- "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
@@ -72,7 +73,7 @@ species <- species[!species %in% ex]
 # species ID
 species_id <- unlist(str_extract_all(species, "\\d+"))
 species_id <- as.numeric(species_id)
-if(length(species) != 300){stop("stop species ERORR")}
+if(length(species) != 300){stop(paste("stop species ERORR", length(species)))}
 
 # test species
 # ERROR: reproDay < germinationDay + seedsEndAge
@@ -99,7 +100,7 @@ if(length(species) != 300){stop("stop species ERORR")}
 # species <- paste0("species_", species_id)
 
 # lakes -----------------------
-lakes <- c(1:31) # c(6,1,7) 
+lakes <- 1:2 # c(1:31) # c(6,1,7) 
 exclude <- c(11, 12, 30, 4) # # ID (11, 12, 30, 4) > -10 Depth (excluding)
 lakes <- lakes[!lakes %in% exclude]
 #nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
@@ -288,6 +289,7 @@ for (S in 1:length(scenarios)){
   }
   
   comb_l_s <- seq(1, length(model2), by = 2)
+  comb_env <- seq(2, length(model2), by = 2)
   
   end_time <- Sys.time()
   time <- end_time - start_time
@@ -388,4 +390,5 @@ for (S in 1:length(scenarios)){
   print(paste("modle run", modelrun, time))
   print(paste("totale time", modelrun, time + timedat))
 } # Scenario loop
+# ---------------------------------------------------------------------------------------------------------
 
