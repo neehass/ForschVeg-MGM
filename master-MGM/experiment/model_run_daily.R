@@ -123,9 +123,9 @@ lakestemplate = "reallakes_simplifiedVersion"
 ## Julia and R setup ----
 # ---------------------------------------------------------------------------------------------------
 # CORES
-if (setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = nthreads) #Sets number of threads
-if(setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = "8") # set cores for parallelizing
-if (setting =="local") Sys.setenv(JULIA_NUM_THREADS = "1")
+# if (setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = nthreads) #Sets number of threads
+# if(setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = "8") # set cores for parallelizing
+# if (setting =="local") Sys.setenv(JULIA_NUM_THREADS = "1")
 # Sys.getenv("JULIA_NUM_THREADS")
 # Sys.getenv()
 
@@ -192,7 +192,7 @@ scenarios <- data.table(
 )
 
 # Set working directories 
-if (setting =="local") {
+if ((setting == "local") | (setting == "parallel")){ # Local Machine{
   setwd('../')
   wd<-getwd()
   if (str_sub(wd,-3,-1) != "MGM") { #moves you to project folder containing MGM
