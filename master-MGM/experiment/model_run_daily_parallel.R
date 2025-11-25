@@ -11,6 +11,7 @@ getwd() # "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/M
 dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025"
 setwd(dir)
 # Sys.getenv("PATH")
+library(parallel)
 
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
@@ -36,24 +37,24 @@ if(machine == "home") {
   
   HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
   MetaFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MetaDepth_fraction.config.txt"
-
+  
   species_path <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/species"
-
+  
   juliaDIR <- "C:/Users/maiim/AppData/Local/Programs/Julia-1.11.5/bin"
   # juliaHPC
-
+  
 } else if (machine == "NoMachine") {
   print("NoMachine")
-
+  
   setwd("C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/experiment") # NoMachine
   source("C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/experiment/help-func.r")
   
-
+  
   HypoFrac_dir <- "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
   MetaFrac_dir <- "./input/lakeFractionParameters/MetaDepth_fraction.config.txt"
-
+  
   species_path <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/master-MGM/input/species"
-
+  
 } else {print("define dir")}
 
 # species selection -----------------------
@@ -64,8 +65,8 @@ if(machine == "home") {
 path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_100spec_base_Tprofile/general.config.txt"
 species <- func_getSpecies_config(path_configFile)
 ex <- paste0("species_", c(14249, 14264, 14121, 14233, 14251,
-                          15040, 15044, 15174, 15191,
-                          16043, 16231, 16233, 16299, 16300)) # error check
+                           15040, 15044, 15174, 15191,
+                           16043, 16231, 16233, 16299, 16300)) # error check
 species <- species[!species %in% ex]
 
 # species ID
@@ -240,19 +241,19 @@ for (S in 1:length(scenarios)){
                        col.names=F, sep = " ")
   } # adapt lake - scenario
   
-
+  
   # --- print general config file 
   L1 <- c()
   S1 <- c()
   for (l in 1:length(lakes)) {
-      lake = paste("./input/lakes/lake_", lakes[l], ".config.txt", sep = "")
-      L1 <- cbind(L1, lake)
+    lake = paste("./input/lakes/lake_", lakes[l], ".config.txt", sep = "")
+    L1 <- cbind(L1, lake)
   }
   for (l in 1:length(species)) {
-      spec <- paste("./input/species/", species[l], ".config.txt", sep = "")
-      S1 <- cbind(S1, spec)
+    spec <- paste("./input/species/", species[l], ".config.txt", sep = "")
+    S1 <- cbind(S1, spec)
   }
-    
+  
   to_print <- c(
     paste0("modelrun ", paste0(modelrun, collapse = " ")),
     paste0("years ", paste0(years, collapse = " ")),
@@ -261,20 +262,20 @@ for (S in 1:length(scenarios)){
     paste0("lakes ", paste0(L1, collapse = " ")),
     paste0("species ", paste0(S1, collapse = " ")),
     paste0("tempProfile ",  paste0(tempProfile, collapse = " ")),
-     paste0("k ",  paste0(k, collapse = " ")),
+    paste0("k ",  paste0(k, collapse = " ")),
     paste0("HypoFrac_dir ",  paste0(HypoFrac_dir, collapse = " ")),
     paste0("MetaFrac_dir ",  paste0(MetaFrac_dir, collapse = " "))
   )
-
+  
   # save general.config-file
   writeLines(text = to_print)
   writeLines(text = to_print,
-            con = paste0(wd, "/input/general.config.txt"))
-            
+             con = paste0(wd, "/input/general.config.txt"))
+  
   if(!dir.exists("output")){dir.create("output")}
   if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
   writeLines(text = to_print,
-            con =paste0(wd,"/output/",modelrun,"/general.config.txt"))
+             con =paste0(wd,"/output/",modelrun,"/general.config.txt"))
   
   # ---------------------------------------------------------------------------
   # Model run -------------
@@ -283,37 +284,42 @@ for (S in 1:length(scenarios)){
   if(setting == "parallel"){
     model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env_parallel()")
   } else if (setting == "local") {
-     model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")
+    model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")
   }
   
   comb_l_s <- seq(1, length(model2), by = 2)
-
+  
   end_time <- Sys.time()
   time <- end_time - start_time
-
+  
   print(paste("modle run", modelrun, time))
-
+  
   # ---------------------------------------------------------------------------
   # save macrophyte data for all lakes, species, depths
   print("data saving")
   
+  # ---------------------------------------------------------------------------
+  # Set number of cores
+  ncores <- detectCores() - 1
+  cl <- makeCluster(ncores)
+  clusterExport(cl, varlist = c("model2", "species_id", "lakes", "depths",
+                                "scenario_name", "comb_l_s", "comb_env"))
+  
+  # ---------------------- Macrophyte Data -------------------------------------
+  print("saving macrophyte data")
+  
   start_time_dat <- Sys.time()
-  all_df <- data.frame()
-  for(i in comb_l_s){
-  # figure out which lake/species this corresponds to
-    idx <- ((i - 1) / 2) + 1  # combination index
-    l_ix <- ceiling(idx / length(species))
-    s_ix <- idx - (l_ix - 1) * length(species)
-    #print(paste(i, l_ix, s_ix))
-
-    # print(paste("res",i, "lake", lakes[l_ix], "species", species_id[s_ix]))
-
-    # data
+  
+  # Function to process a single combination
+  process_macrophyte <- function(i){
+    idx <- ((i - 1) / 2) + 1
+    l_ix <- ceiling(idx / length(species_id))
+    s_ix <- idx - (l_ix - 1) * length(species_id)
+    
     res <- model2[[i]]
-
-    # depth dataframe
+    df_list <- vector("list", 4)
+    
     for(d in 1:4){
-      # print(paste("depth",depths[d]))
       df <- as.data.frame(res[[d]])
       colnames(df) <- c("biomass", "numberInd", "indWeight", "height")
       df$depth <- depths[d]
@@ -321,124 +327,65 @@ for (S in 1:length(scenarios)){
       df$lakeID <- lakes[l_ix]
       df$day <- 1:365
       df$scenario <- scenario_name
-
-      all_df <- rbind(all_df, df)
+      df_list[[d]] <- df
     }
-  } # save macrophyt
-
-  # unique(all_df$speciesID)
-  # View(all_df)
-  write.table(all_df, file = paste0(wd,"/output/",modelrun,"/all_res_biomass_number_weight_height_daily.txt"), 
-              col.names = T, row.names = F) 
-  print("macrophyt data saved")
-  # save environment data ------------------------------------------------------
-  # tempEpi, tempHypo, metaDepth, irradiance, waterlevel, lightAttenuation
-  comb_env <- seq(2, length(model2), by = 2)
-  all_env <- data.frame()
-  env_par <-  c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
-
-  print("saving env data")
-  for(pos in 1:length(comb_l_s)){
-
-  # figure out which lake/species this corresponds to
+    
+    do.call(rbind, df_list)
+  }
+  
+  # Parallel processing
+  all_df_list <- parLapply(cl, comb_l_s, process_macrophyte)
+  all_df <- do.call(rbind, all_df_list)
+  
+  # Save
+  write.table(all_df, file = paste0(wd,"/output/",modelrun,"/all_res_biomass_number_weight_height_daily.txt"),
+              col.names = TRUE, row.names = FALSE)
+  
+  print("macrophyte data saved")
+  
+  # ---------------------- Environment Data -----------------------------------
+  print("saving environment data")
+  
+  # Function to process a single environment combination
+  process_env <- function(pos){
     i <- comb_l_s[pos]
-    idx <- ((i - 1) / 2) + 1  # combination index
-    l_ix <- ceiling(idx / length(species))
-    s_ix <- idx - (l_ix - 1) * length(species)
-    #print(paste(comb_env[pos], l_ix, s_ix))
-
-    #print(paste("res",i, "lake", lakes[l_ix], "species", species_id[s_ix]))
-
-    p <- comb_env[pos]
-    # data
-    res <- model2[[p]]
-
-    # env dataframe
-    df <- data.frame(matrix(nrow = 365, ncol = 6))
-
+    idx <- ((i - 1) / 2) + 1
+    l_ix <- ceiling(idx / length(species_id))
+    s_ix <- idx - (l_ix - 1) * length(species_id)
+    
+    res <- model2[[comb_env[pos]]]
+    df <- as.data.frame(matrix(nrow = 365, ncol = 6))
+    env_par <- c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
+    
     for(d in 1:6){
-      # print(paste("env_par", env_par[d]))
       df[, d] <- as.vector(res[[d]])
     }
-
-    # set column names and extra info
     colnames(df) <- env_par
     df$speciesID <- species_id[s_ix]
     df$lakeID <- lakes[l_ix]
     df$day <- 1:365
     df$scenario <- scenario_name
-
-    # append to master dataframe
-    all_env <- rbind(all_env, df)
-
-  } # svae env
-  # View(all_env)
-  write.table(all_env, file = paste0(wd,"/output/",modelrun,"/env.txt"), 
-              col.names = T, row.names = F) 
-  print("env data saved")
+    df
+  }
+  
+  # Parallel processing
+  all_env_list <- parLapply(cl, seq_along(comb_env), process_env)
+  all_env <- do.call(rbind, all_env_list)
+  
+  # Save
+  write.table(all_env, file = paste0(wd,"/output/",modelrun,"/env.txt"),
+              col.names = TRUE, row.names = FALSE)
+  
+  print("environment data saved")
+  
+  # Stop cluster
+  stopCluster(cl)
   
   end_time_dat <- Sys.time()
   timedat <- end_time_dat - start_time_dat
   
+  print(paste("data saving time:", timedat))
   print(paste("modle run", modelrun, time))
-  print(paste("data saving", timedat))
   print(paste("totale time", modelrun, time + timedat))
 } # Scenario loop
-
-
-# --------------------------
-# # Species loop  
-# all_res <- list()
-
-# for (s in 1:length(species)) {
-#   # Write species-specific config file
-#   S1 <- paste("./input/species/",
-#               species[s],
-#               ".config.txt",
-#               sep = "")
-  
-#   # Create temporary general config for each lake
-#   for (l in 1:length(lakes)) {
-#     L1 <- paste("./input/lakes/lake_", lakes[l], ".config.txt", sep = "")
-    
-#     to_print <- c(
-#       paste0("modelrun ", paste0(modelrun, collapse = " ")),
-#       paste0("years ", paste0(years, collapse = " ")),
-#       paste0("depths ", paste0(depths, collapse = " ")),
-#       paste0("yearsoutput ", paste0(yearsoutput, collapse = " ")),
-#       paste0("lakes ", L1),
-#       paste0("species ", S1),
-#       paste0("tempProfile ", tempProfile),
-#       paste0("HypoFrac_dir ", HypoFrac_dir),
-#       paste0("MetaFrac_dir ", MetaFrac_dir)
-#     )
-    
-#     # save general.config-file
-#     writeLines(
-#       text = to_print,
-#       con = paste0(wd, "/input/general.config.txt")
-#     )
-    
-#     print(paste("start model for", species[s], "& lake", lakes[l]))
-    
-#     ###################
-#     # Run Model in Julia
-#     model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")  # 4 depths defined in general.config.file
-    
-#     # output speichern 
-#     res_list <- list()
-#     res_list[["macrophyt"]] <- model2[[1]]
-#     names(res_list[["macrophyt"]]) <- paste0("depth", depths)
-    
-#     # Save results
-#     all_res[[paste0("species_", species_id[s], "_lake_", lakes[l])]] <- res_list
-    
-#   } # end lake
-# } # end species
-
-# names(all_res)
-# # --- save output
-# if(!dir.exists("output")){dir.create("output")}
-# if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
-# saveRDS(all_res, file = file.path(wd,"output",modelrun,"all_res_biomass_number_weight_height.RData"))
 
