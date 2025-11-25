@@ -21,7 +21,7 @@ machine <- "NoMachine" # "home" # NoMachine !! doesnt work yet !!
 n <- 100 # number of species per group (oligotroph, mesotroph, eutroph)
 # n <- 10
 
-setting <- "local" # "HPC" # local # parallel
+setting <- "parallel" # "HPC" # local # parallel
 modelrun <- "dep10_lakes_100spec_base_Tsteady" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
@@ -53,6 +53,8 @@ if(machine == "home") {
   MetaFrac_dir <- "./input/lakeFractionParameters/MetaDepth_fraction.config.txt"
   
   species_path <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/master-MGM/input/species"
+  
+  setting <- "parallel"
   
 } else {print("define dir")}
 
@@ -91,7 +93,7 @@ lakestemplate = "reallakes_simplifiedVersion"
 ## Julia and R setup ----
 # ---------------------------------------------------------------------------------------------------
 # CORES
-# should be set in CDM see Parallel_Eingabe.png 
+# should be set in CDM see Parallel_Eingabe.png before starting Rstudio/ VsCode !!
 
 # Setup integration of julia
 # install.packages("JuliaCall")
