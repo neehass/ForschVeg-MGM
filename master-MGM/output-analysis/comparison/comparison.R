@@ -156,7 +156,6 @@ head(Nspec_los_finc_type$oligotroph)
 
 # ------------------------------------------------------------------------------------------
 # prep data for ploting ------------
-scentunutlabel<-c(TurbNutm1="-25%",TurbNut1="+25%")#
 res_comp_sceanrio <-res_combined %>% 
   left_join(data_lakes_env_class %>% select(Lake,class), by=c("lakeID"="Lake")) %>%
   mutate(Trophie = ifelse(speciesGroup == "oligotroph", "oligotraphentic",
@@ -171,22 +170,23 @@ res_comp_sceanrio <-res_combined %>%
    ) %>%
     mutate(
     TestMinusbaseTP = test - baseTP, 
-    TestPlusbaseTP = test - baseTP
+    TestPlusbaseTP = test + baseTP
   )  %>% 
   ungroup() %>%
   group_by(depth,Trophie, class) %>% 
   select(-lakeID, -test) %>% summarise_all(list(mean=mean, sd=sd)) %>%
-  gather("scenario", "NSpec", c(5, 7)) %>% # exclude base
+  gather("scenario", "NSpec", c(5:6, 8:9)) %>% # exclude base
   mutate(type=str_extract(scenario,"[^_]+$"),
          scenario=str_extract(scenario, "[^_]+")) %>%
   spread(type, NSpec) %>%
   mutate(scenarioTemp = ifelse(scenario=="baseTP", "Temp0", 
                     ifelse( scenario=="TestMinusbaseTP", "Temp1", 
-                        ifelse(scenario == "TestPlusbaseTP", "Temp3",NA)))) %>%
-  mutate(scenarioTurbNut = ifelse(scenario=="baseTP" ,"TurbNut1", 
-                        ifelse( scenario=="TestMinusbaseTP", "TurbNut1", 
-                        ifelse(scenario == "TestPlusbaseTP", "TurbNut2",NA)))) 
+                        ifelse(scenario == "TestPlusbaseTP", "Temp1",NA)))) %>%
+  mutate(scenarioTurbNut = ifelse(scenario=="baseTP" ,"TurbNut0", 
+                        ifelse( scenario=="TestMinusbaseTP", "TurbNut0", 
+                        ifelse(scenario == "TestPlusbaseTP", "TurbNut1",NA)))) 
 head(res_comp_sceanrio) 
+unique(res_comp_sceanrio$scenario)
 
 # ------------------------------------------------------------------------------------------
 # Plotting  --------------------------------------------------------------------------------
@@ -209,7 +209,10 @@ TrophiePalette <- c("cornflowerblue","aquamarine4","coral4")
 lakeclasses <- c("clear lakes","intermediate lakes", "turbid lakes")
 names(lakeclasses)<-c("clear","medium","turb")
 
-p_Nspec_change <- Fig3B %>%
+p_Nspec_change_A <- res_comp_sceanrio %>%
+    filter(scenarioTemp=="Temp1")%>%
+    filter(scenarioTurbNut=="TurbNut0")%>%
+    mutate(scenarioTurbNut=ifelse(scenarioTurbNut=="TurbNut0","test Tsteady - Base Tprofile","NA")) %>%
     ggplot(aes(factor(depth),mean, 
                 group=interaction(Trophie, scenarioTemp)))+#, col=factor(Trophie
     geom_point(aes(col=interaction(Trophie)),
@@ -238,8 +241,67 @@ p_Nspec_change <- Fig3B %>%
         #sec.axis = dup_axis(name = expression(increase %<-% TurbNutr %->% decrease), 
         #                   breaks = NULL))+ 
     theme(axis.title.y.right = element_text(size=10,color = "grey50"))
-p_Nspec_change
+# p_Nspec_change_A
+
+p_Nspec_change_B <- res_comp_sceanrio %>%
+    filter(scenarioTemp=="Temp1")%>%
+    filter(scenarioTurbNut =="TurbNut1")%>%
+    mutate(scenarioTurbNut=ifelse(scenarioTurbNut=="TurbNut1","test Tsteady + Base Tprofile","NA")) %>%
+    ggplot(aes(factor(depth),mean, 
+                group=interaction(Trophie, scenarioTemp)))+#, col=factor(Trophie
+    geom_point(aes(col=interaction(Trophie)),
+                    position=position_dodge(width=0.5))+
+    #geom_path(alpha=0.5, aes(col=interaction(Trophie)),
+    #              position=position_dodge(width=0.5))+
+    #geom_bar(stat="identity", aes(fill=factor(Trophie)), 
+    #         position = position_dodge(width=0.5),
+    #         width=0.5)+
+    geom_errorbar(aes(ymax=mean+sd,
+                        ymin=mean-sd,
+                        col=interaction(Trophie)),
+                    position=position_dodge(width=0.5), width=.2)+
+    #geom_boxplot()+
+    facet_grid(scenarioTurbNut~class, 
+                labeller = labeller(class = lakeclasses))+
+    ylab("Potential spec. \nrichness change (N)")+
+    theme(legend.position = "bottom")+
+    scale_color_manual(values=rev(TrophiePalette))+
+    theme(legend.title = element_blank())+
+    scale_x_discrete(limits=rev)+ 
+    geom_hline(yintercept=0, linetype="dashed", color = "black")+
+    xlab("Depth (m)")+
+    scale_y_continuous(limits=c(-60,60),breaks = seq(-60, 60, 20))+#,
+        #sec.axis = dup_axis(name = expression(increase %<-% TurbNutr %->% decrease), 
+        #                   breaks = NULL))+ 
+    theme(axis.title.y.right = element_text(size=10,color = "grey50"))
+# p_Nspec_change_B
+
+p_Nspec_change_COMBO <- ((p_Nspec_change_A + xlab(""))/ 
+   (p_Nspec_change_B + xlab(""))) +
+  plot_annotation(tag_levels = 'a',
+                  tag_prefix = '(',
+                  tag_suffix = ')')+ 
+  #labs(fill="Spec. group") + 
+  plot_layout(heights = c(1, 1, 1)) + 
+  plot_layout(guides = "collect")  &
+  theme(legend.position = "bottom",
+        strip.text.x = element_text(size = 8),
+                strip.text.y = element_text(size = 10),
+                axis.text.x = element_text(angle = 90, 
+                                           vjust = 0.5, hjust=1),
+                axis.title=element_text(size=10))& 
+  theme(plot.margin =  unit(c(-0.0, 0.2, -0.0, 0.2), "cm"),
+        plot.tag = element_text(size = 12))& 
+  #guides(colour = guide_legend(override.aes = list(size=2)))&
+  guides(colour=guide_legend(nrow=1,byrow=TRUE))
+
+p_Nspec_change_COMBO
+ggsave(file.path(save_comparison, "test_COMBO_Nspec_change_Tprofile_vs_Tsteady.png"), 
+       p_Nspec_change_COMBO, width = 7, height=10, dpi="print", bg="white", scale=0.75)
 # ------------------------------------------------------------------------------------------
 # Comparison between scenarios with T_profile ------------------
 # ...........
 
+# ------------------------------------------------------------------------------------------
+# Traits Winner / Loser  ------------------
+# ...........
