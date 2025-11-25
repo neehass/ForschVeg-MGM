@@ -480,7 +480,7 @@ function CHARISMA_biomass_N_weight_hight_env_parallel()
 
         # Define output structure
         MacrophAll = Vector{Any}()
-        lock = ReentrantLock()  # prevent concurrent push! issues
+        mylock = ReentrantLock()  # prevent concurrent push! issues
 
         @threads for l in 1:length(GeneralSettings["lakes"])
             for s in 1:length(GeneralSettings["species"])
@@ -509,7 +509,7 @@ function CHARISMA_biomass_N_weight_hight_env_parallel()
                     push!(Res, result[d][1][(((nyears[1]-1)*365)+1):(nyears[1]*365), 1:4])
                 end
 
-                lock(lock) do
+                lock(mylock) do
                     push!(MacrophAll, Res)
                     push!(MacrophAll, environment)
                 end
