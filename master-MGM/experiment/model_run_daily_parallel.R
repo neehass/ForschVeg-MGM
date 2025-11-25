@@ -7,49 +7,47 @@
 # general.config: 
 # ---------------------------------------------------------------------------------------------------
 
-getwd() # "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/MGM-scripte-data"
+getwd() 
 dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM"
 dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025"
 setwd(dir)
-# Sys.getenv("PATH")
-library(parallel)
+
+library(parallel) 
 
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
-machine <- "home" # "home" # NoMachine !! doesnt work yet !!
-n <- 2 # number of species per group (oligotroph, mesotroph, eutroph)
+machine <- "NoMachine" # "home" # NoMachine !! doesnt work yet !!
+n <- 100 # number of species per group (oligotroph, mesotroph, eutroph)
 # n <- 10
 
 setting <- "local" # "HPC" # local # parallel
-modelrun <- "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+modelrun <- "dep10_lakes_100spec_base_Tsteady" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
 tempProfile <- "false" # "false" true
 k <- 5
 
-# (full path needed!)
+# set dir ------------------------------------------------------------------------------------------
 if(machine == "home") {
   print("home")
+  
   setwd("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/experiment")
   source("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/experiment/help-func.r")
-  library(stringr)
   
-  HypoFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
-  MetaFrac_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/lakeFractionParameters/MetaDepth_fraction.config.txt"
+  HypoFrac_dir <- "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
+  MetaFrac_dir <- "./input/lakeFractionParameters/MetaDepth_fraction.config.txt"
   
   species_path <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/input/species"
   
   juliaDIR <- "C:/Users/maiim/AppData/Local/Programs/Julia-1.11.5/bin"
-  # juliaHPC
   
 } else if (machine == "NoMachine") {
   print("NoMachine")
   
   setwd("C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/experiment") # NoMachine
   source("C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/experiment/help-func.r")
-  
   
   HypoFrac_dir <- "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
   MetaFrac_dir <- "./input/lakeFractionParameters/MetaDepth_fraction.config.txt"
@@ -67,7 +65,7 @@ path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MG
 species <- func_getSpecies_config(path_configFile)
 ex <- paste0("species_", c(14249, 14264, 14121, 14233, 14251,
                            15040, 15044, 15174, 15191,
-                           16043, 16231, 16233, 16299, 16300)) # error check
+                           16043, 16231, 16233, 16299, 16300)) # error check # ERROR: reproDay < germinationDay + seedsEndAge
 species <- species[!species %in% ex]
 
 # species ID
@@ -75,32 +73,14 @@ species_id <- unlist(str_extract_all(species, "\\d+"))
 species_id <- as.numeric(species_id)
 if(length(species) != 300){stop(paste("stop species ERORR", length(species)))}
 
-# test species
-# ERROR: reproDay < germinationDay + seedsEndAge
-# ./input/species/species_14249.config.txt
-# ./input/species/species_14264.config.txt
-# ./input/species/species_14121.config.txt
-# ./input/species/species_14233.config.txt
-# ./input/species/species_14251.config.txt
-
-# ./input/species/species_15040.config.txt
-# ./input/species/species_15044.config.txt
-# ./input/species/species_15174.config.txt
-# ./input/species/species_15191.config.txt
-
-# ./input/species/species_16043.config.txt
-# ./input/species/species_16231.config.txt
-# ./input/species/species_16233.config.txt
-# ./input/species/species_16299.config.txt
-# ./input/species/species_16300.config.txt
-
+# test species --
 # species_id <- c(16001:16300)
 # species_id <- species_id[species_id > 16299]
 # species_id <- 14121
 # species <- paste0("species_", species_id)
 
 # lakes -----------------------
-lakes <- 1:2 # c(1:31) # c(6,1,7) 
+lakes <- c(1:31) # c(1:31) # c(6,1,7) 
 exclude <- c(11, 12, 30, 4) # # ID (11, 12, 30, 4) > -10 Depth (excluding)
 lakes <- lakes[!lakes %in% exclude]
 #nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
@@ -111,20 +91,11 @@ lakestemplate = "reallakes_simplifiedVersion"
 ## Julia and R setup ----
 # ---------------------------------------------------------------------------------------------------
 # CORES
-# if (setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = nthreads) #Sets number of threads
-# if(setting =="HPC") Sys.setenv(JULIA_NUM_THREADS = "8") # set cores for parallelizing
-# if (setting =="local") Sys.setenv(JULIA_NUM_THREADS = "1")
-# Sys.getenv("JULIA_NUM_THREADS")
-# Sys.getenv()
+# should be set in CDM see Parallel_Eingabe.png 
 
 # Setup integration of julia
 # install.packages("JuliaCall")
 library(JuliaCall)
-
-#if (setting =="HPC") julia_setup(JULIA_HOME = "/home/anl85ck/.julia/bin",installJulia = F) #on HPC
-# if ("julia" %in% ls()) {
-#   julia_exit()  # terminates the running Julia session
-# }
 
 if (setting == "local") {
   julia_setup(
@@ -132,7 +103,7 @@ if (setting == "local") {
     installJulia = FALSE,
     verbose = TRUE
   )
-} else if (setting == "NoMAchine") { # still doeasnt work!!
+} else if (setting == "NoMAchine") { 
   julia_setup()
 }
 
@@ -188,13 +159,6 @@ if ((setting == "local") | (setting == "parallel")){ # Local Machine{
     quit(save="no")
   }
   print(wd)
-}
-
-if (setting == "HPC"){ # High Performance Computing — a server or cluster environment
-  wd<-here::here()
-  setwd(wd)
-  print(wd)
-  #if (str_sub(wd, start= -9) != "2_Macroph") print("Wrong path!")
 }
 
 # Import julia functions
