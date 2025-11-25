@@ -53,20 +53,6 @@ if(machine == "home") {
   MetaFrac_dir <- "./input/lakeFractionParameters/MetaDepth_fraction.config.txt"
 
   species_path <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/master-MGM/input/species"
-  
-  # andere Workstaion
-  # .libPaths(c("/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.2", "/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.5")) # packages Path NoMachine
-  # install.packages("Rcpp") # fix install.packages bug
-  # library(stringr)
-  # Sys.setenv(PATH = paste("/opt/julia-1.12.1/bin", Sys.getenv("PATH"), sep=":"))
-  
-  # juliaDIR <- "/opt/julia-1.12.1/bin"
-  # juliaHPC <- "/opt/julia-1.12.1/bin"
-  # 
-  # # Detect Julia path
-  # juliaDIR <- find_julia()
-  # message("Using Julia at: ", juliaDIR)
-  # Sys.setenv(JULIA_HOME = juliaDIR)
 
 } else {print("define dir")}
 
