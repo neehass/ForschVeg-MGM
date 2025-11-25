@@ -4,21 +4,22 @@
 # CHARISMA_biomass_N_weight_hight_env()
 # ---------------------------------------------------------------------------------------------------
 # sel.general.config: Lakes: chiemsee (large) = 1, AbtsdorfSee (very.small) = 2, Eibsee (medium) = 3
-# general.config: Lakes: chiemsee (large) = 6, AbtsdorfSee (very.small) = 1, Eibsee (medium) = 7
+# general.config: 
 # ---------------------------------------------------------------------------------------------------
 
 getwd() # "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/MGM-scripte-data"
 dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025"
 setwd(dir)
-Sys.getenv("PATH")
+# Sys.getenv("PATH")
+
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
 machine <- "NoMachine" # "home" # NoMachine !! doesnt work yet !!
-n <- 10 # number of species per group (oligotroph, mesotroph, eutroph)
-n <- 100
+n <- 100 # number of species per group (oligotroph, mesotroph, eutroph)
+# n <- 10
 
-setting <- "local" # "HPC" # HPC = parallel
+setting <- "parallel" # "HPC" # HPC, # parallel
 modelrun <- "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
@@ -44,18 +45,21 @@ if(machine == "home") {
 } else if (machine == "NoMachine") {
   print("NoMachine")
 
-  # setwd("/media/ifgg1/E: data (1 TB)/Neele/ForschVeg-MGM/master-MGM/experiment") # NoMachine
-  # source("/media/ifgg1/E: data (1 TB)/Neele/ForschVeg-MGM/master-MGM/experiment/help-func.r")
-  .libPaths(c("/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.2", "/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.5")) # packages Path NoMachine
-  # install.packages("Rcpp") # fix install.packages bug
-  library(stringr)
-  # Sys.setenv(PATH = paste("/opt/julia-1.12.1/bin", Sys.getenv("PATH"), sep=":"))
+  setwd("C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/experiment") # NoMachine
+  source("C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/experiment/help-func.r")
+  
 
-  HypoFrac_dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/input/lakeFractionParameters/HypoTemp_fraction.config.txt"
-  MetaFrac_dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/input/lakeFractionParameters/MetaDepth_fraction.config.txt"
+  HypoFrac_dir <- "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
+  MetaFrac_dir <- "./input/lakeFractionParameters/MetaDepth_fraction.config.txt"
 
   species_path <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/master-MGM/input/species"
-
+  
+  # andere Workstaion
+  # .libPaths(c("/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.2", "/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.5")) # packages Path NoMachine
+  # install.packages("Rcpp") # fix install.packages bug
+  # library(stringr)
+  # Sys.setenv(PATH = paste("/opt/julia-1.12.1/bin", Sys.getenv("PATH"), sep=":"))
+  
   # juliaDIR <- "/opt/julia-1.12.1/bin"
   # juliaHPC <- "/opt/julia-1.12.1/bin"
   # 
@@ -71,7 +75,7 @@ if(machine == "home") {
 # species <- func_sel_spec(n, species_path) 
 
 # second run/ want to take same species as path_configFile
-path_configFile <- "master-MGM/output/dep10_lakes_100spec_base_Tprofile/general.config.txt"
+path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_100spec_base_Tprofile/general.config.txt"
 species <- func_getSpecies_config(path_configFile)
 ex <- paste0("species_", c(14249, 14264, 14121, 14233, 14251,
                           15040, 15044, 15174, 15191,
@@ -148,6 +152,13 @@ if (setting == "local") {
 julia_command("Threads.nthreads()") #check N threads
 
 # Load julia packages
+# Installiere externe Pakete (nur einmal)
+# julia_command("using Pkg")
+# julia_command('Pkg.add("CSV")')
+# julia_command('Pkg.add("DataFrames")')
+# julia_command('Pkg.add("Distributions")')
+# julia_command('Pkg.add("StatsBase")')
+
 #julia_library("HCubature")
 julia_library("DelimitedFiles")
 julia_library("Dates")
@@ -169,7 +180,7 @@ library(here)
 #  Settings for Model ----
 # -----------------------------------------------------------------------------------------------
 #Scenario
-scenarios <-data.table(
+scenarios <- data.table(
   #para=c("maxTemp","maxNutrient", "maxKd"),
   base=c(0.0, 0.0, 0.0) #,  
   #BLIZ_2.6_Biodiv=c(0.5, -0.25, -0.25),
@@ -278,10 +289,12 @@ for (S in 1:length(scenarios)){
   if(!dir.exists(paste0("output/",modelrun))){dir.create(paste0("output/",modelrun))}
   writeLines(text = to_print,
             con =paste0(wd,"/output/",modelrun,"/general.config.txt"))
+  
   # ---------------------------------------------------------------------------
   # Model run -------------
+  print("start model")
   start_time <- Sys.time()
-  if(setting == "HPC"){
+  if(setting == "parallel"){
     model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env_parallel()")
   } else if (setting == "local") {
      model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")

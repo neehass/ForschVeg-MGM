@@ -1,6 +1,6 @@
 # help-functions
 # Model run and Visual
-.libPaths(c("/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.2", "/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.5")) # packages Path NoMachine
+# .libPaths(c("/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.2", "/home/ifgg1/R/x86_64-pc-linux-gnu-library/4.5")) # packages Path NoMachine
 # install.packages("gtable") # reinstall, to update ggplot
 # install.packages("scales") # reinstall, to update ggplot
 # install.packages("ggplot2")
@@ -9,6 +9,9 @@
 library(ggplot2)
 library(patchwork)
 library(stringr)
+
+# install.packages("patchwork")
+
 set.seed(42)
 
 # func_getAreaKm2 ----------------------------------
