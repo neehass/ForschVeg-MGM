@@ -22,11 +22,11 @@ n <- 300 # number of species per group (oligotroph, mesotroph, eutroph)
 # n <- 10
 
 setting <- "parallel" # "HPC" # local # parallel
-modelrun <- "dep10_lakes_300spec_base_Tprofile" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+modelrun <- "dep10_lakes_300spec_base_Tsteady" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
-tempProfile <- "true" # "false" true
+tempProfile <- "false" # "false" true
 k <- 5
 
 # set dir ------------------------------------------------------------------------------------------
@@ -258,10 +258,14 @@ for (S in 1:length(scenarios)){
   comb_l_s <- seq(1, length(model2), by = 2)
   comb_env <- seq(2, length(model2), by = 2)
   
-  end_time <- Sys.time()
-  time <- end_time - start_time
+  secs <- as.numeric(time, units = "secs")
   
-  print(paste("modle run", modelrun, time))
+  hours   <- floor(secs / 3600)
+  minutes <- floor((secs %% 3600) / 60)
+  seconds <- round(secs %% 60)
+  
+  cat(sprintf("model run %s: %02d:%02d:%02d\n",
+              modelrun, hours, minutes, seconds))
   
   # ---------------------------------------------------------------------------
   # save macrophyte data for all lakes, species, depths
@@ -353,9 +357,22 @@ for (S in 1:length(scenarios)){
   end_time_dat <- Sys.time()
   timedat <- end_time_dat - start_time_dat
   
-  print(paste("data saving time:", timedat))
-  print(paste("modle run", modelrun, time))
-  print(paste("totale time", modelrun, time + timedat))
+  secs_dat <- as.numeric(timedat, units = "secs")
+  
+  hours_dat   <- floor(secs_dat / 3600)
+  minutes_dat <- floor((secs_dat %% 3600) / 60)
+  seconds_dat <- round(secs_dat %% 60)
+  
+  cat(sprintf("saving env %02d:%02d:%02d\n", hours_dat, minutes_dat, seconds_dat))
+  
+  secs_tot <- as.numeric(timedat+time, units = "secs")
+  
+  hours_tot   <- floor(secs_tot / 3600)
+  minutes_tot <- floor((secs_tot %% 3600) / 60)
+  seconds_tot <- round(secs_tot %% 60)
+  cat(sprintf("model run %s: %02d:%02d:%02d\n",
+              modelrun, hours_tot, minutes_tot, seconds_tot))
+  
 } # Scenario loop
 # ---------------------------------------------------------------------------------------------------------
 
