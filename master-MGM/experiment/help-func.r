@@ -9,6 +9,10 @@
 library(ggplot2)
 library(patchwork)
 library(stringr)
+library(ggrepel)
+library(ggpmisc)
+library(ggpubr)
+library(rcartocolor)
 
 # install.packages("patchwork")
 
@@ -381,3 +385,91 @@ func_plot_Tprofile <- function(envdata, depth, name, days, scenario, k){
   ggsave(paste0(name, "_Tprofile.png"), plot = p_profile, width = 8, height = 10)
 }
 
+# --------------------------------------------------------------------------------------
+# plot 
+func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
+  load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
+  
+  WinnerLoserPalette<- c(carto_pal(2,"PinkYl")[c(2)],carto_pal(2,"TealGrn")[c(1)])
+  TrophiePalette <- c("cornflowerblue","aquamarine4","coral4")
+  
+  # plot Gradient -----------------------------------------------
+  my.formula <- y ~ x 
+  
+  lakeclasses <- c("clear lakes","intermediate lakes", "turbid lakes")
+  names(lakeclasses)<-c("clear","medium","turb")
+  
+  A1<-lakesDDG %>%
+    filter(type == paste0("model_", scenario))%>%
+    left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
+                 select(-LakeName)),
+              by=c("Lake"))%>%
+    ggplot(aes(depth, NSpecP, col=Group, group=interaction(Group,Lake)))+
+    #geom_path(alpha=0.5)+
+    geom_boxplot(aes(group=interaction(depth,Group), fill=Group))+
+    facet_grid(~class, 
+               labeller = labeller(class = lakeclasses))+
+    scale_colour_manual(values = c(rev(TrophiePalette)))+
+    theme(legend.title = element_blank()) +
+    xlab("Depth (m)")+ 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+    #ggtitle("Potential species richness (model)")+
+    ylab("")+
+    scale_fill_manual(values = c(rev(TrophiePalette)))+
+    ylab("Potential \nspec. richness (%)")
+  
+  A2<-lakesDDG %>%
+    filter(type=="mapped")%>%
+    left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
+                 select(-LakeName)),
+              by=c("Lake"))%>%
+    ggplot(aes(depth, NSpecP, col=Group, group=interaction(Group,Lake)))+
+    #geom_path(alpha=0.5)+
+    geom_boxplot(aes(group=interaction(depth,Group), fill=Group))+
+    facet_grid(~class, 
+               labeller = labeller(class = lakeclasses))+
+    scale_colour_manual(values = c(rev(TrophiePalette)))+
+    theme(legend.title = element_blank()) +
+    xlab("")+ 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+    #ggtitle("Realised species richness (mapped)")+
+    scale_fill_manual(values = c(rev(TrophiePalette)))+
+    ylab("Observed \nspec. richness (%)")
+  
+  A3<-lakesDDG %>%
+    #filter(type=="mapped")%>%
+    left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
+                 select(-LakeName)),
+              by=c("Lake")) %>%
+    spread(type,NSpecP) %>%
+    ggplot(aes(x= !!sym(paste0("model_", scenario)) ,y=mapped, col=Group))+
+    geom_point()+
+    facet_grid(~class, 
+               labeller = labeller(class = lakeclasses))+ #aes(col=Name)
+    #geom_smooth(model=lm, method=lm, se=F, formula = my.formula,
+    #            #aes(group=factor(depth), col=factor(depth))
+    #            )+
+    stat_correlation(vstep = 0.1,label.x = "centre")+
+    #stat_poly_eq(formula = my.formula,
+    #              eq.with.lhs = "italic(hat(y))~`=`~",
+    #              aes(label = paste(..rr.label.., sep = "~~~")))+
+    scale_colour_manual(values = c(rev(TrophiePalette)))+
+    #ggtitle("comparison")+ 
+    geom_abline(intercept = 0, slope = 1)+
+    #annotate("text", x = 22, y = 25, label = "model = mapped", angle=34)+
+    xlab("Potential spec. richness (%)")+
+    ylab("Observed \nspec. richness (%)")+
+    ylim(0,40)+xlim(0,40)
+  
+  p_DDG <-((A2/A1) / A3) +theme(legend.position = "bottom")+ 
+    labs(col="Spec. group") + 
+    plot_annotation(tag_levels = 'a',
+                    tag_prefix = '(',
+                    tag_suffix = ')')& 
+    theme(plot.tag = element_text(size = 12))& 
+    guides(colour = guide_legend(override.aes = list(size=3)))
+  
+  return(p_DDG)
+}

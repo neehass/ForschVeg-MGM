@@ -311,8 +311,10 @@ for (S in 1:length(scenarios)){
   all_df <- do.call(rbind, all_df_list)
   
   # Save
-  write.table(all_df, file = paste0(wd,"/output/",modelrun,"/all_res_biomass_number_weight_height_daily.txt"),
-              col.names = TRUE, row.names = FALSE)
+  # write.table(all_df, file = paste0(wd,"/output/",modelrun,"/all_res_biomass_number_weight_height_daily.txt"),
+  #             col.names = TRUE, row.names = FALSE)
+  saveRDS(all_df,  file = file.path(wd, "output", modelrun, "all_df.rds"))
+  rm(all_df) # delete variable
   
   print("macrophyte data saved")
   
@@ -346,8 +348,10 @@ for (S in 1:length(scenarios)){
   all_env <- do.call(rbind, all_env_list)
   
   # Save
-  write.table(all_env, file = paste0(wd,"/output/",modelrun,"/env.txt"),
-              col.names = TRUE, row.names = FALSE)
+  # write.table(all_env, file = paste0(wd,"/output/",modelrun,"/env.txt"),
+  #             col.names = TRUE, row.names = FALSE)
+  saveRDS(all_env, file = file.path(wd, "output", modelrun, "all_env.rds"))
+  rm(all_env) # delete variable
   
   print("environment data saved")
   
