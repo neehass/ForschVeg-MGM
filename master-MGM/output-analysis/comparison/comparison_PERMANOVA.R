@@ -52,7 +52,7 @@ load(file.path(save_comparison, "res_baseTSteady_bio.rda"))
 
 # ------------------------------------------------------------------------------------------
 # Comparison T_profile vs Tsteady ------------------
-# species abundance 
+# Species Presence/Absence 
 
 # long to wide --------------------------------------------------------------------------------------------
 baseTprofile_wide <- pivot_wider(res_baseTprofile_prep, names_from = speciesID, values_from = Biomass_cat, values_fill = 0)
@@ -131,67 +131,6 @@ p_beta <- ggplot(disp_df, aes(x = dataset, y = distance, fill = dataset)) +
 p_beta
 ggsave(file.path(save_comparison, "beat_comp_Varib.png"), p_beta, bg = "white", height = 5, width = 5)
 
-# PCoA (Jaccard) pro Spceis Group--------------------------------------------------------------------------------------------
-PCoA_func_type <- list()
-PCoA_var <- list()
-PCoA_plot <- list()
-
-types <- meta_all$speciesGroup %>% unique()
-
-for(i in 1:3){
-  print(types[i])
-  meta <- meta_all[meta_all$speciesGroup == types[i],]
-  spec <- species_all[meta_all$speciesGroup == types[i],]
-  
-  # Jaccard-Distanzmatrix & PCoA
-  dist_jac_x <- vegan::vegdist(spec, method = "jaccard", binary = TRUE)
-  pcoa_res <- cmdscale(dist_jac_x, eig = TRUE, k = 2)
-  
-  # Scores extrahieren
-  pcoa_scores <- as.data.frame(pcoa_res$points)
-  colnames(pcoa_scores) <- c("PCoA1", "PCoA2")
-  
-  # Meta-Daten anhängen
-  pcoa_scores$dataset <- meta$dataset
-  pcoa_scores$lakeClass <- meta$lakeClass
-  pcoa_scores$speciesGroup <- meta$speciesGroup
-  pcoa_scores$depth <- meta$depth
-  
-  # Varianzerklärung
-  variance <- pcoa_res$eig / sum(pcoa_res$eig)
-  
-  PCoA_func_type[[i]] <- pcoa_scores
-  PCoA_var[[i]] <- variance
-  
-  # plot
-  p_PCoA <- ggplot(pcoa_scores, aes(PCoA1, PCoA2, color = dataset, shape = lakeClass, size = factor(depth))) +
-    geom_point(alpha = 0.5) +
-    labs(
-      title = types[i],
-      x = paste0("PCoA1 (", round(variance[1]*100, 1), "%)"),
-      y = paste0("PCoA2 (", round(variance[2]*100, 1), "%)")
-    ) +
-    #scale_size_continuous(range = c(1, 6)) +  # minimal und maximal Punktgröße
-    theme_minimal()
-  
-  PCoA_plot[[i]] <- p_PCoA
-  
-}
-names(PCoA_func_type) <- types
-names(PCoA_var) <- types
-names(PCoA_plot) <- types
-
-p_com_PCoA <- (PCoA_plot[[1]] | PCoA_plot[[2]] | PCoA_plot[[3]]) +
-                 plot_layout(guides = "collect") +
-                 plot_annotation(
-                   title = "PCoA (Jaccard)",
-                   tag_levels = "A"   # optional panel labels A,B,C
-                 ) &
-                 theme(legend.position = "right")   # shared legend position
-p_com_PCoA
-ggsave(file.path(save_comparison, "PCoA_functype.png"), p_com_PCoA, bg = "white", height = 8, width = 20)
-
-
 # >>>>>>>>>>>>>>
 # permanova per SpeciesGRoup -----------------------------------------------------------------------------------
 permanova_func_type <- list()
@@ -254,8 +193,71 @@ print(permanova_func_type_lake)
 # bei trub lakeClass --> dataset etwas höher er R2 7.4%, 6.7% & 8.7% (signifikant)
 # Fwert ~ 2.4 >> Der Unterschied zwischen Datensätzen ist moderat.
 
+# PCoA (Jaccard) pro Spceis Group--------------------------------------------------------------------------------------------
+PCoA_func_type <- list()
+PCoA_var <- list()
+PCoA_plot <- list()
+
+types <- meta_all$speciesGroup %>% unique()
+
+for(i in 1:3){
+  print(types[i])
+  meta <- meta_all[meta_all$speciesGroup == types[i],]
+  spec <- species_all[meta_all$speciesGroup == types[i],]
+  
+  # Jaccard-Distanzmatrix & PCoA
+  dist_jac_x <- vegan::vegdist(spec, method = "jaccard", binary = TRUE)
+  pcoa_res <- cmdscale(dist_jac_x, eig = TRUE, k = 2)
+  
+  # Scores extrahieren
+  pcoa_scores <- as.data.frame(pcoa_res$points)
+  colnames(pcoa_scores) <- c("PCoA1", "PCoA2")
+  
+  # Meta-Daten anhängen
+  pcoa_scores$dataset <- meta$dataset
+  pcoa_scores$lakeClass <- meta$lakeClass
+  pcoa_scores$speciesGroup <- meta$speciesGroup
+  pcoa_scores$depth <- meta$depth
+  
+  # Varianzerklärung
+  variance <- pcoa_res$eig / sum(pcoa_res$eig)
+  
+  PCoA_func_type[[i]] <- pcoa_scores
+  PCoA_var[[i]] <- variance
+  
+  # plot
+  p_PCoA <- ggplot(pcoa_scores, aes(PCoA1, PCoA2, color = dataset, shape = lakeClass, size = factor(depth))) +
+    geom_point(alpha = 0.5) +
+    labs(
+      title = types[i],
+      x = paste0("PCoA1 (", round(variance[1]*100, 1), "%)"),
+      y = paste0("PCoA2 (", round(variance[2]*100, 1), "%)")
+    ) +
+    #scale_size_continuous(range = c(1, 6)) +  # minimal und maximal Punktgröße
+    theme_minimal()
+  
+  PCoA_plot[[i]] <- p_PCoA
+  
+}
+names(PCoA_func_type) <- types
+names(PCoA_var) <- types
+names(PCoA_plot) <- types
+
+p_com_PCoA <- (PCoA_plot[[1]] | PCoA_plot[[2]] | PCoA_plot[[3]]) +
+  plot_layout(guides = "collect") +
+  plot_annotation(
+    title = "PCoA (Jaccard)",
+    tag_levels = "A"   # optional panel labels A,B,C
+  ) &
+  theme(legend.position = "right")   # shared legend position
+p_com_PCoA
+ggsave(file.path(save_comparison, "PCoA_functype.png"), p_com_PCoA, bg = "white", height = 8, width = 20)
+
 # ------------------------------------------------------------------------------------------
-# !! das gleiche für die Biomasse
+# ------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------------------
+# Biomasse ---------------------------------------
 # .............
 head(res_combined_BIO)
 
@@ -391,6 +393,65 @@ print(permanova_func_type_lake_BIO)
 # Fwert ~ 1-2 >> Der Unterschied zwischen Datensätzen ist moderat.
 # dataset und depth unterscheiden sich signifikant
 
+# PCoA (Jaccard) pro Spceis Group--------------------------------------------------------------------------------------------
+PCoA_func_type <- list()
+PCoA_var <- list()
+PCoA_plot <- list()
+
+types <- meta_all$speciesGroup %>% unique()
+
+for(i in 1:3){
+  print(types[i])
+  meta <- meta_all_bio[meta_all_bio$speciesGroup == types[i],]
+  bio <- biomass_all[meta_all_bio$speciesGroup == types[i],]
+  
+  # bray curtis-Distanzmatrix & PCoA
+  dist_bray_x <- vegan::vegdist(bio, method = "bray")
+  pcoa_res <- cmdscale(dist_bray_x, eig = TRUE, k = 2)
+  
+  # Scores extrahieren
+  pcoa_scores <- as.data.frame(pcoa_res$points)
+  colnames(pcoa_scores) <- c("PCoA1", "PCoA2")
+  
+  # Meta-Daten anhängen
+  pcoa_scores$dataset <- meta$dataset
+  pcoa_scores$lakeClass <- meta$lakeClass
+  pcoa_scores$speciesGroup <- meta$speciesGroup
+  pcoa_scores$depth <- meta$depth
+  
+  # Varianzerklärung
+  variance <- pcoa_res$eig / sum(pcoa_res$eig)
+  
+  PCoA_func_type[[i]] <- pcoa_scores
+  PCoA_var[[i]] <- variance
+  
+  # plot
+  p_PCoA <- ggplot(pcoa_scores, aes(PCoA1, PCoA2, color = dataset, shape = lakeClass, size = factor(depth))) +
+    geom_point(alpha = 0.5) +
+    labs(
+      title = types[i],
+      x = paste0("PCoA1 (", round(variance[1]*100, 1), "%)"),
+      y = paste0("PCoA2 (", round(variance[2]*100, 1), "%)")
+    ) +
+    #scale_size_continuous(range = c(1, 6)) +  # minimal und maximal Punktgröße
+    theme_minimal()
+  
+  PCoA_plot[[i]] <- p_PCoA
+  
+}
+names(PCoA_func_type) <- types
+names(PCoA_var) <- types
+names(PCoA_plot) <- types
+
+p_com_PCoA <- (PCoA_plot[[1]] | PCoA_plot[[2]] | PCoA_plot[[3]]) +
+  plot_layout(guides = "collect") +
+  plot_annotation(
+    title = "PCoA (Bray Curtis)",
+    tag_levels = "A"   # optional panel labels A,B,C
+  ) &
+  theme(legend.position = "right")   # shared legend position
+p_com_PCoA
+ggsave(file.path(save_comparison, "PCoA_functype_BIO.png"), p_com_PCoA, bg = "white", height = 8, width = 20)
 
 # ------------------------------------------------------------------------------------------
 # Comparison between scenarios with T_profile ------------------
