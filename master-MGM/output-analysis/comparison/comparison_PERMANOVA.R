@@ -198,6 +198,10 @@ PCoA_func_type <- list()
 PCoA_var <- list()
 PCoA_plot <- list()
 
+meta_all <-   meta_all %>% mutate(speciesGroup=ifelse(speciesGroup=="eutroph","eutraphentic",
+                                                              ifelse(speciesGroup=="mesotroph","mesotraphentic",
+                                                                     ifelse(speciesGroup=="oligotroph","oligotraphentic","NA"))))
+
 types <- meta_all$speciesGroup %>% unique()
 
 for(i in 1:3){
@@ -247,7 +251,9 @@ p_com_PCoA <- (PCoA_plot[[1]] | PCoA_plot[[2]] | PCoA_plot[[3]]) +
   plot_layout(guides = "collect") +
   plot_annotation(
     title = "PCoA (Jaccard)",
-    tag_levels = "A"   # optional panel labels A,B,C
+    tag_levels = 'a',
+    tag_prefix = '(',
+    tag_suffix = ')'
   ) &
   theme(legend.position = "right")   # shared legend position
 p_com_PCoA
@@ -398,8 +404,10 @@ PCoA_func_type <- list()
 PCoA_var <- list()
 PCoA_plot <- list()
 
-types <- meta_all$speciesGroup %>% unique()
-
+meta_all_bio <-   meta_all_bio %>% mutate(speciesGroup=ifelse(speciesGroup=="eutroph","eutraphentic",
+                                                       ifelse(speciesGroup=="mesotroph","mesotraphentic",
+                                                              ifelse(speciesGroup=="oligotroph","oligotraphentic","NA"))))
+types <- meta_all_bio$speciesGroup %>% unique()
 for(i in 1:3){
   print(types[i])
   meta <- meta_all_bio[meta_all_bio$speciesGroup == types[i],]
@@ -447,7 +455,9 @@ p_com_PCoA <- (PCoA_plot[[1]] | PCoA_plot[[2]] | PCoA_plot[[3]]) +
   plot_layout(guides = "collect") +
   plot_annotation(
     title = "PCoA (Bray Curtis)",
-    tag_levels = "A"   # optional panel labels A,B,C
+    tag_levels = 'a',
+    tag_prefix = '(',
+    tag_suffix = ')'
   ) &
   theme(legend.position = "right")   # shared legend position
 p_com_PCoA
