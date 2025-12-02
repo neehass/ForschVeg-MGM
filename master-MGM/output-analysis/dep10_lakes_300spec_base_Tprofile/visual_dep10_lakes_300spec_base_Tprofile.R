@@ -72,7 +72,7 @@ p_macro <- ggplot(sort_res_mean, aes(x = day, y = biomass_mean,
        y = "Mean Biomass", x = "Days", color = "Lake Area-Group") +
   scale_color_brewer(palette = "Set2")
 p_macro
-ggsave(file.path(save_figures, "biomass_day.png"), p_macro, height = 20, width = 15)
+ggsave(file.path(save_figures, "biomass_day.png"), p_macro, height = 10, width = 12)
 
 # ---- boxplot per dephts ------------------------------------------------------------------------------------------
 maxDay <- max(unique(sort_res$day))
@@ -87,7 +87,7 @@ p_box <- ggplot(sort_res, aes(x = factor(depth, levels = rev(sort(unique(depth))
        y = "Mean Biomass", x = "Depths [m]", fill = "Lake Area-Group")+
   scale_fill_brewer(palette = "Set2") 
 p_box
-ggsave(file.path(save_figures, "BOX_biomass_day.png"), p_box, height = 20, width = 15)
+ggsave(file.path(save_figures, "BOX_biomass_day.png"), p_box, height = 10, width = 12)
 
 # ---------------------------------------------------------------------------------------------------------
 
@@ -142,7 +142,7 @@ p_Tprofile <- ggplot(sort_env_Tprof_long, aes(x = depth, y = T_prof, color = Are
 
 p_combo <-  p_box + p_Tprofile + plot_layout(guides = "collect") + plot_layout(ncol = 1, heights = c(3, 1))
 p_combo
-ggsave(file.path(save_figures, "BOX-Tprof_biomass_day.png"), p_combo, height = 15, width = 15)
+ggsave(file.path(save_figures, "BOX-Tprof_biomass_day.png"), p_combo, height = 10, width = 12)
 
 # --- TProfile Development over Days ------
 # mean Depths per lakeClass and lakeGroup_Area
@@ -159,7 +159,7 @@ sort_env_Tprof_DAY <- sort_env %>% # sort_env[sort_env$day %in% unique(sort_res$
     T_prof = list(T_profile(z = sort(seq(lakeDepth_mean, 0, 0.5), decreasing = TRUE), T_epi = tempEpi_av, T_hypo = tempHypo_av,
                             z0 = metaDepth_av,k = k))) %>% 
   ungroup()
-
+View(sort_env_Tprof_DAY)
 length(sort_env_Tprof_DAY$month_bin %>% unique())
 
 # View(sort_env_Tprof_DAY)
@@ -194,7 +194,7 @@ p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth,
 # scale_color_viridis(option = "inferno", discrete = is.factor(sort_env_Tprof_DAY_long$day))
 
 p_Tprofile_DAY
-ggsave(file.path(save_figures, "Tprof_perAproxMonth.png"), p_Tprofile_DAY, height = 20, width = 15)
+ggsave(file.path(save_figures, "Tprof_perAproxMonth.png"), p_Tprofile_DAY, height = 10, width = 10)
 
 # --- plot nutrients / lake parameters per day ---
 # .....

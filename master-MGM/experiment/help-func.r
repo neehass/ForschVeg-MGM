@@ -232,7 +232,7 @@ func_sortENV_plot <- function(sort_env, save_figures, scenario){
         plot_annotation(title = paste("Environmental Data","\nScenario: ", scenario))
     
     # save
-    ggsave(file.path(save_figures, "env_day.png"), p_env, height = 20, width = 15)
+    ggsave(file.path(save_figures, "env_day.png"), p_env, height = 10, width = 10)
     
     return(p_env)
 }
