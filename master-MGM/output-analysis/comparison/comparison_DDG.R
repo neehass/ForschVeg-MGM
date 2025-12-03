@@ -116,7 +116,6 @@ lakesDDG_combo_sel$type <- factor(lakesDDG_combo_sel$type)
 lakesDDG_combo_sel$class <- factor(lakesDDG_combo_sel$class)
 
 # 1. Is NSpecP significantly different among the 3 types? ----------------------- 
-
 # ANOVA 
 anova1 <- aov(NSpecP ~ type, data = lakesDDG_combo_sel)
 summary(anova1) 
@@ -217,7 +216,7 @@ emmeans(anova_multi, pairwise ~ class) # Class has no significant effect on NSpe
 emmeans(anova_multi, pairwise ~ depth) # NSpecP is lowest at -5, highest around -3 to -1.5, and slightly lower at -0.5, Differences are statistically significant except between -3 and -1.5 (similar NSpecP).
 
 
-# 3. possible two-way interactions ------------------------------------------------------------
+# 3. ANOVA possible two-way interactions ------------------------------------------------------------
 anova_inter <- aov(NSpecP ~ type * Group + type * depth + type * class, data = lakesDDG_combo_sel)
 summary(anova_inter) # NSpecP differences among types are not constant across groups, depths, or classes.
 
@@ -236,9 +235,9 @@ emmeans(anova_inter,  ~ type*Group)
 p_group <- ggplot(lakesDDG_combo_sel, aes(x = type, y = NSpecP, color = Group)) +
   stat_summary(fun = mean, geom = "point", size = 3) +
   stat_summary(fun = mean, geom = "line", aes(group = Group)) +
-  annotate("text", x = 0.7, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
+  annotate("text", x = 1, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
            label = paste("p-value", p_values_inter_df$p_values[5], p_values_inter_df$sign[5]), 
-           color = "black", size = 2) +
+           color = "black", size = 3) +
   scale_color_manual(values = TrophiePalette) +
   theme_bw() +
   labs(# title = "Interaction: NSpecP ~ type * Group",
@@ -247,9 +246,9 @@ p_depth <- ggplot(lakesDDG_combo_sel, aes(x = type, y = NSpecP, color = depth)) 
   stat_summary(fun = mean, geom = "point", size = 3) +
   stat_summary(fun = mean, geom = "line", aes(group = depth)) +
   scale_color_manual(values = depthPalette) +
-  annotate("text", x = 0.7, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
+  annotate("text", x = 1, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
            label = paste("p-value", p_values_inter_df$p_values[6], p_values_inter_df$sign[6]), 
-           color = "black", size = 2) +
+           color = "black", size = 3) +
   theme_bw() +
   labs(# title = "Interaction: NSpecP ~ type * depth",
        x = "Modeltype", y = "Spec. richness (%)")
@@ -257,9 +256,9 @@ p_class <- ggplot(lakesDDG_combo_sel, aes(x = type, y = NSpecP, color = class)) 
   stat_summary(fun = mean, geom = "point", size = 3) +
   stat_summary(fun = mean, geom = "line", aes(group = class)) +
   theme_bw() +
-  annotate("text", x = 0.7, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
+  annotate("text", x = 1, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
            label = paste("p-value", p_values_inter_df$p_values[7], p_values_inter_df$sign[7]), 
-           color = "black", size = 2) +
+           color = "black", size = 3) +
   labs(#title = "Interaction: NSpecP ~ type * class",
        x = "Modeltype", y = "Spec. richness (%)")
 
@@ -281,7 +280,7 @@ ggsave(file.path(save_comparison, "DDG_anova_modeltype_inter.png"), p_inter_comb
 # Der Effekt von type auf NSpecP variiert mit der Tiefe
 # Der Effekt von type auf NSpecP variiert mit der Klassifizierung
 
-# 4. Interaction class, group, depth ----------------------------
+# 4. ANOVA Interaction class, group, depth ----------------------------
 anova_group_depth_class <- aov(NSpecP ~ Group * class * depth, data = lakesDDG_combo_sel)
 summary(anova_group_depth_class)
 sum_gdc <- summary(anova_group_depth_class)[[1]]
@@ -303,9 +302,9 @@ emmeans(anova_class_group_depth, pairwise ~ Group* class * depth)
 p_g_c <- ggplot(lakesDDG_combo_sel, aes(x = Group, y = NSpecP, color = class)) +
   stat_summary(fun = mean, geom = "point", size = 3) +
   stat_summary(fun = mean, geom = "line", aes(group = class)) +
-  annotate("text", x = 0.7, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
+  annotate("text", x = 1, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
            label = paste("p-value", p_values_gdc_df$p_values[4], p_values_gdc_df$sign[4]), 
-           color = "black", size = 2) +
+           color = "black", size = 3) +
   theme_bw() +
   labs(#title = "Interaction: NSpecP ~ Group *class"
        color = "Turbidity", x = "Spec. Group", y = "Spec. richness (%)")
@@ -326,9 +325,9 @@ p_g_d <- ggplot(lakesDDG_combo_sel, aes(x = depth, y = NSpecP, color = Group)) +
 p_c_d <- ggplot(lakesDDG_combo_sel, aes(x = depth, y = NSpecP, color = class)) +
   stat_summary(fun = mean, geom = "point", size = 3) +
   stat_summary(fun = mean, geom = "line", aes(group = class)) +
-  annotate("text", x = 0.7, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
+  annotate("text", x = 1, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
            label = paste("p-value", p_values_gdc_df$p_values[6], p_values_gdc_df$sign[6]), 
-           color = "black", size = 2) +
+           color = "black", size = 3) +
   theme_bw() +
   labs(#title = "Interaction: NSpecP ~ Group * depth"
     color = "Turbidity", x = "Depth", y = "Spec. richness (%)")
