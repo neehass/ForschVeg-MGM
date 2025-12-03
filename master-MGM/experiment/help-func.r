@@ -473,3 +473,28 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
   
   return(p_DDG)
 }
+
+# Function to assign significance codes like in ANOVA ----------------------------
+get_signif <- function(p) {
+  if (is.na(p)) return("")
+  else if (p < 0.001) return("***")
+  else if (p < 0.01) return("**")
+  else if (p < 0.05) return("*")
+  else if (p < 0.1) return(".")
+  else return(" ")
+}
+
+getformat_p <- function(p) {
+  if (is.na(p)) {
+    return(NA)
+  } else if (p < 2.2e-16) {
+    return("<2.2e-16")
+  } else if (p < 0.0001) {
+    return("<0.0001")
+  } else if (p < 0.001) {
+    return(format(p, scientific = TRUE, digits = 2))
+  } else {
+    return(round(p, 3))
+  }
+}
+
