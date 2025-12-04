@@ -97,6 +97,19 @@ permanova_all <- vegan::adonis2(
 
 print(permanova_all) # main result
 
+permanova_all_inter <- vegan::adonis2(
+  dist_jac ~   dataset*lakeClass + dataset*depth + dataset*speciesGroup, 
+  data = meta_all, by = "margin",
+  permutations = 999
+)
+
+print(permanova_all_inter) # main result
+# speciesGroup beeinflusst stark. dataset und lakeClass haben kleinere, 
+# aber signifikante Effekte. Tiefe (depth) alleine keinen signifikanten Einfluss. 
+#  Interaktionen,  dataset*lakeClass und dataset*speciesGroup signifikante Interaktionen, 
+# allerdings mit sehr kleiner erklärter Varianz <1%, 
+# während die meisten Unterschiede weiterhin in den Residuen liegen.
+
 # Beta-dispersion (test if PERMANOVA valid) --------------------------------------------------------------------------------------------
 # test if Jaccard-Distanzen has homogeneous dispersion within groups (Tsteady/ Tprofile)
 disp <- betadisper(dist_jac, meta_all$dataset)
@@ -134,6 +147,7 @@ ggsave(file.path(save_comparison, "beat_comp_Varib.png"), p_beta, bg = "white", 
 # >>>>>>>>>>>>>>
 # permanova per SpeciesGRoup -----------------------------------------------------------------------------------
 permanova_func_type <- list()
+permanova_func_type2 <- list()
 
 types <- meta_all$speciesGroup %>% unique()
 
@@ -147,23 +161,33 @@ for(i in 1:3){
   
   # Permanova
   permanova_x <- vegan::adonis2(
+    dist_jac_x ~ dataset * lakeClass + dataset* depth, 
+    data = meta, by = "margin",
+    permutations = 999
+  )
+  
+  permanova_x2 <- vegan::adonis2(
     dist_jac_x ~ dataset + lakeClass + depth, 
     data = meta, by = "margin",
     permutations = 999
   )
   
   permanova_func_type[[i]] <- permanova_x
+  permanova_func_type2[[i]] <- permanova_x2
 }
+names(permanova_func_type2) <- types
+print(permanova_func_type2)
+
 names(permanova_func_type) <- types
 print(permanova_func_type)
 
-# >>>>>>>>>>>>>>
 # permanova per SpeciesGRoup & lakeclass -----------------------------------------------------------------------------------
 
 types <- meta_all$speciesGroup %>% unique()
 lakeCL <- meta_all$lakeClass %>% unique()
 
 permanova_func_type_lake <- setNames(vector("list", length(types)), types)
+permanova_func_type_lake2 <- setNames(vector("list", length(types)), types)
 
 for(i in 1:3){
   print(types[i])
@@ -179,20 +203,32 @@ for(i in 1:3){
     
     # Permanova
     permanova_x <- vegan::adonis2(
+      dist_jac_x ~ dataset*depth, 
+      data = meta, by = "margin",
+      permutations = 999
+    )
+    
+    permanova_x2 <- vegan::adonis2(
       dist_jac_x ~ dataset + depth, 
       data = meta, by = "margin",
       permutations = 999
     )
     
     permanova_func_type_lake[[i]][[lakeCL[j]]] <- permanova_x
+    permanova_func_type_lake2[[i]][[lakeCL[j]]] <- permanova_x2
   }
   
   
 }
-print(permanova_func_type_lake)
+
+print(permanova_func_type_lake2)
 # bei trub lakeClass --> dataset etwas höher er R2 7.4%, 6.7% & 8.7% (signifikant)
 # Fwert ~ 2.4 >> Der Unterschied zwischen Datensätzen ist moderat.
 
+print(permanova_func_type_lake)
+
+# ----------------------------------------------------------------------
+# ----------------------------------------------------------------------
 # PCoA (Jaccard) pro Spceis Group--------------------------------------------------------------------------------------------
 PCoA_func_type <- list()
 PCoA_var <- list()

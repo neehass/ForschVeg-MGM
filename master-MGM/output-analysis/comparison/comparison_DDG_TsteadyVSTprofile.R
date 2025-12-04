@@ -382,7 +382,7 @@ p_enm <- ggplot(emm_df, aes(x = depth, y = emmean, color = Group, group = Group)
   ) + facet_wrap(~type) +
   theme_bw()
 p_enm
-ggsave(file.path(save_comparison, "DDG_sign_diff_depth.png"), p_enm, height = 8, width = 6, dpi = "print", scale =1.2)
+ggsave(file.path(save_comparison, "DDG_sign_diff_depth.png"), p_enm, height = 6, width = 6, dpi = "print", scale =1.2)
 
 
 # sign diff between model depth
