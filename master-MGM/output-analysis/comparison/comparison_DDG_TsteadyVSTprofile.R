@@ -125,10 +125,10 @@ lakesDDG_combo_abDiff <- lakesDDG_combo %>%
   mutate(
     diff_mapped_Tprofile = mapped - model_base_Tprofile,
     diff_mapped_Tsteady = mapped - model_base_Tsteady,
-    diff_Tsteady_Tprofile = model_base_Tsteady - model_base_Tprofile
+    diff_Tprofile_Tsteady = model_base_Tprofile - model_base_Tsteady 
   ) %>%
   pivot_longer(
-    cols = c(diff_mapped_Tprofile, diff_mapped_Tsteady, diff_Tsteady_Tprofile),
+    cols = c(diff_mapped_Tprofile, diff_mapped_Tsteady, diff_Tprofile_Tsteady),
     names_to = "comparison",
     values_to = "diff"
   )
@@ -138,7 +138,7 @@ head(lakesDDG_combo_abDiff)
 comparison_labels <- c(
   diff_mapped_Tprofile = "mapped - \nmodel base Tprofile",
   diff_mapped_Tsteady = "mapped - \nmodel base Tsteady",
-  diff_Tsteady_Tprofile = "Tsteady - \nTprofile"
+  diff_Tsteady_Tprofile = " Tprofile - \nTsteady"
 )
 
 # Boxplot
@@ -171,7 +171,7 @@ p_box_NSpecP_functype_abDiff <- ggplot(lakesDDG_combo_abDiff,
 # p_box_NSpecP_functype_abDiff
 
 # diff per depth
-p_box_NSpecP_depth_abDiff <- ggplot(lakesDDG_combo_abDiff[lakesDDG_combo_abDiff$comparison == "diff_Tsteady_Tprofile", ],
+p_box_NSpecP_depth_abDiff <- ggplot(lakesDDG_combo_abDiff[lakesDDG_combo_abDiff$comparison == "diff_Tprofile_Tsteady", ],
                                     aes(x = depth, y = diff, fill = Group)) +
   geom_boxplot(position = position_dodge(width = 0.75)) +
   scale_x_discrete(labels = comparison_labels) +
@@ -183,7 +183,7 @@ p_box_NSpecP_depth_abDiff <- ggplot(lakesDDG_combo_abDiff[lakesDDG_combo_abDiff$
   ) +
   theme_bw() + 
   facet_wrap(~class, ncol = 3) +
-  labs(title = "model Tsteady - model Tprofile", fill = "Spec.Group")
+  labs(title = "model Tprofile - model Tsteady", fill = "Spec.Group")
 # p_box_NSpecP_depth_abDiff
 
 p_box_combo_abDiff <- ((#p_box_NSpecP_abDiff / 

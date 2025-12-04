@@ -108,6 +108,7 @@ lakesDDG_combo_sel <- lakesDDG_combo %>% select(Group, depth, NSpecP, type, clas
 
 head(lakesDDG_combo_sel)
 summary(lakesDDG_combo_sel)
+unique(lakesDDG_combo$Group)
 # --------------------------------------------------------------------------------------
 # Absolut differences
 head(lakesDDG_combo_sel) 
