@@ -440,8 +440,26 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
     filter(Group!="none")%>%
     mutate(Group=ifelse(Group==1, "oligotroph", 
                         ifelse(Group==2, "mesotroph", 
-                               ifelse(Group==3, "eutroph", NA))))
+                               ifelse(Group==3, "eutroph", NA)))) %>%
+    filter(Lake %in% lakesDDGModel$Lake)
   # head(lakesDDGMapped)
+  
+  # check rows
+  mapped_keys <- lakesDDGMapped %>% select(Lake, Group, depth)
+  model_keys <- lakesDDGModel %>% select(Lake, Group, depth)
+  
+  mapped_missing <- anti_join(mapped_keys, model_keys, 
+                              by = c("Lake","Group","depth")) # nur in mapped 
+  
+  if(nrow(mapped_missing) > 0){
+    DDG_mapped_selected <- lakesDDGMapped %>%
+      semi_join(mapped_missing, by = c("Lake", "Group", "depth"))
+    DDG_mapped_selected$NSpecP <- 0
+    DDG_mapped_selected$type <- paste0("model_", scenario)
+    
+    lakesDDGModel <- rbind(lakesDDGModel, DDG_mapped_selected)
+  }
+  
   
   lakesDDG2 <- rbind(lakesDDGModel,lakesDDGMapped)
   

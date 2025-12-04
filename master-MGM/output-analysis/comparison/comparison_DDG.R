@@ -96,9 +96,11 @@ load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
 WinnerLoserPalette<- c(carto_pal(2,"PinkYl")[c(2)],carto_pal(2,"TealGrn")[c(1)])
 TrophiePalette <- c("cornflowerblue","aquamarine4","coral4")
 modeltypePalette <- brewer.pal(n = 3, name = "Set2")
+abDiffPalette <- brewer.pal(n = 3, name = "Pastel2")
 depthPalette <- brewer.pal(n = 4, name = "Paired")
 
-lakesDDG_combo <- rbind(lakesDDG_Tprofile, lakesDDG_Tsteady) %>%
+# combine data 
+lakesDDG_combo <- rbind(lakesDDG_Tprofile[lakesDDG_Tprofile$type == "model_base_Tprofile",], lakesDDG_Tsteady) %>%
   left_join(data_lakes_env_class %>% 
               mutate(Lake = paste0("lake_", Lake)) %>% 
               select(-LakeName), by = "Lake") %>% ungroup()
@@ -106,9 +108,96 @@ lakesDDG_combo_sel <- lakesDDG_combo %>% select(Group, depth, NSpecP, type, clas
 
 head(lakesDDG_combo_sel)
 summary(lakesDDG_combo_sel)
+# --------------------------------------------------------------------------------------
+# Absolut differences
+head(lakesDDG_combo_sel) 
+nrow(lakesDDG_combo_sel)
 
+lakesDDG_combo_abDiff <- lakesDDG_combo %>% 
+  group_by(Lake, Group, class, depth) %>% 
+  # summarise(NSpecP = list(NSpecP), type = list(type), .groups = "drop") %>%
+  # unnest(c(NSpecP, type)) %>%
+  pivot_wider(
+    names_from = type,
+    values_from = NSpecP,
+    values_fn = mean
+  ) %>%
+  mutate(
+    diff_mapped_Tprofile = mapped - model_base_Tprofile,
+    diff_mapped_Tsteady = mapped - model_base_Tsteady,
+    diff_Tsteady_Tprofile = model_base_Tsteady - model_base_Tprofile
+  ) %>%
+  pivot_longer(
+    cols = c(diff_mapped_Tprofile, diff_mapped_Tsteady, diff_Tsteady_Tprofile),
+    names_to = "comparison",
+    values_to = "diff"
+  )
 
+head(lakesDDG_combo_abDiff)
 
+comparison_labels <- c(
+  diff_mapped_Tprofile = "mapped - \nmodel base Tprofile",
+  diff_mapped_Tsteady = "mapped - \nmodel base Tsteady",
+  diff_Tsteady_Tprofile = "Tsteady - \nTprofile"
+)
+
+# Boxplot
+p_box_NSpecP_abDiff <- ggplot(lakesDDG_combo_abDiff, aes(x = comparison, y = diff, fill = comparison)) +
+  geom_boxplot() +
+  scale_x_discrete(labels = comparison_labels) +
+  scale_fill_manual(values = abDiffPalette) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.8)+
+  labs(
+    x = "",
+    y = "Absolute diff. Spec. richness (%)"
+  ) +
+  theme_bw() +
+  theme(legend.position = "none")  # falls keine Legende nötig
+
+# p_box_NSpecP_abDiff
+
+p_box_NSpecP_functype_abDiff <- ggplot(lakesDDG_combo_abDiff,
+                                       aes(x = comparison, y = diff, fill = Group)) +
+  geom_boxplot(position = position_dodge(width = 0.75)) +
+  scale_x_discrete(labels = comparison_labels) +
+  scale_fill_manual(values = TrophiePalette) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.8)+
+  labs(
+    x = "",
+    y = "Absolute diff. Spec. richness (%)"
+  ) +
+  theme_bw() +
+  labs(fill = "Spec.Group")
+# p_box_NSpecP_functype_abDiff
+
+# diff per depth
+p_box_NSpecP_depth_abDiff <- ggplot(lakesDDG_combo_abDiff[lakesDDG_combo_abDiff$comparison == "diff_Tsteady_Tprofile", ],
+                                    aes(x = depth, y = diff, fill = Group)) +
+  geom_boxplot(position = position_dodge(width = 0.75)) +
+  scale_x_discrete(labels = comparison_labels) +
+  scale_fill_manual(values = TrophiePalette) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", size = 0.8)+
+  labs(
+    x = "",
+    y = "Absolute diff. Spec. richness (%)"
+  ) +
+  theme_bw() + 
+  facet_wrap(~class, ncol = 3) +
+  labs(title = "model Tsteady - model Tprofile", fill = "Spec.Group")
+# p_box_NSpecP_depth_abDiff
+
+p_box_combo_abDiff <- ((#p_box_NSpecP_abDiff / 
+  p_box_NSpecP_functype_abDiff)/ p_box_NSpecP_depth_abDiff) +
+  plot_layout(guides = "collect") +
+  plot_annotation(tag_levels = 'a',
+                  tag_prefix = '(',
+                  tag_suffix = ')')& 
+  theme(plot.tag = element_text(size = 12))& 
+  guides(colour = guide_legend(override.aes = list(size=3)))
+p_box_combo_abDiff
+ggsave(file.path(save_comparison, "DDG_abDiff_box_modletype.png"), p_box_combo, height = 8, width = 6, dpi = "print", scale =1.2)
+
+# ---------------------------------------------------------------------------------------
 # ANOVA -----------------------------------
 lakesDDG_combo_sel$depth <- factor(lakesDDG_combo_sel$depth)
 lakesDDG_combo_sel$Group <- factor(lakesDDG_combo_sel$Group)
@@ -438,3 +527,5 @@ p_DDG_comp
 
 ggsave(file.path(save_comparison, paste0("DDG_dep10_COMP_base.png")), p_DDG_comp, 
        width = 6.5, height=8, dpi="print", bg="white", scale=1.2)
+
+
