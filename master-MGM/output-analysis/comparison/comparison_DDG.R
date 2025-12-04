@@ -195,7 +195,7 @@ p_box_combo_abDiff <- ((#p_box_NSpecP_abDiff /
   theme(plot.tag = element_text(size = 12))& 
   guides(colour = guide_legend(override.aes = list(size=3)))
 p_box_combo_abDiff
-ggsave(file.path(save_comparison, "DDG_abDiff_box_modletype.png"), p_box_combo, height = 8, width = 6, dpi = "print", scale =1.2)
+ggsave(file.path(save_comparison, "DDG_abDiff_box_modletype.png"), p_box_combo_abDiff, height = 8, width = 6, dpi = "print", scale =1.2)
 
 # ---------------------------------------------------------------------------------------
 # ANOVA -----------------------------------
