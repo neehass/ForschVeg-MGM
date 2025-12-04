@@ -204,6 +204,8 @@ lakesDDG_combo_sel$Group <- factor(lakesDDG_combo_sel$Group)
 lakesDDG_combo_sel$type <- factor(lakesDDG_combo_sel$type)
 lakesDDG_combo_sel$class <- factor(lakesDDG_combo_sel$class)
 
+lakesDDG_combo_sel2 <- lakesDDG_combo_sel %>% filter(type != "mapped")
+
 # 1. Is NSpecP significantly different among the 3 types? ----------------------- 
 # ANOVA 
 anova1 <- aov(NSpecP ~ type, data = lakesDDG_combo_sel)
@@ -242,7 +244,6 @@ cont2_df$p.value <- sapply(cont2_df$p.value, getformat_p)
 cont2_df[,c(1,6,7)]
 
 # ANOVA exclude mapped 
-lakesDDG_combo_sel2 <- lakesDDG_combo_sel %>% filter(type != "mapped")
 anova3 <- aov(NSpecP ~ type + type* Group, data = lakesDDG_combo_sel2)
 summary(anova3)
 emmeans(anova3, pairwise ~ type * Group)
