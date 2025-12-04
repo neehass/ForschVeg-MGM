@@ -111,7 +111,7 @@ p_macro_TP <- ggplot(sort_res_baseTP, aes(x = day, y = biomass_mean,
   scale_color_manual(values = TrophiePalette) +
   facet_grid( depth ~  lakeClass) +
   theme_bw() +
-  labs(# title = "Biomass over Active Days",
+  labs(title = "Tprofile",
     y = "Mean Biomass", x = "Days", color = "Spec. Group") 
 p_macro_TP
 ggsave(file.path(save_comparison, "biomass_day_baseTprofile.png"), p_macro_TP, height = 6, width = 8.5)
@@ -125,7 +125,7 @@ p_macro_TS <- ggplot(sort_res_baseTS, aes(x = day, y = biomass_mean,
   scale_color_manual(values = TrophiePalette) +
   facet_grid( depth ~  lakeClass) +
   theme_bw() +
-  labs(# title = "Biomass over Active Days",
+  labs(title = "Tsteady",
     y = "Mean Biomass", x = "Days", color = "Spec. Group") 
 p_macro_TS
 ggsave(file.path(save_comparison, "biomass_day_baseTsteady.png"), p_macro_TS, height = 6, width = 8.5)
@@ -159,9 +159,30 @@ p_compar_bio <- ggplot(data = mean_res_combo, aes(x = day, y = diff,
   scale_color_manual(values = TrophiePalette) +
   facet_grid( depth ~  lakeClass) +
   theme_bw() +
-  labs(title = "Biomass over Active Days \nTprofile - Tsteady",
+  labs(title = "Tprofile - Tsteady",
     y = "Difference of Mean Biomass", x = "Days", color = "Spec. Group") 
 p_compar_bio
 ggsave(file.path(save_comparison, "biomass_day_compar.png"), p_compar_bio, height = 6, width = 8.5)
 
+# added plots
+# layout <- "
+# A B
+# C B
+# "
+p_TP <- p_macro_TP + theme(legend.position = "none") + guides(fill = "none", linetype = "none", color = "none", linewidth = "none", alpha = "none")
+p_TS <- p_macro_TS + theme(legend.position = "none") +  guides(fill = "none", linetype = "none", color = "none", linewidth = "none", alpha = "none")
+p_cb <- p_compar_bio + theme(legend.position = "none") +  guides(fill = "none", linetype = "none")
+
+p_combo_bio <- ((p_TP/p_TS) | p_cb) +
+  # plot_layout(design = layout) +
+  plot_layout(guides = "collect") +
+  plot_annotation(tag_levels = 'a',
+                  tag_prefix = '(',
+                  tag_suffix = ')')& 
+  theme(plot.tag = element_text(size = 12))&  
+  theme(legend.position = "bottom")&
+  guides(colour = guide_legend(override.aes = list(size=3)))
+
+p_combo_bio  
+ggsave(file.path(save_comparison, "biomass_day_compar_all.png"), p_combo_bio, height = 7, width = 10)
 
