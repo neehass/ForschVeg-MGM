@@ -375,6 +375,7 @@ ggsave(file.path(save_comparison, "beat_comp_Varib_BIO.png"), p_beta_bio, bg = "
 # >>>>>>>>>>>>>>
 # permanova per SpeciesGRoup -----------------------------------------------------------------------------------
 permanova_func_type_BIO <- list()
+permanova_func_type_BIO2 <- list()
 
 types <- meta_all$speciesGroup %>% unique()
 
@@ -394,9 +395,22 @@ for(i in 1:3){
   )
   
   permanova_func_type_BIO[[i]] <- permanova_x
+  
+  # Permanova
+  permanova_x2 <- vegan::adonis2(
+    dist_bray_x ~ dataset*lakeClass, 
+    data = meta, by = "margin",
+    permutations = 999
+  )
+  
+  permanova_func_type_BIO2[[i]] <- permanova_x2
 }
 names(permanova_func_type_BIO) <- types
 print(permanova_func_type_BIO)
+
+names(permanova_func_type_BIO2) <- types
+print(permanova_func_type_BIO2)
+# in allen species grouppen hat dataset einfluss auf die unterschiede zwischen den lakeclasses 
 
 # >>>>>>>>>>>>>>
 # permanova per SpeciesGRoup & lakeclass -----------------------------------------------------------------------------------
@@ -405,6 +419,7 @@ types <- meta_all$speciesGroup %>% unique()
 lakeCL <- meta_all$lakeClass %>% unique()
 
 permanova_func_type_lake_BIO <- setNames(vector("list", length(types)), types)
+permanova_func_type_lake_BIO2 <- setNames(vector("list", length(types)), types)
 
 for(i in 1:3){
   print(types[i])
@@ -426,6 +441,15 @@ for(i in 1:3){
     )
     
     permanova_func_type_lake_BIO[[i]][[lakeCL[j]]] <- permanova_x
+    
+    # Permanova
+    permanova_x2 <- vegan::adonis2(
+      dist_bray_x ~ dataset * depth, 
+      data = meta, by = "margin",
+      permutations = 999
+    )
+    
+    permanova_func_type_lake_BIO2[[i]][[lakeCL[j]]] <- permanova_x2
   }
   
   
@@ -434,6 +458,9 @@ print(permanova_func_type_lake_BIO)
 # bei trub lakeClass --> dataset etwas höher er R2 5.2%, 5.8% & 6.3% (signifikant)
 # Fwert ~ 1-2 >> Der Unterschied zwischen Datensätzen ist moderat.
 # dataset und depth unterscheiden sich signifikant
+
+print(permanova_func_type_lake_BIO2)
+# keine Einfluss von dataset auf depth unteschiede
 
 # PCoA (Jaccard) pro Spceis Group--------------------------------------------------------------------------------------------
 PCoA_func_type <- list()
