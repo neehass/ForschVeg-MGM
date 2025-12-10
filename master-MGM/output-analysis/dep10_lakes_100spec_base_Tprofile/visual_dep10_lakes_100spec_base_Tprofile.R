@@ -28,7 +28,6 @@ getwd()
 setwd(dir)
 
 # packages & functions
-
 source("./experiment/help-func.r")
 source("./output-analysis/func_data_prep.R")
 
@@ -90,6 +89,10 @@ ggsave(file.path(save_figures, "BOX_biomass_day.png"), p_box, height = 20, width
 
 # ---- Environmental variables ----------------------------------------------------------------------
 # ---- plot ------------------
+sort_env <- sort_env %>%
+  rename(AreaGroup = lakeGroup_Area)
+
+scenario <- "base-10spec_Tprofile"
 func_sortENV_plot(sort_env, save_figures, scenario) # defined in help-func.R
 # lightAttenuation_mean missing 
 
