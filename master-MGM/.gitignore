@@ -5,7 +5,7 @@
 *.html
 *.bib
 *.xlsx
-*.RDataTmp
+**/master-MGM/experiment/.RDataTmp
 
 **/analysis/
 
