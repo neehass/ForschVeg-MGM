@@ -466,7 +466,16 @@ end
 #          (Output PlantN in Lake2)
 #          (Environment of lake2)
 # ....
+"""
+    CHARISMA_biomass_N_weight_hight_env_parallel()
 
+Function to run Charisma without saving output files, parallalised
+
+Arguments used from settings: none
+
+Returns: Daily Biomass, Number of Individuals, indWeight, Height, for all lakes, species, and multiple depths in the last year of started simulation
+
+"""
 function CHARISMA_biomass_N_weight_hight_env_parallel()
 
         # Get Settings for selection of lakes, species & depth
@@ -500,7 +509,7 @@ function CHARISMA_biomass_N_weight_hight_env_parallel()
 
                 dynamicData = Dict{Int16, DayData}()
                 environment = simulateEnvironment(settings, dynamicData, settings["HypoFrac_dir"], settings["MetaFrac_dir"])
-                result = simulateMultipleDepth(depths, settings, dynamicData, settings["tempProfile"])
+                result = simulateMultipleDepth(depths, settings, dynamicData, settings["tempProfile"]) # tempProfile = true /false
 
                 nyears = parse.(Int64, GeneralSettings["years"])
                 ndepths = length(depths)
