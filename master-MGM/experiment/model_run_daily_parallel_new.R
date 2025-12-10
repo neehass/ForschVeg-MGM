@@ -278,11 +278,11 @@ for (S in 1:length(scenarios)){
   
   # ---------------------------------------------------------------------------
   # Set number of cores
-  ncores <- detectCores() - 1
-  cl <- makeCluster(ncores)
-  clusterExport(cl, varlist = c("model2", "species_id", "lake_id", "depths",
-                                "scenario_name", "Nlak", "NSpec"))
-  
+  # ncores <- detectCores() - 1
+  # cl <- makeCluster(ncores)
+  # clusterExport(cl, varlist = c("model2", "species_id", "lake_id", "depths",
+  #                               "scenario_name", "Nlak", "NSpec"))
+  # 
   # ---------------------- Macrophyte Data -------------------------------------
   print("saving macrophyte data")
   
@@ -315,7 +315,7 @@ for (S in 1:length(scenarios)){
   print("environment data saved")
   
   # Stop cluster
-  stopCluster(cl)
+  #stopCluster(cl)
   
   end_time_dat <- Sys.time()
   timedat <- end_time_dat - start_time_dat
