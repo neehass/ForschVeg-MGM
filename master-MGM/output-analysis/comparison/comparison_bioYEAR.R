@@ -104,7 +104,7 @@ depthPalette <- brewer.pal(n = 4, name = "Paired")
 
 # Tprofile
 p_macro_TP <- ggplot(sort_res_baseTP, aes(x = day, y = biomass_mean,
-                                       color = speciesGroup)) +
+                                          color = speciesGroup)) +
   geom_line(alpha = 0.3) +
   geom_line(data = mean_res_TP, aes(x = day, y = biomass_mean,
                                     color = speciesGroup), linewidth = 0.8) +
@@ -112,7 +112,7 @@ p_macro_TP <- ggplot(sort_res_baseTP, aes(x = day, y = biomass_mean,
   facet_grid( depth ~  lakeClass) +
   theme_bw() +
   labs(title = "Tprofile",
-    y = "Mean Biomass", x = "Days", color = "Spec. Group") 
+       y = "Mean Biomass", x = "Days", color = "Spec. Group") 
 p_macro_TP
 ggsave(file.path(save_comparison, "biomass_day_baseTprofile.png"), p_macro_TP, height = 6, width = 8.5)
 
@@ -126,7 +126,7 @@ p_macro_TS <- ggplot(sort_res_baseTS, aes(x = day, y = biomass_mean,
   facet_grid( depth ~  lakeClass) +
   theme_bw() +
   labs(title = "Tsteady",
-    y = "Mean Biomass", x = "Days", color = "Spec. Group") 
+       y = "Mean Biomass", x = "Days", color = "Spec. Group") 
 p_macro_TS
 ggsave(file.path(save_comparison, "biomass_day_baseTsteady.png"), p_macro_TS, height = 6, width = 8.5)
 
@@ -154,13 +154,13 @@ head(mean_res_combo)
 
 # diff
 p_compar_bio <- ggplot(data = mean_res_combo, aes(x = day, y = diff,
-                                          color = speciesGroup)) +
+                                                  color = speciesGroup)) +
   geom_line(linewidth = 0.8) +
   scale_color_manual(values = TrophiePalette) +
   facet_grid( depth ~  lakeClass) +
   theme_bw() +
   labs(title = "Tprofile - Tsteady",
-    y = "Difference of Mean Biomass", x = "Days", color = "Spec. Group") 
+       y = "Difference of Mean Biomass", x = "Days", color = "Spec. Group") 
 p_compar_bio
 ggsave(file.path(save_comparison, "biomass_day_compar.png"), p_compar_bio, height = 6, width = 8.5)
 

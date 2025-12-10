@@ -1,7 +1,7 @@
 # -------------------------------------------------------------------------------------------
 # Visualise Results
 # -------------------------------------------------------------------------------------------
-# projekt: all_lakes_100spec_base_Tprofile
+# projekt: dep10_lakes_100spec_base_Tprofile
 
 # packages & functions
 library(ggplot2)
@@ -15,12 +15,24 @@ library(ggrepel)
 library(ggpmisc)
 library(ggpubr)
 # library(tidyverse)
-source("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/experiment/help-func.r")
+
+# home
+dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM"
+lewSpec_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/LewerentzEtAl2023_ModelledMacrophyteSpeciesRichness-1.0"
+
+# Workstation
+dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM"
+lewSpec_dir <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/LewerentzEtAl2023_ModelledMacrophyteSpeciesRichness-1.0"
 
 getwd()
-dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM"
 setwd(dir)
 
+# packages & functions
+
+source("./experiment/help-func.r")
+source("./output-analysis/func_data_prep.R")
+
+# ---------------------------------------------------------------------------------
 # Folder output of MGM experiment and Analysis results folder
 output <- "output/dep10_lakes_100spec_base_Tprofile"
 
@@ -30,7 +42,6 @@ dir.create(save_figures)
 
 # input files
 lake_path <- "input/lakes"
-lewSpec_dir <- "C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/LewerentzEtAl2023_ModelledMacrophyteSpeciesRichness-1.0"
 
 # ---------------------------------------------------------------------------------------------------------
 # load data (Data preparation should be run before data_prep.R) ------------------------------------------------
@@ -50,13 +61,13 @@ head(data_lakes_env_class) # Turbidity classes
 # ---------------------------------------------------------------------------------------------------------
 # ---- plot ------------------------------------------------------------------------------------------
 p_macro <- ggplot(sort_res, aes(x = day, y = biomass_mean,
-                     color = lakeClass, linetype = factor(depth))) +
-    geom_line() +
-    facet_grid(speciesGroup ~  lakeGroup_Area) +
-    theme_bw() +
-    labs(title = "Biomass over Active Days",
-         y = "Mean Biomass", x = "Days", linetype = "Depth", color = "Turbidity") +
-    scale_color_brewer(palette = "Accent")
+                                color = lakeClass, linetype = factor(depth))) +
+  geom_line() +
+  facet_grid(speciesGroup ~  lakeGroup_Area) +
+  theme_bw() +
+  labs(title = "Biomass over Active Days",
+       y = "Mean Biomass", x = "Days", linetype = "Depth", color = "Turbidity") +
+  scale_color_brewer(palette = "Accent")
 p_macro
 ggsave(file.path(save_figures, "biomass_day.png"), p_macro, height = 20, width = 15)
 
@@ -65,13 +76,13 @@ maxDay <- max(unique(sort_res$day))
 minDay <- min(unique(sort_res$day))
 
 p_box <- ggplot(sort_res, aes(x = factor(depth, levels = rev(sort(unique(depth)))), 
-            y = biomass_mean, fill = lakeClass)) +
-    geom_boxplot() +
-    facet_grid(speciesGroup ~  lakeGroup_Area) +
-    theme_bw() +
-    labs(title = paste("Biomass over Active Days, days", minDay, "to", maxDay),
-         y = "Mean Biomass", x = "Depths [m]", fill = "Turbidity")+
-    scale_fill_brewer(palette = "Accent") 
+                              y = biomass_mean, fill = lakeClass)) +
+  geom_boxplot() +
+  facet_grid(speciesGroup ~  lakeGroup_Area) +
+  theme_bw() +
+  labs(title = paste("Biomass over Active Days, days", minDay, "to", maxDay),
+       y = "Mean Biomass", x = "Depths [m]", fill = "Turbidity")+
+  scale_fill_brewer(palette = "Accent") 
 p_box
 ggsave(file.path(save_figures, "BOX_biomass_day.png"), p_box, height = 20, width = 15)
 
@@ -89,21 +100,21 @@ depth_bio <- c(0, sort(unique(sort_res$depth), decreasing = TRUE))
 k <- as.numeric(strsplit(gen.conf[8], " ")[[1]][2])
 
 sort_env_Tprof <- sort_env[sort_env$day %in% unique(sort_res$day), ] %>%
-    group_by(lakeClass, lakeGroup_Area) %>%
-    summarise(
-        tempEpi_av = mean(tempEpi_mean, na.rm = TRUE),
-        tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
-        metaDepth_av = mean(metaDepth_mean, na.rm = TRUE),
-        lakeDepth_mean = round(mean(lakeDepth_mean, na.rm = TRUE)), 
-        T_prof = list(T_profile(z = c(depth_bio), T_epi = tempEpi_av, T_hypo = tempHypo_av,
-                           z0 = metaDepth_av,k = k))) %>% 
-        ungroup()
+  group_by(lakeClass, lakeGroup_Area) %>%
+  summarise(
+    tempEpi_av = mean(tempEpi_mean, na.rm = TRUE),
+    tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
+    metaDepth_av = mean(metaDepth_mean, na.rm = TRUE),
+    lakeDepth_mean = round(mean(lakeDepth_mean, na.rm = TRUE)), 
+    T_prof = list(T_profile(z = c(depth_bio), T_epi = tempEpi_av, T_hypo = tempHypo_av,
+                            z0 = metaDepth_av,k = k))) %>% 
+  ungroup()
 
 # head(sort_env_Tprof)
 sort_env_Tprof_long <- sort_env_Tprof %>%
-    group_by(lakeClass, lakeGroup_Area) %>%
-    mutate(depth = list(c(depth_bio))) %>%  # depth for each T_prof
-    unnest(c(T_prof, depth))
+  group_by(lakeClass, lakeGroup_Area) %>%
+  mutate(depth = list(c(depth_bio))) %>%  # depth for each T_prof
+  unnest(c(T_prof, depth))
 # sort_env_Tprof_long <- sort_env_Tprof_long[sort_env_Tprof_long$depth >= min(depth_bio),]
 # View(sort_env_Tprof_long)
 # unique(sort_env_Tprof_long$depth)
@@ -132,24 +143,24 @@ ggsave(file.path(save_figures, "BOX-Tprof_biomass_day.png"), p_combo, height = 2
 # --- TProfile Development over Days ------
 # mean Depths per lakeClass and lakeGroup_Area
 sort_env_Tprof_DAY <- sort_env %>% # sort_env[sort_env$day %in% unique(sort_res$day), ] 
-    group_by(lakeClass, lakeGroup_Area, day) %>%
-    # mutate(day_bin = floor((day - 1) / 30) * 30 + 1) %>%  # days 1–7 → 1, 8–14 → 8, etc.
-    mutate(month_bin = floor((day - 1) / 30) + 1) %>%  # month 1, 2, 3...
-    group_by(lakeClass, lakeGroup_Area, month_bin) %>%
-    summarise(
-        tempEpi_av = mean(tempEpi_mean, na.rm = TRUE),
-        tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
-        metaDepth_av = mean(metaDepth_mean, na.rm = TRUE),
-        lakeDepth_mean = round(mean(lakeDepth_mean, na.rm = TRUE)), 
-        T_prof = list(T_profile(z = sort(seq(lakeDepth_mean, 0, 0.5), decreasing = TRUE), T_epi = tempEpi_av, T_hypo = tempHypo_av,
-                           z0 = metaDepth_av,k = k))) %>% 
-        ungroup()
+  group_by(lakeClass, lakeGroup_Area, day) %>%
+  # mutate(day_bin = floor((day - 1) / 30) * 30 + 1) %>%  # days 1–7 → 1, 8–14 → 8, etc.
+  mutate(month_bin = floor((day - 1) / 30) + 1) %>%  # month 1, 2, 3...
+  group_by(lakeClass, lakeGroup_Area, month_bin) %>%
+  summarise(
+    tempEpi_av = mean(tempEpi_mean, na.rm = TRUE),
+    tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
+    metaDepth_av = mean(metaDepth_mean, na.rm = TRUE),
+    lakeDepth_mean = round(mean(lakeDepth_mean, na.rm = TRUE)), 
+    T_prof = list(T_profile(z = sort(seq(lakeDepth_mean, 0, 0.5), decreasing = TRUE), T_epi = tempEpi_av, T_hypo = tempHypo_av,
+                            z0 = metaDepth_av,k = k))) %>% 
+  ungroup()
 
 # View(sort_env_Tprof_DAY)
 sort_env_Tprof_DAY_long <- sort_env_Tprof_DAY %>%
-    group_by(lakeClass, lakeGroup_Area, month_bin) %>%
-    mutate(depth = list(sort(seq(lakeDepth_mean, 0, 0.5), decreasing = TRUE))) %>%  # depth for each T_prof
-    unnest(c(T_prof, depth)) 
+  group_by(lakeClass, lakeGroup_Area, month_bin) %>%
+  mutate(depth = list(sort(seq(lakeDepth_mean, 0, 0.5), decreasing = TRUE))) %>%  # depth for each T_prof
+  unnest(c(T_prof, depth)) 
 # View(sort_env_Tprof_DAY_long)
 
 all_days <- sort(unique(sort_env_Tprof_DAY_long$month_bin))
@@ -161,7 +172,7 @@ show_days <- as.character(c(head(all_days, 3), all_days[q25],
                             all_days[mid], all_days[q75], tail(all_days, 3)))
 
 p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth, 
-    color = factor(month_bin))) +
+                                                      color = factor(month_bin))) +
   geom_line(linewidth = 1) +
   # scale_x_reverse( breaks = c(-5.0, -3.0, -1.5, -0.5),  limits = c(0, -5)) + # limits = c(0, -5),
   facet_wrap(lakeGroup_Area ~lakeClass, ncol = 3) +
@@ -170,11 +181,11 @@ p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth,
        x =  "mean Temperature [°C]",
        y = "Depth [m]",
        color = "approx. Months")  +
-    scale_color_discrete(breaks = show_days) +   # << show only selected days
+  scale_color_discrete(breaks = show_days) +   # << show only selected days
   theme(legend.position = "right")
 
-    # theme(legend.position = "none") # + 
-    # scale_color_viridis(option = "inferno", discrete = is.factor(sort_env_Tprof_DAY_long$day))
+# theme(legend.position = "none") # + 
+# scale_color_viridis(option = "inferno", discrete = is.factor(sort_env_Tprof_DAY_long$day))
 
 p_Tprofile_DAY
 ggsave(file.path(save_figures, "Tprof_perAproxMonth.png"), p_Tprofile_DAY, height = 20, width = 15)
@@ -183,5 +194,5 @@ ggsave(file.path(save_figures, "Tprof_perAproxMonth.png"), p_Tprofile_DAY, heigh
 # .....
 # -----------
 ----------------------------------------------------------------------------------------------
-# Gradient potential species richness vs observed species richness  --------------------------------
+  # Gradient potential species richness vs observed species richness  --------------------------------
 # in data&visual_specPot-Observed. R

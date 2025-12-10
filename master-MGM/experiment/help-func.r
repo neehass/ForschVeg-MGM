@@ -165,8 +165,8 @@ func_getSpecies_config <- function(path_configFile){
 T_profile <- function(z, T_epi, T_hypo, z0, k) {
   t <- T_hypo + (T_epi - T_hypo) / (1+exp((abs(z) - abs(z0)) / k))
   if (length(z) > 1) {
-    t[1] = T_epi
-    t[length(t)] = T_hypo
+    t[1] <- T_epi
+     t[length(t)] <- T_hypo
   }
   return(t)
 }
@@ -206,7 +206,7 @@ func_sortENV_plot <- function(sort_env, save_figures, scenario){
             #         xmin = min(days), xmax = max(days),
             #         ymin = -Inf, ymax = Inf,
             #         alpha = 0.2, fill = "grey") +
-            labs(title = "b) Waterlevel & Mesolimnion Depth",
+            labs(title = "b) Waterlevel & Metalimnion Depth",
             y = "Depth [m]", x = "Days",  linetype = "AreaGroup",color = "Linecolor") +
             theme_bw()
     # p_metadepth
