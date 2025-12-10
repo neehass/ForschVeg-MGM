@@ -273,25 +273,31 @@ func_prep_data_fast <- function(output, save_figures, lake_path, lewSpec_dir){
 
 # multicore_data_table_prep.R
 
-func_prep_data_dt_parallel <- function(output, save_figures, lake_path, lewSpec_dir, ncores = NULL){
+func_prep_data_dt_parallel <- function(output, save_figures, lake_path, lewSpec_dir, ncores = NULL){ # chatGPT help
   # ncores: NULL -> detectCores()-1
   if (is.null(ncores)) ncores <- max(1, detectCores() - 1)
   
   # ---------- 1. FAST IO ----------
   message("Reading data with data.table::fread() ...")
-  res <- fread(file.path(output, "all_res_biomass_number_weight_height_daily.txt"))
-  env <- fread(file.path(output, "env.txt"))
+  # res <- fread(file.path(output, "all_res_biomass_number_weight_height_daily.txt"))
+  # env <- fread(file.path(output, "env.txt"))
+  
+  res <- all_df <- readRDS(file.path(output, "all_df.rds"))
+  res <- as.data.table(res)
+  env <- all_df <- readRDS(file.path(output, "all_env.rds"))
+  env <- as.data.table(env)
+
   gen.conf <- readLines(file.path(output,"general.config.txt"))
   load(file.path(lewSpec_dir, "data-raw/observed/Morphology.rda"))
   load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
   
   # ---------- 2. species groups (vectorized) ----------
-  res[, speciesGroup := fifelse(speciesID > 14000 & speciesID < 14301, "oligotroph",
-                                fifelse(speciesID > 15000 & speciesID < 15301, "mesotroph",
-                                        fifelse(speciesID > 16000 & speciesID < 16301, "eutroph", NA_character_)))]
-  env[, speciesGroup := fifelse(speciesID > 14000 & speciesID < 14301, "oligotroph",
-                                fifelse(speciesID > 15000 & speciesID < 15301, "mesotroph",
-                                        fifelse(speciesID > 16000 & speciesID < 16301, "eutroph", NA_character_)))]
+  res[, speciesGroup := fifelse(speciesID > 14000 & speciesID < 14301, "oligotrophentic",
+                                fifelse(speciesID > 15000 & speciesID < 15301, "mesotrophentic",
+                                        fifelse(speciesID > 16000 & speciesID < 16301, "eutrophentic", NA_character_)))]
+  env[, speciesGroup := fifelse(speciesID > 14000 & speciesID < 14301, "oligotrophentic",
+                                fifelse(speciesID > 15000 & speciesID < 15301, "mesotrophentic",
+                                        fifelse(speciesID > 16000 & speciesID < 16301, "eutrophentic", NA_character_)))]
   
   # ---------- 3. lakeClass join ----------
   lake_class_dt <- as.data.table(data_lakes_env_class)[, .(lakeID = Lake, lakeClass = class)]

@@ -72,6 +72,7 @@ species <- func_getSpecies_config(path_configFile)
 species_id <- unlist(str_extract_all(species, "\\d+"))
 species_id <- as.numeric(species_id)
 if(length(species) != 300){stop(paste("stop species ERORR", length(species)))}
+NSpec <- length(species)
 
 # test species --
 # species_id <- c(16001:16300)
@@ -83,9 +84,12 @@ if(length(species) != 300){stop(paste("stop species ERORR", length(species)))}
 lakes <- c(1:31) # c(1:31) # c(6,1,7) 
 exclude <- c(11, 12, 30, 4) # # ID (11, 12, 30, 4) > -10 Depth (excluding)
 lakes <- lakes[!lakes %in% exclude]
+lake_id <- unlist(str_extract_all(lake, "\\d+"))
+
 #nthreads = 6 #Set number of of kernels to be used in julia; max nlakes*ndepths
 detectable=1
 lakestemplate = "reallakes_simplifiedVersion"
+Nlak <- length(lake)
 
 # ---------------------------------------------------------------------------------------------------
 ## Julia and R setup ----
@@ -276,8 +280,8 @@ for (S in 1:length(scenarios)){
   # Set number of cores
   ncores <- detectCores() - 1
   cl <- makeCluster(ncores)
-  clusterExport(cl, varlist = c("model2", "species_id", "lakes", "depths",
-                                "scenario_name", "comb_l_s", "comb_env"))
+  clusterExport(cl, varlist = c("model2", "species_id", "lake_id", "depths",
+                                "scenario_name", "Nlak", "NSpec"))
   
   # ---------------------- Macrophyte Data -------------------------------------
   print("saving macrophyte data")
@@ -285,74 +289,28 @@ for (S in 1:length(scenarios)){
   start_time_dat <- Sys.time()
   
   # Function to process a single combination
-  process_macrophyte <- function(i){
-    idx <- ((i - 1) / 2) + 1
-    l_ix <- ceiling(idx / length(species_id))
-    s_ix <- idx - (l_ix - 1) * length(species_id)
-    
-    res <- model2[[i]]
-    df_list <- vector("list", 4)
-    
-    for(d in 1:4){
-      df <- as.data.frame(res[[d]])
-      colnames(df) <- c("biomass", "numberInd", "indWeight", "height")
-      df$depth <- depths[d]
-      df$speciesID <- species_id[s_ix]
-      df$lakeID <- lakes[l_ix]
-      df$day <- 1:365
-      df$scenario <- scenario_name
-      df_list[[d]] <- df
-    }
-    
-    do.call(rbind, df_list)
-  }
-  
-  # Parallel processing
-  all_df_list <- parLapply(cl, comb_l_s, process_macrophyte)
-  all_df <- do.call(rbind, all_df_list)
-  
+  # final binding
+  final_res <- func_prepMACRO(model, Nlak, NSpec, depths, species_id, lake_id, scenario_name)
+
   # Save
   # write.table(all_df, file = paste0(wd,"/output/",modelrun,"/all_res_biomass_number_weight_height_daily.txt"),
   #             col.names = TRUE, row.names = FALSE)
-  saveRDS(all_df,  file = file.path(wd, "output", modelrun, "all_df.rds"))
-  rm(all_df) # delete variable
+  saveRDS(final_res,  file = file.path(wd, "output", modelrun, "all_df.rds"))
+  rm(final_res) # delete variable
   
   print("macrophyte data saved")
   
   # ---------------------- Environment Data -----------------------------------
   print("saving environment data")
   
-  # Function to process a single environment combination
-  process_env <- function(pos){
-    i <- comb_l_s[pos]
-    idx <- ((i - 1) / 2) + 1
-    l_ix <- ceiling(idx / length(species_id))
-    s_ix <- idx - (l_ix - 1) * length(species_id)
-    
-    res <- model2[[comb_env[pos]]]
-    df <- as.data.frame(matrix(nrow = 365, ncol = 6))
-    env_par <- c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
-    
-    for(d in 1:6){
-      df[, d] <- as.vector(res[[d]])
-    }
-    colnames(df) <- env_par
-    df$speciesID <- species_id[s_ix]
-    df$lakeID <- lakes[l_ix]
-    df$day <- 1:365
-    df$scenario <- scenario_name
-    df
-  }
-  
-  # Parallel processing
-  all_env_list <- parLapply(cl, seq_along(comb_env), process_env)
-  all_env <- do.call(rbind, all_env_list)
-  
+  # final binding
+  final_env <- func_prepENV(model, Nlak, NSpec, depths, species_id, lake_id, scenario_name)
+
   # Save
   # write.table(all_env, file = paste0(wd,"/output/",modelrun,"/env.txt"),
   #             col.names = TRUE, row.names = FALSE)
-  saveRDS(all_env, file = file.path(wd, "output", modelrun, "all_env.rds"))
-  rm(all_env) # delete variable
+  saveRDS(final_env, file = file.path(wd, "output", modelrun, "all_env.rds"))
+  rm(final_env) # delete variable
   
   print("environment data saved")
   

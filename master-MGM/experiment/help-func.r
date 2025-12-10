@@ -157,9 +157,107 @@ func_getSpecies_config <- function(path_configFile){
   return(species)
 }
 
-# --------------------------------------------
+# -------------------------------------------------------------------
+# model Data processing 
+# --------------------------------------------------------------
+# macrophyte data
+func_prepMACRO <- function(model, Nlak, NSpec, depths, species_id, lake_id, scenario_name){
+  
+  iCOMBO <- 1:(NSpec*Nlak) # data combo (species pro lake)
+  
+  # macrophyt data = 1,3,5...
+  idxmacro <- seq(1, NSpec*2*Nlak, 2)
+  
+  # env data = 2,4,6
+  idxenv <- seq(2, NSpec*2*Nlak, 2)
+ 
+  # lake = NSpec 1-27 = lake1, 28-54 = lake1
+  idxlak <- seq(NSpec, NSpec*2*Nlak, NSpec)
+  idxlak_start <- seq(1, NSpec*2*Nlak, NSpec)
+ 
+  df_all <- vector("list", Nlak)
+  for(l in 1:Nlak){
+    im <- iCOMBO[idxlak_start[l]:idxlak[l]]
+    res_lak <- model[idxmacro[im]]
+    
+    df_lak <- vector("list", NSpec)
+    for(s in 1:Nspec){
+      
+      print(s)
+      res <- res_lak[[s]] # 15 
+      df_depth <- vector("list", 4)
+      
+      for(d in iDepth){
+        df <- as.data.frame(res[[d]])
+        colnames(df) <- c("biomass", "numberInd", "indWeight", "height")
+        df$depth <- depths[d]
+        df$speciesID <- species_id[s]
+        df$lakeID <- lake_id[l]
+        df$day <- 1:365
+        df$scenario <- scenario_name
+        df_depth[[d]] <- df
+      }
+      depth_bind <- do.call(rbind, df_depth)
+      df_lak[[s]] <- depth_bind
+    }
+    
+    lak_bind <- do.call(rbind, df_lak)
+    df_all[[l]] <- lak_bind
+  }
 
+}
 
+# --------------------------------------------------------------
+# env data
+func_prepENV <- function(model, Nlak, NSpec, depths, species_id, lake_id, scenario_name){
+  
+  iCOMBO <- 1:(NSpec*Nlak) # data combo (species pro lake)
+  
+  # macrophyt data = 1,3,5...
+  idxmacro <- seq(1, NSpec*2*Nlak, 2)
+  
+  # env data = 2,4,6
+  idxenv <- seq(2, NSpec*2*Nlak, 2)
+  
+  # lake = NSpec 1-27 = lake1, 28-54 = lake1
+  idxlak <- seq(NSpec, NSpec*2*Nlak, NSpec)
+  idxlak_start <- seq(1, NSpec*2*Nlak, NSpec)
+  
+  env_all <- vector("list", Nlak)
+  for(l in 1:Nlak){
+    im <- iCOMBO[idxlak_start[l]:idxlak[l]]
+    res_lak <- model[idxenv[im]]
+    
+    df_lak <- vector("list", NSpec)
+    for(s in 1:NSpec){
+      print(s)
+      res <- res_lak[[s]] # 15 
+      
+      df <- as.data.frame(matrix(nrow = 365, ncol = 6))
+      env_par <- c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
+      
+      for(par in 1:6){
+        df[, par] <- as.vector(res[[par]])
+      }
+      colnames(df) <- env_par
+      df$speciesID <- species_id[s]
+      df$lakeID <- lake_id[l]
+      df$day <- 1:365
+      df$scenario <- scenario_name
+      
+      df_lak[[s]] <- df
+    }
+    
+    lak_bind <- do.call(rbind, df_lak)
+    env_all[[l]] <- lak_bind
+  }
+ 
+  # final binding
+  final_env <- do.call(rbind, env_all)
+  return(final_env)
+}
+
+# -------------------------------------------------------------------
 # ---- Temp profiles ------------------------------
 # same as in functions.jl
 T_profile <- function(z, T_epi, T_hypo, z0, k) {
