@@ -5,6 +5,7 @@
 *.html
 *.bib
 *.xlsx
+*.RDataTmp
 
 **/analysis/
 
