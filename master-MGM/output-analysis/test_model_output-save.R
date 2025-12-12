@@ -7,20 +7,19 @@ View(res100)
 load(file.path(save_figures100, "env_dep10_Tprofile.RData"))   
 env100 <- env
 
-save_figures5 <- "output-analysis/dep10_lakes_5spec_base_Tprofile_parallel/parallel_func"
-load(file.path(save_figures5, "res_dep10.RData")) 
+save_figures5 <- "output-analysis/dep10_lakes_5spec_base_Tprofile_parallelNAME"
+load(file.path(save_figures5, "res_dep10_Tprofile.RData"))   
 res5 <- res
-load(file.path(save_figures5, "env_dep10.RData"))   
+
+load(file.path(save_figures5, "env_dep10_Tprofile.RData"))   
 env5 <- env
 
 rm(res)
 rm(env)
 
-View(res5)
-
 # 100 spec
 sort_env100 <- env100 %>%
-  group_by(lakeClass, AreaGroup) %>%
+  group_by(lakeClass, AreaGroup, day) %>%
   summarise(
     tempEpi_mean = mean(tempEpi), 
     tempHypo_mean = mean(tempHypo),
@@ -38,7 +37,7 @@ func_sortENV_plot(sort_env100, save_figures100, scenario) # defined in help-func
 
 # 5 spec
 sort_env5 <- env5 %>%
-  group_by(lakeClass, AreaGroup) %>%
+  group_by(lakeClass, AreaGroup, day) %>%
   summarise(
     tempEpi_mean = mean(tempEpi), 
     tempHypo_mean = mean(tempHypo),

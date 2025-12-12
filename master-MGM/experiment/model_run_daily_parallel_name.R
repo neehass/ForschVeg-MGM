@@ -19,7 +19,7 @@ n <- 5 # number of species per group (oligotroph, mesotroph, eutroph)
 setting <- "parallel" # "HPC" # local # parallel
 modelrun <- "dep10_lakes_5spec_base_Tprofile_parallelNAME" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
-depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
+depths <- c(-0.5, -1.5, -3, -5) # only 4 depths possible here
 yearsoutput <- 2
 tempProfile <- "true" # "false" true
 k <- 5
@@ -278,113 +278,73 @@ for (S in 1:length(scenarios)){
 # inspect data structur ------------------
 # ---------------------------------------------------------------------------------------------------------
 View(model2)
-nameLAK <- model2[[1]]$lake
-nameSPEC <- model2[[1]]$species
-Lid <- unlist(str_extract_all(nameLAK, "\\d+"))
-Sid <- unlist(str_extract_all(nameSPEC, "\\d+"))
+scenario_name <- "spec5_inspectoutput"
 
 iCOMBO <- 1:(NSpec*Nlak) # data combo (species pro lake)
 length(iCOMBO) == length(model2)
 
-View(model2[[1]]$results)
-
-# macrophyt data = 1,3,5...
-idxmacro <- seq(1, NSpec*2*Nlak, 2)
-
-# env data = 2,4,6
-idxenv <- seq(2, NSpec*2*Nlak, 2)
-
-# lake = NSpec 1-27 = lake1, 28-54 = lake1
-idxlak <- seq(NSpec, NSpec*2*Nlak, NSpec)
-idxlak_start <- seq(1, NSpec*2*Nlak, NSpec)
-
-df_all <- vector("list", Nlak)
-for(l in 1:Nlak){
-  im <- iCOMBO[idxlak_start[l]:idxlak[l]]
-  res_lak <- model[idxmacro[im]]
+df_allRES <- vector("list", length(iCOMBO))
+df_allENV <- vector("list", length(iCOMBO))
+for(i in iCOMBO){
+  nameLAK <- model2[[i]]$lake
+  nameSPEC <- model2[[i]]$species
+  Lid <- unlist(str_extract_all(nameLAK, "\\d+"))
+  Sid <- unlist(str_extract_all(nameSPEC, "\\d+"))
+  print(paste(Lid, Sid))
   
-  df_lak <- vector("list", NSpec)
-  for(s in 1:Nspec){
+  res <- model2[[i]]$results
+  env <- model2[[i]]$environment
+  
+  # results of macrohyts
+  df_depth <- vector("list", 4)
+  for(d in 1:4){
+    depth <- res[[d]]$depth
+    print(depth)
     
-    print(s)
-    res <- res_lak[[s]] # 15 
-    df_depth <- vector("list", 4)
+    data <- as.data.table(res[[d]]$data)
+    colnames(data) <- c("biomass", "numberInd", "indWeight", "height")
+    data$depth <- depth
+    data$speciesID <- Sid
+    data$lakeID <- Lid
+    data$day <- 1:365
+    data$scenario <- scenario_name
+    df_depth[[d]] <- data
     
-    for(d in iDepth){
-      df <- as.data.frame(res[[d]])
-      colnames(df) <- c("biomass", "numberInd", "indWeight", "height")
-      df$depth <- depths[d]
-      df$speciesID <- species_id[s]
-      df$lakeID <- lake_id[l]
-      df$day <- 1:365
-      df$scenario <- scenario_name
-      df_depth[[d]] <- df
-    }
-    depth_bind <- do.call(rbind, df_depth)
-    df_lak[[s]] <- depth_bind
   }
+  depth_bind <- do.call(rbind, df_depth)
+  # View(depth_bind)
   
-  lak_bind <- do.call(rbind, df_lak)
-  df_all[[l]] <- lak_bind
+  # ENV 
+  env_bind <- do.call(cbind, env)
+  
+  env_bind <- as.data.table(env_bind)
+  colnames(env_bind) <- c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
+  env_bind$speciesID <- Sid
+  env_bind$lakeID <- Lid
+  env_bind$day <- 1:365
+  env_bind$scenario <- scenario_name
+  
+  # save in list
+  df_allRES[[i]] <- depth_bind
+  df_allENV[[i]] <- env_bind
 }
+final_res <- do.call(rbind, df_allRES)
+View(final_res)
 
-# -----------------
+final_env <- do.call(rbind, df_allENV)
+View(final_env)
 
-# -------------------------------------------------------------------
-# model Data processing 
-# --------------------------------------------------------------
-# macrophyte data
-func_prepMACRO <- function(model, Nlak, NSpec, depths, species_id, lake_id, scenario_name){
-  
-  
-}
+saveRDS(final_res, file = file.path(wd, "output", modelrun, "all_res.rds"))
+rm(final_res) # delete variable
 
-# --------------------------------------------------------------
-# env data
-func_prepENV <- function(model, Nlak, NSpec, depths, species_id, lake_id, scenario_name){
-  
-  iCOMBO <- 1:(NSpec*Nlak) # data combo (species pro lake)
-  
-  # macrophyt data = 1,3,5...
-  idxmacro <- seq(1, NSpec*2*Nlak, 2)
-  
-  # env data = 2,4,6
-  idxenv <- seq(2, NSpec*2*Nlak, 2)
-  
-  # lake = NSpec 1-27 = lake1, 28-54 = lake1
-  idxlak <- seq(NSpec, NSpec*2*Nlak, NSpec)
-  idxlak_start <- seq(1, NSpec*2*Nlak, NSpec)
-  
-  env_all <- vector("list", Nlak)
-  for(l in 1:Nlak){
-    im <- iCOMBO[idxlak_start[l]:idxlak[l]]
-    res_lak <- model[idxenv[im]]
-    
-    df_lak <- vector("list", NSpec)
-    for(s in 1:NSpec){
-      print(s)
-      res <- res_lak[[s]] # 15 
-      
-      df <- as.data.frame(matrix(nrow = 365, ncol = 6))
-      env_par <- c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
-      
-      for(par in 1:6){
-        df[, par] <- as.vector(res[[par]])
-      }
-      colnames(df) <- env_par
-      df$speciesID <- species_id[s]
-      df$lakeID <- lake_id[l]
-      df$day <- 1:365
-      df$scenario <- scenario_name
-      
-      df_lak[[s]] <- df
-    }
-    
-    lak_bind <- do.call(rbind, df_lak)
-    env_all[[l]] <- lak_bind
-  }
-  
-  # final binding
-  final_env <- do.call(rbind, env_all)
-  return(final_env)
-}
+saveRDS(final_env, file = file.path(wd, "output", modelrun, "all_env.rds"))
+rm(final_env) # delete variable
+
+
+
+
+
+
+
+
+

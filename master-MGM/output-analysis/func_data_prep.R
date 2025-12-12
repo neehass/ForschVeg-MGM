@@ -11,19 +11,19 @@ library(parallel)
 func_prep_data <- function(output, save_figures, lake_path, lewSpec_dir){
     # ---------------------------------------------------------------------------------------------------------
     # load data --------------------------------------------------------------------------------
-    res <- read.table(file.path(output, "all_res_biomass_number_weight_height_daily.txt"), header =TRUE)
-    env <- read.table(file.path(output,"env.txt"), header =TRUE)
+    # res <- read.table(file.path(output, "all_res_biomass_number_weight_height_daily.txt"), header =TRUE)
+    # env <- read.table(file.path(output,"env.txt"), header =TRUE)
     gen.conf <- readLines(file.path(output,"general.config.txt"))
     
     # ---------- 1. FAST IO ----------
     message("Reading data with data.table::fread() ...")
     # res <- fread(file.path(output, "all_res_biomass_number_weight_height_daily.txt"))
     # env <- fread(file.path(output, "env.txt"))
-    # 
-    # res <- all_df <- readRDS(file.path(output, "all_df.rds"))
-    # res <- as.data.table(res)
-    # env <- all_df <- readRDS(file.path(output, "all_env.rds"))
-    # env <- as.data.table(env)
+
+    res <- all_df <- readRDS(file.path(output, "all_res.rds"))
+    res <- as.data.table(res)
+    env <- all_df <- readRDS(file.path(output, "all_env.rds"))
+    env <- as.data.table(env)
     
     # head(res)
     # head(res[res$biomass >0,])
