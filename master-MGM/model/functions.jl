@@ -221,7 +221,7 @@ end
 function getTemperatureProfile_depth(depth, tempEpi, tempHypo, metaDepth, k)
     t = tempHypo .+ (tempEpi - tempHypo) ./ (1 .+ exp.((abs.(depth) .- abs.(metaDepth)) ./ k))
     if length(depth) > 1
-        t[1] = tempEpi
+        # t[1] = tempEpi
         t[end] = tempHypo
     end
     return t
