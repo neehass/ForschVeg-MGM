@@ -1,3 +1,4 @@
+setwd("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM")
 # inspect model output
 
 model_Tprofile_par <- "output/dep10_lakes_5spec_base_Tprofile_parallel"
