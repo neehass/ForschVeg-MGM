@@ -160,6 +160,121 @@ func_getSpecies_config <- function(path_configFile){
 # -------------------------------------------------------------------
 # model Data processing 
 # --------------------------------------------------------------
+# saving modeloutput for CHARISMA_biomass_N_weight_hight_env_parallel_name()
+func_PREPmodeloutput <- function(model, Nlak, NSpec, depths, species_id, lake_id, scenario_name){
+  
+  iCOMBO <- 1:(NSpec*Nlak) # data combo (species pro lake)
+  length(iCOMBO) == length(model2)
+  
+  df_allRES <- vector("list", length(iCOMBO))
+  df_allENV <- vector("list", length(iCOMBO))
+  for(i in iCOMBO){
+    nameLAK <- model2[[i]]$lake
+    nameSPEC <- model2[[i]]$species
+    Lid <- unlist(str_extract_all(nameLAK, "\\d+"))
+    Sid <- unlist(str_extract_all(nameSPEC, "\\d+"))
+    print(paste(Lid, Sid))
+    
+    res <- model2[[i]]$results
+    env <- model2[[i]]$environment
+    
+    # results of macrohyts
+    df_depth <- vector("list", 4)
+    for(d in 1:4){
+      depth <- res[[d]]$depth
+      print(depth)
+      
+      data <- as.data.table(res[[d]]$data)
+      colnames(data) <- c("biomass", "numberInd", "indWeight", "height")
+      data$depth <- depth
+      data$speciesID <- Sid
+      data$lakeID <- Lid
+      data$day <- 1:365
+      data$scenario <- scenario_name
+      df_depth[[d]] <- data
+      
+    }
+    depth_bind <- do.call(rbind, df_depth)
+    # View(depth_bind)
+    
+    # ENV 
+    env_bind <- do.call(cbind, env)
+    
+    env_bind <- as.data.table(env_bind)
+    colnames(env_bind) <- c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
+    env_bind$speciesID <- Sid
+    env_bind$lakeID <- Lid
+    env_bind$day <- 1:365
+    env_bind$scenario <- scenario_name
+    
+    # save in list
+    df_allRES[[i]] <- depth_bind
+    df_allENV[[i]] <- env_bind
+  }
+  
+  return(list(df_allRES = df_allRES, df_allENV = df_allENV))
+}
+
+
+func_PREPmodeloutput_final_para <- function(model2, Nlak, NSpec, depths, species_id, lake_id, scenario_name){
+  
+  results_parallel <- future_lapply(iCOMBO, function(i){
+    
+    nameLAK <- model2[[i]]$lake
+    nameSPEC <- model2[[i]]$species
+    Lid <- unlist(stringr::str_extract_all(nameLAK, "\\d+"))
+    Sid <- unlist(stringr::str_extract_all(nameSPEC, "\\d+"))
+    
+    res <- model2[[i]]$results
+    env <- model2[[i]]$environment
+    
+    # -------------------------------
+    #   Depth results
+    # -------------------------------
+    df_depth <- vector("list", length(res))
+    
+    for(d in seq_along(res)){
+      depth <- res[[d]]$depth
+      
+      data <- as.data.table(res[[d]]$data)
+      colnames(data) <- c("biomass", "numberInd", "indWeight", "height")
+      
+      data[, depth := depth]
+      data[, speciesID := Sid]
+      data[, lakeID := Lid]
+      data[, day := 1:365]
+      data[, scenario := scenario_name]
+      
+      df_depth[[d]] <- data
+    }
+    
+    depth_bind <- rbindlist(df_depth)
+    
+    # -------------------------------
+    #   ENV data
+    # -------------------------------
+    env_bind <- as.data.table(do.call(cbind, env))
+    colnames(env_bind) <- c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
+    
+    env_bind[, speciesID := Sid]
+    env_bind[, lakeID := Lid]
+    env_bind[, day := 1:365]
+    env_bind[, scenario := scenario_name]
+    
+    # return combined output
+    list(df_res = depth_bind, df_env = env_bind)
+  })
+  
+  df_allRES <- lapply(results_parallel, `[[`, "df_res")
+  df_allENV <- lapply(results_parallel, `[[`, "df_env")
+  
+  return(list(df_allRES = df_allRES, df_allENV = df_allENV))
+  
+}
+
+
+# --------------------------------------------------------------
+# not parallel modeloutput
 # macrophyte data
 func_prepMACRO <- function(model, Nlak, NSpec, depths, species_id, lake_id, scenario_name){
   
@@ -271,7 +386,7 @@ T_profile <- function(z, T_epi, T_hypo, z0, k) {
 
 T_profile_1 <- function(z, T_epi, T_hypo, z0, k) {
   t <- T_hypo + (T_epi - T_hypo) / (1+exp((abs(z) - abs(z0)) / k))
- 
+  t[length(t)] <- T_hypo
   return(t)
 }
 

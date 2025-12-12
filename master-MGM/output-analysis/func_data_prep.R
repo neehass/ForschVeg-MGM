@@ -293,10 +293,13 @@ func_prep_data_dt_parallel <- function(output, save_figures, lake_path, lewSpec_
   # res <- fread(file.path(output, "all_res_biomass_number_weight_height_daily.txt"))
   # env <- fread(file.path(output, "env.txt"))
   
-  res <- all_df <- readRDS(file.path(output, "all_df.rds"))
+  res <- readRDS(file.path(output, "all_res.rds"))
   res <- as.data.table(res)
-  env <- all_df <- readRDS(file.path(output, "all_env.rds"))
+  env <- readRDS(file.path(output, "all_env.rds"))
   env <- as.data.table(env)
+  
+  res$lakeID <- as.numeric(res$lakeID)
+  env$lakeID <- as.numeric(env$lakeID)
 
   gen.conf <- readLines(file.path(output,"general.config.txt"))
   load(file.path(lewSpec_dir, "data-raw/observed/Morphology.rda"))
@@ -311,27 +314,24 @@ func_prep_data_dt_parallel <- function(output, save_figures, lake_path, lewSpec_
                                         fifelse(speciesID > 16000 & speciesID < 16301, "eutrophentic", NA_character_)))]
   
   # ---------- 3. lakeClass join ----------
+  res <- as.data.table(res)
   lake_class_dt <- as.data.table(data_lakes_env_class)[, .(lakeID = Lake, lakeClass = class)]
-  setkeyv(lake_class_dt, "lakeID")
-  setkeyv(res, "lakeID"); setkeyv(env, "lakeID")
-  res <- lake_class_dt[res]   # left join (lake_class_dt on left) -> preserves res cols
-  env <- lake_class_dt[env]
+  res <- res[lake_class_dt, on = "lakeID"] 
+  env <- env[lake_class_dt, on = "lakeID"]
   
   # ---------- 4. lake area and depth ----------
   lake_area <- func_getAreaKm2(lake_path)      # expect data.frame with id and areakm2
   lake_area_dt <- as.data.table(lake_area)[, .(id, areakm2)]
   lake_area_dt[, AreaGroup := sapply(areakm2, func_getAreaGroup)]
   setnames(lake_area_dt, "id", "lakeID")
-  setkeyv(lake_area_dt, "lakeID")
-  res <- lake_area_dt[res]
-  env <- lake_area_dt[env]
+  res <- res[lake_area_dt, on = "lakeID"]
+  env <- env[lake_area_dt, on = "lakeID"]
   
   lake_depth <- func_getLakeDepth(lake_path)   # expect data.frame with id and lakeDepth
   lake_depth_dt <- as.data.table(lake_depth)
   setnames(lake_depth_dt, "id", "lakeID")
-  setkeyv(lake_depth_dt, "lakeID")
-  res <- lake_depth_dt[res]
-  env <- lake_depth_dt[env]
+  res <- res[lake_depth_dt, on = "lakeID"]
+  env <- env[lake_depth_dt, on = "lakeID"] # left join (lake_class_dt on left) -> preserves res cols
   
   # ---------- 5. Save intermediate ----------
   save(env, file = file.path(save_figures, "env_dep10.RData"))
@@ -404,7 +404,7 @@ func_prep_data_dt_parallel <- function(output, save_figures, lake_path, lewSpec_
   
   sort_env <- rbindlist(agg_env_list, use.names = TRUE, fill = TRUE)
   sort_env[, AreaGroup := factor(AreaGroup, levels=c("very.small","small","medium","large","very.large"))]
-  
+  sort_env <- na.omit(sort_env5)
   save(sort_env, file = file.path(save_figures, "sortENV_dep10.RData"))
   message("Data sorted for Environment.")
   

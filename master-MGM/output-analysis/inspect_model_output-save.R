@@ -11,8 +11,8 @@ save_figures5 <- "output-analysis/dep10_lakes_5spec_base_Tprofile_parallelNAME"
 load(file.path(save_figures5, "res_dep10_Tprofile.RData"))   
 res5 <- res
 
-load(file.path(save_figures5, "env_dep10_Tprofile.RData"))   
-env5 <- env
+load(file.path(save_figures5, "sortENV_dep10.RData"))   
+sort_env5 <- sort_env
 
 rm(res)
 rm(env)
@@ -52,6 +52,62 @@ sort_env5 <- env5 %>%
 View(sort_env5)
 scenario <- "base-5spec_Tprofile"
 func_sortENV_plot(sort_env5, save_figures5, scenario) # defined in help-func.R
+
+# --- TProfile Development over Days ------
+# mean Depths per lakeClass and lakeGroup_Area
+head(sort_env)
+
+sort_env_Tprof_DAY <- na.omit(sort_env5) %>% # sort_env[sort_env$day %in% unique(sort_res$day), ] 
+  group_by(lakeClass, AreaGroup, day) %>%
+  # mutate(day_bin = floor((day - 1) / 30) * 30 + 1) %>%  # days 1–7 → 1, 8–14 → 8, etc.
+  mutate(month_bin = floor((day - 1) / 31) + 1) %>%  # month 1, 2, 3...
+  group_by(lakeClass, AreaGroup, month_bin) %>%
+  summarise(
+    tempEpi_av = mean(tempEpi_mean, na.rm = TRUE),
+    tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
+    metaDepth_av = mean(metaDepth_mean, na.rm = TRUE),
+    lakeDepth_av = round(mean(lakeDepth_mean, na.rm = TRUE)), 
+    T_prof = list(T_profile_1(z = sort(seq(lakeDepth_av, 0, 0.5), decreasing = TRUE), 
+                            T_epi = tempEpi_av, T_hypo = tempHypo_av,
+                            z0 = metaDepth_av, k = k))) %>% 
+  
+  ungroup()
+# View(sort_env_Tprof_DAY)
+length(sort_env_Tprof_DAY$month_bin %>% unique())
+
+# View(sort_env_Tprof_DAY)
+sort_env_Tprof_DAY_long <- sort_env_Tprof_DAY %>%
+  group_by(lakeClass, AreaGroup, month_bin) %>%
+  mutate(depth = list(sort(seq(lakeDepth_av, 0, 0.5), decreasing = TRUE))) %>%  # depth for each T_prof
+  unnest(c(T_prof, depth)) 
+# View(sort_env_Tprof_DAY_long)
+
+all_days <- sort(unique(sort_env_Tprof_DAY_long$month_bin))
+mid_idx <- round(quantile(1:length(all_days), probs = c(0.25, 0.5, 0.75)))
+q25 <- c(mid_idx[1]-1, mid_idx[1], mid_idx[1]+1)
+mid <- c(mid_idx[2]-1, mid_idx[2], mid_idx[2]+1)
+q75 <-  c(mid_idx[3]-1, mid_idx[3], mid_idx[3]+1)
+show_days <- as.character(c(head(all_days, 3), all_days[q25], 
+                            all_days[mid], all_days[q75], tail(all_days, 3)))
+
+p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth, 
+                                                      color = factor(month_bin))) +
+  geom_line(linewidth = 1) +
+  
+  # scale_x_reverse( breaks = c(-5.0, -3.0, -1.5, -0.5),  limits = c(0, -5)) + # limits = c(0, -5),
+  facet_wrap(AreaGroup ~lakeClass, ncol = 3) +
+  theme_bw() +
+  
+  labs(title = paste("monthly mean Temperature Profiles \n(Days 1-365 summairsed in 30 day steps)" ),
+       x =  "mean Temperature [°C]",
+       y = "Depth [m]",
+       color = "approx. Months")  +
+  #scale_color_discrete(breaks = show_days) +   # << show only selected days
+  theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 1))
+
+
+p_Tprofile_DAY
+ggsave(file.path(save_figures5, "Tprof_perAproxMonth.png"), p_Tprofile_DAY, height = 10, width = 10)
 
 # -----------------------------------------------------
 # spec 100

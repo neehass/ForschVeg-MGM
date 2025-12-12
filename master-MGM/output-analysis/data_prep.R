@@ -113,7 +113,7 @@ func_prep_data(output = test, save_figures = save_test, lake_path, lewSpec_dir)
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 
-# Test Tprofile parallel-------------------
+# Test Tprofile parallel final -------------------
 # -----------------------------------------------------------------------------------------
 # T-Profile + base scenario, 5 species, all lakes < -10 m depth -------------------------
 # Folder output of MGM experiment and Analysis results folder
@@ -126,7 +126,15 @@ dir.create(save_base_Tprofile_par)
 # input files
 lake_path <- "input/lakes"
 
-func_prep_data(output = base_Tprofile_par, save_figures = save_base_Tprofile_par, lake_path, lewSpec_dir)
+func_prep_data_dt_parallel(output = base_Tprofile_par, save_figures = save_base_Tprofile_par, lake_path, lewSpec_dir, ncores = NULL)
+
+load(file.path(save_base_Tprofile_par, "sortENV_dep10.RData"))  
+sort_env5 <- sort_env
+rm(sort_env)
+View(sort_env5)
+scenario <- "base-5spec_Tprofile"
+func_sortENV_plot(sort_env5, save_base_Tprofile_par, scenario) # defined in help-func.R
+
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
