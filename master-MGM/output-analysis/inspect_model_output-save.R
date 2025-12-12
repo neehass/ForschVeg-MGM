@@ -73,7 +73,7 @@ sort_res100 <- res100[res100$biomass > 0, ] %>%
 View(sort_res100)
 # sepc 5
 sort_res5 <- res5[res5$biomass > 0, ] %>%
-  group_by(lakeClass, speciesGroup, AreaGroup, depth) %>%
+  group_by(lakeClass, speciesGroup, AreaGroup, depth, day) %>%
   summarise(
     biomass_mean = mean(biomass), 
     numberInd_mean = mean(numberInd),
@@ -84,3 +84,30 @@ sort_res5 <- res5[res5$biomass > 0, ] %>%
   mutate(AreaGroup = factor(AreaGroup,
                             levels = c("very.small", "small", "medium", "large", "very.large")))
 View(sort_res5)
+
+# ---- boxplot per dephts ------------------------------------------------------------------------------------------
+maxDay <- max(unique(sort_res100$day))
+minDay <- min(unique(sort_res100$day))
+
+p_box <- ggplot(sort_res100, aes(x = factor(depth, levels = rev(sort(unique(depth)))), 
+                              y = biomass_mean, fill = AreaGroup)) +
+  geom_boxplot() +
+  facet_grid(speciesGroup ~ lakeClass ) +
+  theme_bw() +
+  labs(title = paste("Biomass over Active Days, days", minDay, "to", maxDay),
+       y = "Mean Biomass", x = "Depths [m]", fill = "Turbidity")+
+  scale_fill_brewer(palette = "Accent") 
+p_box
+
+maxDay <- max(unique(sort_res5$day))
+minDay <- min(unique(sort_res5$day))
+p_box <- ggplot(sort_res5, aes(x = factor(depth, levels = rev(sort(unique(depth)))), 
+                                 y = biomass_mean, fill = AreaGroup)) +
+  geom_boxplot() +
+  facet_grid(speciesGroup ~ lakeClass ) +
+  theme_bw() +
+  labs(title = paste("Biomass over Active Days, days", minDay, "to", maxDay),
+       y = "Mean Biomass", x = "Depths [m]", fill = "Turbidity")+
+  scale_fill_brewer(palette = "Accent") 
+p_box
+ggsave(file.path(save_figures, "BOX_biomass_day.png"), p_box, height = 20, width = 15)
