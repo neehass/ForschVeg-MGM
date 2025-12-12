@@ -59,14 +59,17 @@ head(data_lakes_env_class) # Turbidity classes
 
 # ---------------------------------------------------------------------------------------------------------
 # ---- plot ------------------------------------------------------------------------------------------
-p_macro <- ggplot(sort_res, aes(x = day, y = biomass_mean,
-                                color = lakeClass, linetype = factor(depth))) +
+sort_res_mean <- sort_res %>% group_by(speciesGroup, lakeClass, AreaGroup, day) %>%
+  summarise(biomass_mean = mean(biomass_mean, rm.na = TRUE)) %>% ungroup()
+
+p_macro <- ggplot(sort_res_mean, aes(x = day, y = biomass_mean,
+                                         color = AreaGroup)) +
   geom_line() +
-  facet_grid(speciesGroup ~  lakeGroup_Area) +
+  facet_grid(speciesGroup ~  lakeClass) +
   theme_bw() +
-  labs(title = "Biomass over Active Days",
-       y = "Mean Biomass", x = "Days", linetype = "Depth", color = "Turbidity") +
-  scale_color_brewer(palette = "Accent")
+  labs(title = "Biomass over Active Days (mean over all dephts)",
+       y = "Mean Biomass", x = "Days", color = "Lake Area-Group") +
+  scale_color_brewer(palette = "Set2")
 p_macro
 ggsave(file.path(save_figures, "biomass_day.png"), p_macro, height = 20, width = 15)
 
@@ -92,7 +95,7 @@ ggsave(file.path(save_figures, "BOX_biomass_day.png"), p_box, height = 20, width
 sort_env <- sort_env %>%
   rename(AreaGroup = lakeGroup_Area)
 
-scenario <- "base-10spec_Tprofile"
+scenario <- "base-100spec_Tprofile"
 func_sortENV_plot(sort_env, save_figures, scenario) # defined in help-func.R
 # lightAttenuation_mean missing 
 
@@ -103,7 +106,7 @@ depth_bio <- c(0, sort(unique(sort_res$depth), decreasing = TRUE))
 k <- as.numeric(strsplit(gen.conf[8], " ")[[1]][2])
 
 sort_env_Tprof <- sort_env[sort_env$day %in% unique(sort_res$day), ] %>%
-  group_by(lakeClass, lakeGroup_Area) %>%
+  group_by(lakeClass, AreaGroup) %>%
   summarise(
     tempEpi_av = mean(tempEpi_mean, na.rm = TRUE),
     tempHypo_av = mean(tempHypo_mean, na.rm = TRUE),
@@ -115,7 +118,7 @@ sort_env_Tprof <- sort_env[sort_env$day %in% unique(sort_res$day), ] %>%
 
 # head(sort_env_Tprof)
 sort_env_Tprof_long <- sort_env_Tprof %>%
-  group_by(lakeClass, lakeGroup_Area) %>%
+  group_by(lakeClass, AreaGroup) %>%
   mutate(depth = list(c(depth_bio))) %>%  # depth for each T_prof
   unnest(c(T_prof, depth))
 # sort_env_Tprof_long <- sort_env_Tprof_long[sort_env_Tprof_long$depth >= min(depth_bio),]
@@ -126,11 +129,11 @@ sort_env_Tprof_long <- sort_env_Tprof %>%
 maxDay <- max(unique(sort_res$day))
 minDay <- min(unique(sort_res$day))
 
-p_Tprofile <- ggplot(sort_env_Tprof_long, aes(x = depth, y = T_prof, color = lakeClass)) +
+p_Tprofile <- ggplot(sort_env_Tprof_long, aes(x = depth, y = T_prof, color = AreaGroup)) +
   geom_line(linewidth = 1) +
   # geom_point(data = test, aes(x = -0.5, y = T_profile(z = -0.5, T_epi = test$tempEpi_av, T_hypo = test$tempHypo_av, z0 = test$metaDepth_av, k = 5)), color = "red") +
   scale_x_reverse(breaks = depth_bio) + # limits = c(0, -5),
-  facet_wrap(~ lakeGroup_Area, nrow = 1) +
+  facet_wrap(~ lakeClass, nrow = 1) +
   theme_bw() +
   labs(title = paste("mean Temperature Profiles, days", minDay, "to", maxDay),
        y =  "mean Temperature [°C]",

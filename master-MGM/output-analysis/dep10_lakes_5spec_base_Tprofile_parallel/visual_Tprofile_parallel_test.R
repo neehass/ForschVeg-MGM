@@ -36,9 +36,11 @@ source("./output-analysis/func_data_prep.R")
 # Folder output of MGM experiment and Analysis results folder
 
 output <- "output/dep10_lakes_5spec_base_Tprofile_parallel"
-save_figures <- "output-analysis/dep10_lakes_5spec_base_Tprofile_parallel"
+save_figures <- "output-analysis/dep10_lakes_5spec_base_Tprofile_parallel/parallel_func"
+save_figures2 <- "output-analysis/dep10_lakes_5spec_base_Tprofile_parallel/old_func"
 
 dir.create(save_figures)
+dir.create(save_figures2)
 
 # input files
 lake_path <- "input/lakes"
@@ -47,9 +49,17 @@ lake_path <- "input/lakes"
 # load data (Data preparation should be run before data_prep.R) ------------------------------------------------
 # load(file.path(save_figures, "res_dep10.RData"))   # res # all data
 load(file.path(save_figures, "sortRES_dep10.RData")) # sort_res # biomass > 0 sorted macrophyte data (grouped by lakeClass, speciesGroup, lakeGroup_Area, depth, day)
+sort_res_par <- sort_res
+load(file.path(save_figures2, "sortRES_dep10_Tprofile.RData"))
+sort_res_old <- sort_res
+rm(sort_res)
 
 # load(file.path(save_figures, "env_dep10.RData"))  # env # all environmental data
 load(file.path(save_figures, "sortENV_dep10.RData")) # env_sort # sorted environmental data (grouped by llakeClass, lakeGroup_Area, day)
+sort_env_par <- sort_env
+load(file.path(save_figures2, "sortENV_dep10_Tprofile.RData"))
+sort_env_old <- sort_env
+rm(sort_env)
 
 gen.conf <- readLines(file.path(output,"general.config.txt"))
 
@@ -60,11 +70,23 @@ load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
 
 # ---------------------------------------------------------------------------------------------------------
 # ---- plot ------------------------------------------------------------------------------------------
-sort_res_mean <- sort_res %>% group_by(speciesGroup, lakeClass, AreaGroup, day) %>%
+sort_res_mean_par <- sort_res_par %>% group_by(speciesGroup, lakeClass, AreaGroup, day) %>%
   summarise(biomass_mean = mean(biomass_mean, rm.na = TRUE)) %>% ungroup()
 
-p_macro <- ggplot(sort_res_mean, aes(x = day, y = biomass_mean,
+sort_res_mean_old <- sort_res_old %>% group_by(speciesGroup, lakeClass, AreaGroup, day) %>%
+  summarise(biomass_mean = mean(biomass_mean, rm.na = TRUE)) %>% ungroup()
+
+p_macro <- ggplot(sort_res_mean_par, aes(x = day, y = biomass_mean,
                                      color = AreaGroup)) +
+  geom_line() +
+  facet_grid(speciesGroup ~  lakeClass) +
+  theme_bw() +
+  labs(title = "Biomass over Active Days (mean over all dephts)",
+       y = "Mean Biomass", x = "Days", color = "Lake Area-Group") +
+  scale_color_brewer(palette = "Set2")
+p_macro
+p_macro <- ggplot(sort_res_mean_old, aes(x = day, y = biomass_mean,
+                                         color = AreaGroup)) +
   geom_line() +
   facet_grid(speciesGroup ~  lakeClass) +
   theme_bw() +

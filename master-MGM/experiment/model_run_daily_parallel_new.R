@@ -295,7 +295,7 @@ for (S in 1:length(scenarios)){
   # Save
   # write.table(all_df, file = paste0(wd,"/output/",modelrun,"/all_res_biomass_number_weight_height_daily.txt"),
   #             col.names = TRUE, row.names = FALSE)
-  saveRDS(final_res,  file = file.path(wd, "output", modelrun, "all_df.rds"))
+  saveRDS(final_res,  file = file.path(wd, "output", modelrun, "all_macrophytes.rds"))
   rm(final_res) # delete variable
   
   print("macrophyte data saved")

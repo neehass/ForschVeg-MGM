@@ -14,6 +14,17 @@ func_prep_data <- function(output, save_figures, lake_path, lewSpec_dir){
     res <- read.table(file.path(output, "all_res_biomass_number_weight_height_daily.txt"), header =TRUE)
     env <- read.table(file.path(output,"env.txt"), header =TRUE)
     gen.conf <- readLines(file.path(output,"general.config.txt"))
+    
+    # ---------- 1. FAST IO ----------
+    message("Reading data with data.table::fread() ...")
+    # res <- fread(file.path(output, "all_res_biomass_number_weight_height_daily.txt"))
+    # env <- fread(file.path(output, "env.txt"))
+    # 
+    # res <- all_df <- readRDS(file.path(output, "all_df.rds"))
+    # res <- as.data.table(res)
+    # env <- all_df <- readRDS(file.path(output, "all_env.rds"))
+    # env <- as.data.table(env)
+    
     # head(res)
     # head(res[res$biomass >0,])
     load(file.path(lewSpec_dir, "data-raw/observed/Morphology.rda"))
@@ -88,11 +99,11 @@ func_prep_data <- function(output, save_figures, lake_path, lewSpec_dir){
 
     lake_Agroup <- sapply(lake_area$areakm2, func_getAreaGroup)
 
-    res$lakeGroup_Area <- NA
-    env$lakeGroup_Area <- NA
+    res$AreaGroup <- NA
+    env$AreaGroup <- NA
 
-    res$lakeGroup_Area <- lake_Agroup[match(res$lakeID, lake_area$id)]
-    env$lakeGroup_Area <- lake_Agroup[match(env$lakeID, lake_area$id)]
+    res$AreaGroup <- lake_Agroup[match(res$lakeID, lake_area$id)]
+    env$AreaGroup <- lake_Agroup[match(env$lakeID, lake_area$id)]
 
     # --- lake Depth
     lake_depth <- func_getLakeDepth(lake_path)
@@ -112,7 +123,7 @@ func_prep_data <- function(output, save_figures, lake_path, lewSpec_dir){
     valid_res <- res[res$biomass > 0, ]
 
     sort_res <- valid_res %>%
-        group_by(lakeClass, speciesGroup, lakeGroup_Area, depth, day) %>%
+        group_by(lakeClass, speciesGroup, AreaGroup, depth, day) %>%
         summarise(
             biomass_mean = mean(biomass), 
             numberInd_mean = mean(numberInd),
@@ -120,7 +131,7 @@ func_prep_data <- function(output, save_figures, lake_path, lewSpec_dir){
             height_mean = mean(height),
             lakeDepth_mean = mean(lakeDepth)
         ) %>% ungroup()  %>%
-        mutate(lakeGroup_Area = factor(lakeGroup_Area,
+        mutate(AreaGroup = factor(AreaGroup,
                                     levels = c("very.small", "small", "medium", "large", "very.large")))
     head(sort_res)
     nrow(sort_res)
@@ -132,7 +143,7 @@ func_prep_data <- function(output, save_figures, lake_path, lewSpec_dir){
     # ---- sort data Environment ----------------------------------------------------------------------
 
     sort_env <- env %>%
-        group_by(lakeClass, lakeGroup_Area, day) %>%
+        group_by(lakeClass, AreaGroup, day) %>%
         summarise(
             tempEpi_mean = mean(tempEpi), 
             tempHypo_mean = mean(tempHypo),
@@ -142,7 +153,7 @@ func_prep_data <- function(output, save_figures, lake_path, lewSpec_dir){
             lightAttenuation_mean = mean(lightAttenuation), 
             lakeDepth_mean = mean(lakeDepth)
         ) %>% ungroup()  %>%
-        mutate(lakeGroup_Area = factor(lakeGroup_Area,
+        mutate(AreaGroup = factor(AreaGroup,
                                     levels = c("very.small", "small", "medium", "large", "very.large")))
     head(sort_env)
     nrow(sort_env)
