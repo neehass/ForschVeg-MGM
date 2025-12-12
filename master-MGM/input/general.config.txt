@@ -1,4 +1,4 @@
-modelrun dep10_lakes_5spec_base_Tprofile
+modelrun dep10_lakes_5spec_base_Tprofile_parallelNAME
 years 10
 depths -0.5 -1.5 -3 -5
 yearsoutput 2
