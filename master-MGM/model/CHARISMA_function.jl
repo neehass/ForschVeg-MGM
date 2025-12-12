@@ -574,9 +574,18 @@ function CHARISMA_biomass_N_weight_hight_env_parallel_name()
 
                 nyears = parse.(Int64, GeneralSettings["years"])
                 ndepths = length(depths)
-                Res = []
+                Res = Vector{Any}()
                 for d in 1:ndepths
-                    push!(Res, result[d][1][(((nyears[1]-1)*365)+1):(nyears[1]*365), 1:4])
+                    depth_val = depths[d]
+                    depth_matrix = result[d][1][(((nyears[1]-1)*365)+1):(nyears[1]*365), 1:4]
+
+                    push!(
+                        Res,
+                        Dict(
+                            "depth" => depth_val,
+                            "data"  => depth_matrix
+                        )
+                    )
                 end
 
                 # Name this loop output
