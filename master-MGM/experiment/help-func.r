@@ -25,7 +25,7 @@ func_getAreaKm2 <- function(lake_path) {
   areakm2 <- c()
   id <- c()
   for(i in 1:length(files)){
-   
+    
     lake <- read.table(files[i])
     a <- lake$V2[lake$V1 == "Areakm2"]
     if(identical(a, character(0))){
@@ -34,22 +34,22 @@ func_getAreaKm2 <- function(lake_path) {
       
     } else {areakm2[i] <- as.numeric(a)}
     
-
+    
     id[i] <- as.numeric(unlist(str_extract_all(lake$V2[lake$V1 == "Lake"], "\\d+")))
   }
   return(list(areakm2 = areakm2, id = id))
-
+  
 }
 
 # func_getAreaKm2 ----------------------------------
 func_getLakeDepth <- function(lake_path) {
   files <- list.files(lake_path, full.name = TRUE)
-
+  
   lakeDepth <- c()
   id <- c()
   i <- 1
   for(i in 1:length(files)){
-   
+    
     lake <- read.table(files[i])
     a <- lake$V2[lake$V1 == "lakeDepth"]
     if(identical(a, character(0))){

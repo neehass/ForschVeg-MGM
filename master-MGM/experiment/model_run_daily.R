@@ -16,15 +16,15 @@ setwd(dir)
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
 machine <- "NoMachine" # "home" # NoMachine !! doesnt work yet !!
-n <- 100 # number of species per group (oligotroph, mesotroph, eutroph)
+n <- 5 # number of species per group (oligotroph, mesotroph, eutroph)
 # n <- 10
 
-setting <- "parallel" # "HPC" # HPC, # parallel
-modelrun <- "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+setting <- "local" # "HPC" # HPC, # parallel
+modelrun <- "dep10_lakes_5spec_base_Tprofile" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
-tempProfile <- "false" # "false" true
+tempProfile <- "true" # "false" true
 k <- 5
 
 # (full path needed!)
@@ -61,7 +61,7 @@ if(machine == "home") {
 # species <- func_sel_spec(n, species_path) 
 
 # second run/ want to take same species as path_configFile
-path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_100spec_base_Tprofile/general.config.txt"
+path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_5spec_base_Tprofile_parallel/general.config.txt"
 species <- func_getSpecies_config(path_configFile)
 ex <- paste0("species_", c(14249, 14264, 14121, 14233, 14251,
                           15040, 15044, 15174, 15191,
@@ -71,7 +71,7 @@ species <- species[!species %in% ex]
 # species ID
 species_id <- unlist(str_extract_all(species, "\\d+"))
 species_id <- as.numeric(species_id)
-if(length(species) != 300){stop("stop species ERORR")}
+if(length(species) != 300){stop(paste("stop species ERORR", length(species)))}
 
 # test species
 # ERROR: reproDay < germinationDay + seedsEndAge
@@ -124,13 +124,13 @@ library(JuliaCall)
 #   julia_exit()  # terminates the running Julia session
 # }
 
-if (setting == "local") {
+if (machine == "local") {
   julia_setup(
     JULIA_HOME = juliaDIR,
     installJulia = FALSE,
     verbose = TRUE
   )
-} else if (setting == "NoMAchine") { # still doeasnt work!!
+} else if (machine == "NoMAchine") { # still doeasnt work!!
   julia_setup()
 }
 

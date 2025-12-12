@@ -63,7 +63,7 @@ sort_res_mean <- sort_res %>% group_by(speciesGroup, lakeClass, AreaGroup, day) 
   summarise(biomass_mean = mean(biomass_mean, rm.na = TRUE)) %>% ungroup()
 
 p_macro <- ggplot(sort_res_mean, aes(x = day, y = biomass_mean,
-                                         color = AreaGroup)) +
+                                     color = AreaGroup)) +
   geom_line() +
   facet_grid(speciesGroup ~  lakeClass) +
   theme_bw() +
