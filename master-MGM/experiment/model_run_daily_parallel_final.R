@@ -331,8 +331,106 @@ identical(do.call(rbind, mod_out_par$df_allRES), do.call(rbind, mod_out$df_allRE
 
 
 
+# load
+model2 <- readRDS(file.path(wd, "output", modelrun, "model.rds"))
 
+iCOMBO <- 1:(NSpec * Nlak)
 
+## WICHTIG: model2 vorher aufteilen
+model2_sub <- model2[iCOMBO]
+
+plan()
+length(model2_sub)
+object.size(model2_sub)
+
+chunk_size <- 200
+
+chunks <- split(
+  model2_sub,
+  ceiling(seq_along(model2_sub) / chunk_size)
+)
+
+length(chunks)
+# ~122 chunks
+View(chunks)
+
+worker_process_chunk <- function(chunk, scenario_name) {
+  
+  lapply(chunk, function(mod){ # wie foor loop chunk[[i]]
+    
+    nameLAK  <- mod$lake
+    nameSPEC <- mod$species
+    Lid <- unlist(stringr::str_extract_all(nameLAK, "\\d+"))
+    Sid <- unlist(stringr::str_extract_all(nameSPEC, "\\d+"))
+    
+    res <- mod$results
+    env <- mod$environment
+    
+    # -------------------------------
+    # Depth results
+    # -------------------------------
+    df_depth <- vector("list", length(res))
+    
+    for(d in seq_along(res)){
+      depth <- res[[d]]$depth
+      
+      data <- data.table::as.data.table(res[[d]]$data)
+      colnames(data) <- c("biomass", "numberInd", "indWeight", "height")
+      
+      data[, depth := depth]
+      data[, speciesID := Sid]
+      data[, lakeID := Lid]
+      data[, day := 1:365]
+      data[, scenario := scenario_name]
+      
+      df_depth[[d]] <- data
+    }
+    
+    depth_bind <- data.table::rbindlist(df_depth)
+    
+    # -------------------------------
+    # ENV data
+    # -------------------------------
+    env_bind <- data.table::as.data.table(do.call(cbind, env))
+    colnames(env_bind) <-
+      c("tempEpi", "tempHypo", "metaDepth",
+        "irradiance", "waterlevel", "lightAttenuation")
+    
+    env_bind[, speciesID := Sid]
+    env_bind[, lakeID := Lid]
+    env_bind[, day := 1:365]
+    env_bind[, scenario := scenario_name]
+    
+    list(df_res = depth_bind, df_env = env_bind)
+  })
+}
+
+func_PREPmodeloutput_final_para <- function(model2, Nlak, NSpec, depths,
+                                            species_id, lake_id, scenario_name){
+  
+  iCOMBO <- 1:(NSpec * Nlak)
+  model2_sub <- model2[iCOMBO]
+  
+  chunk_size <- 200
+  chunks <- split( # split in smaller list with length 122
+    model2_sub,
+    ceiling(seq_along(model2_sub) / chunk_size)
+  )
+  
+  results_parallel <- future_lapply(
+    chunks,
+    worker_process_chunk, # defined before
+    scenario_name = scenario_name,
+    future.globals = FALSE
+  )
+  
+  results_parallel <- do.call(c, results_parallel)
+  
+  df_allRES <- lapply(results_parallel, `[[`, "df_res")
+  df_allENV <- lapply(results_parallel, `[[`, "df_env")
+  
+  list(df_allRES = df_allRES, df_allENV = df_allENV)
+}
 
 
 

@@ -215,28 +215,28 @@ func_PREPmodeloutput <- function(model, Nlak, NSpec, depths, species_id, lake_id
   return(list(df_allRES = df_allRES, df_allENV = df_allENV))
 }
 
-
-func_PREPmodeloutput_final_para <- function(model2, Nlak, NSpec, depths, species_id, lake_id, scenario_name){
+# "help function" --> workaround that model2 is not loaded to every core
+worker_process_chunk <- function(chunk, scenario_name) {
   
-  results_parallel <- future_lapply(iCOMBO, function(i){
+  lapply(chunk, function(mod){ # wie foor loop chunk[[i]]
     
-    nameLAK <- model2[[i]]$lake
-    nameSPEC <- model2[[i]]$species
+    nameLAK  <- mod$lake
+    nameSPEC <- mod$species
     Lid <- unlist(stringr::str_extract_all(nameLAK, "\\d+"))
     Sid <- unlist(stringr::str_extract_all(nameSPEC, "\\d+"))
     
-    res <- model2[[i]]$results
-    env <- model2[[i]]$environment
+    res <- mod$results
+    env <- mod$environment
     
     # -------------------------------
-    #   Depth results
+    # Depth results
     # -------------------------------
     df_depth <- vector("list", length(res))
     
     for(d in seq_along(res)){
       depth <- res[[d]]$depth
       
-      data <- as.data.table(res[[d]]$data)
+      data <- data.table::as.data.table(res[[d]]$data)
       colnames(data) <- c("biomass", "numberInd", "indWeight", "height")
       
       data[, depth := depth]
@@ -248,29 +248,110 @@ func_PREPmodeloutput_final_para <- function(model2, Nlak, NSpec, depths, species
       df_depth[[d]] <- data
     }
     
-    depth_bind <- rbindlist(df_depth)
+    depth_bind <- data.table::rbindlist(df_depth)
     
     # -------------------------------
-    #   ENV data
+    # ENV data
     # -------------------------------
-    env_bind <- as.data.table(do.call(cbind, env))
-    colnames(env_bind) <- c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
+    env_bind <- data.table::as.data.table(do.call(cbind, env))
+    colnames(env_bind) <-
+      c("tempEpi", "tempHypo", "metaDepth",
+        "irradiance", "waterlevel", "lightAttenuation")
     
     env_bind[, speciesID := Sid]
     env_bind[, lakeID := Lid]
     env_bind[, day := 1:365]
     env_bind[, scenario := scenario_name]
     
-    # return combined output
     list(df_res = depth_bind, df_env = env_bind)
   })
+}
+
+func_PREPmodeloutput_final_para <- function(model2, Nlak, NSpec, depths,
+                                            species_id, lake_id, scenario_name){
+  
+  iCOMBO <- 1:(NSpec * Nlak)
+  model2_sub <- model2[iCOMBO]
+  
+  chunk_size <- 200
+  chunks <- split( # split in smaller list with length 122
+    model2_sub,
+    ceiling(seq_along(model2_sub) / chunk_size)
+  )
+  
+  results_parallel <- future_lapply(
+    chunks,
+    worker_process_chunk, # defined before
+    scenario_name = scenario_name,
+    future.globals = FALSE
+  )
+  
+  results_parallel <- do.call(c, results_parallel)
   
   df_allRES <- lapply(results_parallel, `[[`, "df_res")
   df_allENV <- lapply(results_parallel, `[[`, "df_env")
   
-  return(list(df_allRES = df_allRES, df_allENV = df_allENV))
-  
+  list(df_allRES = df_allRES, df_allENV = df_allENV)
 }
+
+# Problem here: model2 is loaded to every core --> too large --Y> crash
+# func_PREPmodeloutput_final_para <- function(model2, Nlak, NSpec, depths, species_id, lake_id, scenario_name){
+#   
+#   iCOMBO <- 1:(NSpec*Nlak)
+#   results_parallel <- future_lapply(iCOMBO, function(i){
+#     
+#     mod <- model2[[i]]
+#     nameLAK <- mod$lake
+#     nameSPEC <- mod$species
+#     Lid <- unlist(stringr::str_extract_all(nameLAK, "\\d+"))
+#     Sid <- unlist(stringr::str_extract_all(nameSPEC, "\\d+"))
+#     
+#     res <- mod$results
+#     env <- mod$environment
+#     
+#     # -------------------------------
+#     #   Depth results
+#     # -------------------------------
+#     df_depth <- vector("list", length(res))
+#     
+#     for(d in seq_along(res)){
+#       depth <- res[[d]]$depth
+#       
+#       data <- as.data.table(res[[d]]$data)
+#       colnames(data) <- c("biomass", "numberInd", "indWeight", "height")
+#       
+#       data[, depth := depth]
+#       data[, speciesID := Sid]
+#       data[, lakeID := Lid]
+#       data[, day := 1:365]
+#       data[, scenario := scenario_name]
+#       
+#       df_depth[[d]] <- data
+#     }
+#     
+#     depth_bind <- rbindlist(df_depth)
+#     
+#     # -------------------------------
+#     #   ENV data
+#     # -------------------------------
+#     env_bind <- as.data.table(do.call(cbind, env))
+#     colnames(env_bind) <- c("tempEpi", "tempHypo", "metaDepth", "irradiance", "waterlevel", "lightAttenuation")
+#     
+#     env_bind[, speciesID := Sid]
+#     env_bind[, lakeID := Lid]
+#     env_bind[, day := 1:365]
+#     env_bind[, scenario := scenario_name]
+#     
+#     # return combined output
+#     list(df_res = depth_bind, df_env = env_bind)
+#   })
+#   
+#   df_allRES <- lapply(results_parallel, `[[`, "df_res")
+#   df_allENV <- lapply(results_parallel, `[[`, "df_env")
+#   
+#   return(list(df_allRES = df_allRES, df_allENV = df_allENV))
+#   
+# }
 
 
 # --------------------------------------------------------------
