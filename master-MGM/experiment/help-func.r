@@ -194,7 +194,7 @@ func_PREPmodeloutput <- function(model, Nlak, NSpec, depths, species_id, lake_id
       df_depth[[d]] <- data
       
     }
-    depth_bind <- do.call(rbind, df_depth)
+    depth_bind <-  rbindlist(df_depth)
     # View(depth_bind)
     
     # ENV 
@@ -248,7 +248,7 @@ worker_process_chunk <- function(chunk, scenario_name) {
       df_depth[[d]] <- data
     }
     
-    depth_bind <- data.table::rbindlist(df_depth)
+    depth_bind <- do.call(rbind, df_depth)
     
     # -------------------------------
     # ENV data
@@ -286,7 +286,7 @@ func_PREPmodeloutput_final_para <- function(model2, Nlak, NSpec, depths,
     future.globals = FALSE
   )
   
-  results_parallel <- do.call(c, results_parallel)
+  results_parallel <- do.call(c, results_parallel) # unlist/ flaten chunks
   
   df_allRES <- lapply(results_parallel, `[[`, "df_res")
   df_allENV <- lapply(results_parallel, `[[`, "df_env")
