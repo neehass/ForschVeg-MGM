@@ -507,7 +507,10 @@ function getRespiration(day, height1, LevelOfGrid,
                                              settings["k"])
     else
         # Temp from function
-        Temper = getTemperature_Epi(day, settings, dynamicData) #Â°C
+        Temper = getTemperatureProfile_depth(0, dynamicData[day].tempEpi, 
+                                            dynamicData[day].tempHypo, dynamicData[day].metaDepth,
+                                             settings["k"]) # get the same Tepi 
+        # getTemperature_Epi(day, settings, dynamicData) #Â°C
     end
 
     Respiration = settings["resp20"] * settings["q10"]^((Temper - 20.0) / 10)
@@ -611,7 +614,10 @@ function getPhotosynthesis(
                     dynamicData[day].tempHypo, dynamicData[day].metaDepth, settings["k"])
     else
         # Temp from function
-        temp = getTemperature_Epi(day, settings, dynamicData) #Â°C
+        temp = getTemperatureProfile_depth(0, dynamicData[day].tempEpi, 
+                                            dynamicData[day].tempHypo, dynamicData[day].metaDepth,
+                                             settings["k"]) # get the same Tepi 
+        # getTemperature_Epi(day, settings, dynamicData) #Â°C
     end
     
     # temp = getTemperatureProfile_depth(distWaterSurf, tempEpi, tempHypo, metaDepth, k=5)
