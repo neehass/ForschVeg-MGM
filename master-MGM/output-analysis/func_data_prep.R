@@ -7,7 +7,7 @@ library(parallel)
 
 # Functions to prep modeloutput ---------------------------------------------------------------
 # Function to process a single combination
-process_one_chunk <- function(i){
+process_one_chunk <- function(i, chunk_split, scenario_name){
   
   mod <- chunk_split[[i]]
   nameLAK  <- mod$lake
@@ -60,7 +60,7 @@ process_modeloutput <- function(model, chunk_size, modelrun, scenario_name){
   )
   
   # length(chunks) 
-  # View(chunks)
+  #View(chunks)
   
   all_res_list <- vector("list", length = length(chunks))
   all_env_list <- vector("list", length = length(chunks))
@@ -84,10 +84,10 @@ process_modeloutput <- function(model, chunk_size, modelrun, scenario_name){
     # chunk_list <- parLapply(cl, seq_along(chunk_split), process_chunk)
     
     # lapply faste - load to each core is slower
-    system.time(
-      out <- lapply(seq_along(chunk_split), process_one_chunk)
-    )
     
+    out <- lapply(seq_along(chunk_split), process_one_chunk, chunk_split = chunk_split,
+                  scenario_name = scenario_name)
+   
     chunk_res <- data.table::rbindlist(lapply(out, `[[`, "res"))
     chunk_env <- data.table::rbindlist(lapply(out, `[[`, "env"))
     

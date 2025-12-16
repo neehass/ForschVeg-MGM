@@ -16,6 +16,7 @@ library(future.apply)
 machine <- "NoMachine" # "home" # NoMachine !! doesnt work yet !!
 n <- 300 # number of species per group (oligotroph, mesotroph, eutroph)
 # n <- 10
+chunk_size <- 1000 # split size of modeloutput for saving output 
 
 setting <- "parallel" # "HPC" # local # parallel
 modelrun <- "dep10_300spec_base_Tprofile_final" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
@@ -278,10 +279,9 @@ for (S in 1:length(scenarios)){
   print("start saving modeloutput")
   start_time_s <- Sys.time()
   
-  # all chucnks
+  all_out <- process_modeloutput(model2, chunk_size, modelrun, scenario_name)
  
-  all_out <- process_modeloutput(model2, chunk_size = 200, modelrun, scenario_name)
- 
+  # rbind all environment and results
   all_res <- data.table::rbindlist(lapply(all_out, `[[`, "res"))
   all_env <- data.table::rbindlist(lapply(all_out, `[[`, "env"))
   
