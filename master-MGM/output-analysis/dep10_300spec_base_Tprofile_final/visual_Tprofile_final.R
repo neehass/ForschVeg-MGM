@@ -121,7 +121,6 @@ sort_env_Tprof_DAY <- sort_env %>% # sort_env[sort_env$day %in% unique(sort_res$
     T_prof = list(T_profile(z = sort(seq(lakeDepth_av, 0, 0.5), decreasing = TRUE), 
                             T_epi = tempEpi_av, T_hypo = tempHypo_av,
                             z0 = metaDepth_av, k = k))) %>% 
-  
   ungroup()
 # View(sort_env_Tprof_DAY)
 length(sort_env_Tprof_DAY$month_bin %>% unique())

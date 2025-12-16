@@ -141,3 +141,16 @@ func_sortENV_plot(sort_env5, save_base_Tprofile_par, scenario) # defined in help
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
+# test Tsteady after adjusting Tfunction for surface 
+# trying to have the sam esurface temp wie in Tprofile
+
+base_Tsteady <- "output/dep10_5spec_base_Tsteady_test"
+save_base_Tsteady <- "output-analysis/dep10_5spec_base_Tsteady_test"
+
+dir.create(save_base_Tsteady)
+
+# input files
+lake_path <- "input/lakes"
+
+func_prep_data(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir)
+

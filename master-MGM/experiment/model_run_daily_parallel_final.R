@@ -19,11 +19,11 @@ n <- 300 # number of species per group (oligotroph, mesotroph, eutroph)
 chunk_size <- 1000 # split size of modeloutput for saving output 
 
 setting <- "parallel" # "HPC" # local # parallel
-modelrun <- "dep10_300spec_base_Tprofile_final" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+modelrun <- "dep300_5spec_base_Tsteady_final" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # only 4 depths possible here
 yearsoutput <- 2
-tempProfile <- "true" # "false" true
+tempProfile <- "false" # "false" true
 k <- 5
 
 # set dir ------------------------------------------------------------------------------------------
@@ -62,10 +62,10 @@ if(machine == "home") {
 # species <- func_sel_spec(n, species_path)
 
 # second run/ want to take same species as path_configFile
-path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_100spec_base_Tprofile/general.config.txt" # 100 spec
-path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_300spec_base_Tprofile/general.config.txt" # 300 spec
+# path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_100spec_base_Tprofile/general.config.txt" # 100 spec
+# path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_300spec_base_Tprofile/general.config.txt" # 300 spec
 
-path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_5spec_base_Tprofile_parallel/general.config.txt"
+path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_300spec_base_Tprofile_final/general.config.txt"
 species <- func_getSpecies_config(path_configFile)
 
 # exlclude species
@@ -79,12 +79,6 @@ species_id <- unlist(str_extract_all(species, "\\d+"))
 species_id <- as.numeric(species_id)
 if(length(species) != 300){stop(paste("stop species ERORR", length(species)))}
 NSpec <- length(species)
-
-# test species --
-# species_id <- c(16001:16300)
-# species_id <- species_id[species_id > 16299]
-# species_id <- 14121
-# species <- paste0("species_", species_id)
 
 # lakes -----------------------
 lakes <- c(1:31) # c(1:31) # c(6,1,7) 
@@ -282,10 +276,10 @@ for (S in 1:length(scenarios)){
   start_time_s <- Sys.time()
   
   all_out <- process_modeloutput(model2, chunk_size, modelrun, scenario_name)
- 
+  # View(all_out)
   # rbind all environment and results
-  all_res <- data.table::rbindlist(lapply(all_out, `[[`, "res"))
-  all_env <- data.table::rbindlist(lapply(all_out, `[[`, "env"))
+  all_res <- data.table::rbindlist(all_out[["res"]])
+  all_env <- data.table::rbindlist(all_out[["env"]])
   
   saveRDS(all_res, file = file.path(wd, "output", modelrun, "all_res.rds"))
   rm(all_res) # delete variable
