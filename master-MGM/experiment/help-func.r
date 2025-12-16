@@ -459,7 +459,7 @@ func_prepENV <- function(model, Nlak, NSpec, depths, species_id, lake_id, scenar
 T_profile <- function(z, T_epi, T_hypo, z0, k) {
   t <- T_hypo + (T_epi - T_hypo) / (1+exp((abs(z) - abs(z0)) / k))
   if (length(z) > 1) {
-    t[1] <- T_epi
+    # t[1] <- T_epi
      t[length(t)] <- T_hypo
   }
   return(t)

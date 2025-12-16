@@ -32,6 +32,7 @@ if(machine == "home") {
   
   setwd("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/experiment")
   source("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/experiment/help-func.r")
+  source("C:/Users/maiim/Documents/25-25SS/Forschungsprojekt_Vegetationskunde/scripte-data-MGM/master-MGM/output-analysis/func_data_prep.R")
   
   HypoFrac_dir <- "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
   MetaFrac_dir <- "./input/lakeFractionParameters/MetaDepth_fraction.config.txt"
@@ -45,6 +46,7 @@ if(machine == "home") {
   
   setwd("C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/experiment") # NoMachine
   source("C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/experiment/help-func.r")
+  source("C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output-analysis/func_data_prep.R")
   
   HypoFrac_dir <- "./input/lakeFractionParameters/HypoTemp_fraction.config.txt"
   MetaFrac_dir <- "./input/lakeFractionParameters/MetaDepth_fraction.config.txt"

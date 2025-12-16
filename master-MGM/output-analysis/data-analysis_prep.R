@@ -24,17 +24,20 @@ source("./output-analysis/func_data_prep.R")
 # T-Profile + base scenario, 100 species, all lakes < -10 m depth -------------------------
 # Folder output of MGM experiment and Analysis results folder
 
-base_Tprofile <- "output/dep10_lakes_300spec_base_Tprofile"
-save_base_Tprofile <- "output-analysis/dep10_lakes_300spec_base_Tprofile"
+base_Tprofile <- "output/dep10_300spec_base_Tprofile_final"
+save_base_Tprofile <- "output-analysis/dep10_300spec_base_Tprofile_final"
 
 dir.create(save_base_Tprofile)
 
 # input files
 lake_path <- "input/lakes"
 
-func_prep_data_dt_parallel(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir, ncores = NULL)
+func_prep_data(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir)
+
+# slower beacause data is loaded to each core
+#func_prep_data_dt_parallel(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir, ncores = NULL)
 # func_prep_data_fast(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir)
-# func_prep_data(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir)
+
 
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
