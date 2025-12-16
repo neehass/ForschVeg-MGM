@@ -165,8 +165,8 @@ func_prep_data <- function(output, save_figures, lake_path, lewSpec_dir){
   
   # ---------- 5. Save intermediate ----------
   message("start saving - Data loaded and lake groups added.")
-  saveRDS(res, file = file.path(save_figures, "all_res.rds"))
-  saveRDS(env, file = file.path(save_figures, "all_env.rds"))
+  saveRDS(res, file = file.path(output, "added_all_res.rds"))
+  saveRDS(env, file = file.path(output, "added_all_env.rds"))
   message("saved")
 
   # ---------------------------------------------------------------------------------------------------------
