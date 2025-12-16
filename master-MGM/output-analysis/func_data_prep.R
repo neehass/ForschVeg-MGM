@@ -5,6 +5,115 @@ library(stringr)
 library(data.table)
 library(parallel)
 
+# Functions to prep modeloutput ---------------------------------------------------------------
+# Function to process a single combination
+process_one_chunk <- function(i){
+  
+  mod <- chunk_split[[i]]
+  nameLAK  <- mod$lake
+  nameSPEC <- mod$species
+  Lid <- as.integer(unlist(stringr::str_extract_all(nameLAK, "\\d+")))
+  Sid <- as.integer(unlist(stringr::str_extract_all(nameSPEC, "\\d+")))
+  name <- as.character(paste0(Lid, "-", Sid))
+  
+  res <- mod$results
+  env <- mod$environment
+  
+ # results ----------------------------------------
+  df_depth <- vector("list", 4)
+  res_bind <- vector("list", length(chunk_split))
+  for(d in 1:4){
+    data <- data.table::as.data.table(res[[d]]$data)
+    data <- data.table::setDT(data)
+    colnames(data) <- c("biomass", "numberInd", "indWeight", "height")
+    data[,  name := name]
+    data[,  depth := res[[d]]$depth]
+    data[, speciesID := Sid]
+    data[, lakeID := Lid]
+    data[, day := 1:365]
+    data[, scenario := scenario_name]
+    df_depth[[d]] <- data
+  }
+  
+  res_dt  <- data.table::rbindlist(df_depth)
+  
+  # env -------------------------
+
+  env_dt  <- data.table::as.data.table(do.call(cbind, env))
+  colnames(env_dt) <- c("tempEpi","tempHypo","metaDepth","irradiance","waterlevel","lightAttenuation")
+  env_dt[,  name := name]
+  env_dt[, speciesID := Sid]
+  env_dt[, lakeID := Lid]
+  env_dt[, day := 1:365]
+  env_dt[, scenario := scenario_name]
+  
+  # return ------------------
+  list(res = res_dt, env = env_dt)
+}
+
+process_modeloutput <- function(model, chunk_size, modelrun, scenario_name){
+  
+  ## model2 split
+  chunks <- split(
+    model,
+    ceiling(seq_along(model) / chunk_size)
+  )
+  
+  # length(chunks) 
+  # View(chunks)
+  
+  all_res_list <- vector("list", length = length(chunks))
+  all_env_list <- vector("list", length = length(chunks))
+  # cluster settings
+  # ncores <- detectCores() - 1
+  # cl <- makeCluster(ncores)
+  # clusterEvalQ(cl, { # load librarys
+  #   library(stringr)
+  #   library(data.table)
+  # })
+  # clusterExport(cl, varlist = c("chunk_split", "scenario_name"))
+  
+  for(c in 1:length(chunks)){
+    chunk_split <- chunks[[c]]
+    # View(chunk_split)
+    
+    message("saving macrophyte data, chunk ", c, "/", length(chunks))
+    
+    # results ---------------------------
+    # Parallel processing
+    # chunk_list <- parLapply(cl, seq_along(chunk_split), process_chunk)
+    
+    # lapply faste - load to each core is slower
+    system.time(
+      out <- lapply(seq_along(chunk_split), process_one_chunk)
+    )
+    
+    chunk_res <- data.table::rbindlist(lapply(out, `[[`, "res"))
+    chunk_env <- data.table::rbindlist(lapply(out, `[[`, "env"))
+    
+    all_res_list[[c]] <- chunk_res
+    all_env_list[[c]] <- chunk_env
+    
+    # save 
+    chunk_path <- file.path("output", modelrun, "chunks")
+    if(!dir.exists(chunk_path)){dir.create(chunk_path)}
+    
+    saveRDS(chunk_res,  file = file.path(chunk_path, paste0("res_chunk_",c,".rds")))
+    rm(chunk_res)
+    gc() # only removes unreachable memory
+    
+    saveRDS(chunk_env,  file = file.path(chunk_path, paste0("env_chunk_",c,".rds")))
+    rm(chunk_env)
+    gc() # only removes unreachable memory
+
+    message("chunk saved")
+    
+  }
+  # parallel::stopCluster(cl)
+  return(list(res = all_res_list, env = all_env_list))
+}
+
+
 # ---------------------------------------------------------------------------------------------------------
 # Function to prepare data --------------------------------------------------------------------------------
 
