@@ -617,7 +617,7 @@ func_dataprep_compare_DDG <- function(res1, res2, name1 = "base_Tprofile", name2
     
     # Replace NA in all pivoted columns with 0
     replace_na(list(
-      depth_1 = 0,
+      depth_1 = 0, # -0.5
       depth_2 = 0,
       depth_3 = 0,
       depth_4 = 0

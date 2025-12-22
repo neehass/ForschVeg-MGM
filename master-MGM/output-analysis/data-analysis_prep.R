@@ -69,7 +69,6 @@ res1 <- readRDS(file.path(base_Tprofile, "added_all_res.rds"))
 res2 <- readRDS(file.path(base_Tsteady, "added_all_res.rds"))
 
 data <- func_dataprep_compare_DDG(res1, res2, name1 = "base_Tprofile", name2 = "base_Tsteady", save_comparison) # in func_data_prep.R
-View(data)
 
 # Test -------------------
 # -----------------------------------------------------------------------------------------

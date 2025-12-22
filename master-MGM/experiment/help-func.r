@@ -704,7 +704,7 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
   lakeclasses <- c("clear lakes","intermediate lakes", "turbid lakes")
   names(lakeclasses)<-c("clear","medium","turb")
   
-  A1<-lakesDDG %>%
+  A2<-lakesDDG %>%
     filter(type == paste0("model_", scenario))%>%
     left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
                  select(-LakeName)),
@@ -723,8 +723,8 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
     ylab("")+
     scale_fill_manual(values = c(rev(TrophiePalette)))+
     ylab("Potential \nspec. richness (%)")
-  # A1
-  A2<-lakesDDG %>%
+  # A2
+  A1<-lakesDDG %>%
     filter(type=="mapped")%>%
     left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
                  select(-LakeName)),
@@ -768,7 +768,7 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
     ylab("Observed \nspec. richness (%)")+
     ylim(0,40)+xlim(0,40)
   
-  p_DDG <-((A2/A1) / A3) +theme(legend.position = "bottom")+ 
+  p_DDG <-((A1/A2) / A3) +theme(legend.position = "bottom")+ 
     labs(col="Spec. group") + 
     plot_annotation(tag_levels = 'a',
                     tag_prefix = '(',

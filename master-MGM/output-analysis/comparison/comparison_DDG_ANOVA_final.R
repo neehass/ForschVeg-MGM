@@ -59,6 +59,9 @@ res_reshape_Tprofile <- res_reshape_Tprofile[, !names(res_reshape_Tprofile) %in%
 res_reshape_Tsteady <- readRDS(file.path(save_comparison, "DDG_reshape_base_Tsteady.rds")) # res_reshape_Tsteady
 res_reshape_Tsteady <- res_reshape_Tsteady[, !names(res_reshape_Tsteady) %in% "depth_NA"]
 
+oli <- res_reshape_Tprofile %>% filter(speciesGroup == "mesotrophentic") %>% filter(Biomass_cat > 0)
+View(oli)
+sum(oli$Biomass_cat)
 # ---------------------------------------------------------------------------------------
 # T profile ----------------------------
 scenario <- res_reshape_Tprofile$scenario %>% unique()
