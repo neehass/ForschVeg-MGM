@@ -472,16 +472,24 @@ T_profile_1 <- function(z, T_epi, T_hypo, z0, k) {
 }
 
 # --- env plot function -----------------------------
-func_sortENV_plot <- function(sort_env, save_figures, scenario){
+func_sortENV_plot <- function(sort_env, save_figures, scenario, k){
+  sort_env <- sort_env %>% # sort_env[sort_env$day %in% unique(sort_res$day), ] 
+      mutate(
+        T_prof = T_profile(z = sort(0, decreasing = TRUE), 
+                           T_epi = tempEpi_mean, T_hypo = tempHypo_mean,
+                           z0 = metaDepth_mean, k = k))  %>%
+      ungroup()
+  
     p_temp <- ggplot(sort_env, aes(x = day)) +
-        geom_line(aes(y = tempEpi_mean, color = AreaGroup, linetype = "TempEpi")) +
+        geom_line(aes(y = tempEpi_mean, color = AreaGroup, linetype = "input TempEpi"), linewidth = 0.5) +
                         # color = "TempEpi", linetype = lakeClass)) +
+        geom_line(aes(y = T_prof, color = AreaGroup, linetype = "model TempEpi")) +
         geom_line(aes(y = tempHypo_mean, color = AreaGroup, linetype = "TempHypo")) +
                         #color = "TempHypo", linetype = lakeClass)) +
         
         theme_bw() +
         scale_color_brewer(palette = "Set2", name = "AreaGroup") +
-        scale_linetype_manual(values = c("TempEpi" = "solid", "TempHypo" = "dashed"), name = "a)") +
+        scale_linetype_manual(values = c("model TempEpi" = "solid", "input TempEpi" = "dotted", "TempHypo" = "dashed"), name = "a)") +
         # scale_color_manual(values = c("TempEpi" = "red", "TempHypo" = "blue"), name = "a)") +
         labs(title = "a) Temperatur Data",
             y = "Temp [°C]", x = "Days",  linetype = "AreaGroup",color = "Linecolor") + 
@@ -524,11 +532,11 @@ func_sortENV_plot <- function(sort_env, save_figures, scenario){
 
     p_env <- p_env + 
         plot_annotation(title = paste("Environmental Data","\nScenario: ", scenario))
-    
+    p_env
     # save
     ggsave(file.path(save_figures, "env_day.png"), p_env, height = 10, width = 10)
     
-    return(p_env)
+    return(sort_env)
 }
 
 
@@ -684,6 +692,9 @@ func_plot_Tprofile <- function(envdata, depth, name, days, scenario, k){
 func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
   load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
   
+  #unique(lakesDDG$Group)
+  #length(unique(lakesDDG$Group))
+  
   WinnerLoserPalette<- c(carto_pal(2,"PinkYl")[c(2)],carto_pal(2,"TealGrn")[c(1)])
   TrophiePalette <- c("cornflowerblue","aquamarine4","coral4")
   
@@ -712,7 +723,7 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
     ylab("")+
     scale_fill_manual(values = c(rev(TrophiePalette)))+
     ylab("Potential \nspec. richness (%)")
-  
+  # A1
   A2<-lakesDDG %>%
     filter(type=="mapped")%>%
     left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%

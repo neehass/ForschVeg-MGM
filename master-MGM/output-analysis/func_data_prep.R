@@ -476,7 +476,7 @@ func_prep_data_dt_parallel <- function(output, save_figures, lake_path, lewSpec_
 # Depth diversity gradient of potential and observed species richness (%): ------------------
 
 func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
-  
+
   # NSPECbase
   surv_spec <- res_reshape %>%
     filter(Biomass_cat!= 0) %>%
@@ -501,6 +501,10 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
     mutate(type=paste0("model_", scenario))  
   # head(lakesDDGModel)
   
+  # drop na 
+  lakesDDGModel <- lakesDDGModel[!is.na(lakesDDGModel$Group), ]
+  # View(lakesDDGModel)
+  
   lakesDDGMapped <- MAK_mapped_grouped %>%
     mutate(depth=ifelse(Depth==-5.0, "depth_4", 
                         ifelse(Depth==-3.0, "depth_3",
@@ -514,9 +518,9 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
     relocate(LakeID, .before = Group) %>%
     rename(Lake=LakeID) %>%
     filter(Group!="none")%>%
-    mutate(Group=ifelse(Group==1, "oligotroph", 
-                        ifelse(Group==2, "mesotroph", 
-                               ifelse(Group==3, "eutroph", NA)))) %>%
+    mutate(Group=ifelse(Group==1, "oligotrophentic", 
+                        ifelse(Group==2, "mesotrophentic", 
+                               ifelse(Group==3, "eutrophentic", NA)))) %>%
     filter(Lake %in% lakesDDGModel$Lake)
   # head(lakesDDGMapped)
   
@@ -535,7 +539,7 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
     
     lakesDDGModel <- rbind(lakesDDGModel, DDG_mapped_selected)
   }
-  
+  # View(lakesDDG2)
   
   lakesDDG2 <- rbind(lakesDDGModel,lakesDDGMapped)
   
@@ -545,10 +549,7 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
     mutate(depth=ifelse(depth=="depth_1","-0.5",
                         ifelse(depth=="depth_2","-1.5",
                                ifelse(depth=="depth_3","-3.0",
-                                      ifelse(depth=="depth_4","-5.0","NA"))))) %>%
-    mutate(Group=ifelse(Group=="eutroph","eutraphentic",
-                        ifelse(Group=="mesotroph","mesotraphentic",
-                               ifelse(Group=="oligotroph","oligotraphentic","NA"))))
+                                      ifelse(depth=="depth_4","-5.0","NA"))))) 
   # head(lakesDDG)
 
   save(lakesDDG,
@@ -556,3 +557,107 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
   
   return(list(lakesDDG = lakesDDG, NSPECbase = NSPECbase, NSPECtotal = NSPECtotal, NLAKEStotal = NLAKEStotal))
 }
+
+# -----------------------------------------------------------------------------------------------------
+# data prep for comparison
+func_dataprep_comparison <- function(res1, res2, name1 = "_baseTP", name2 = "_baseTS", save_comparison){
+  # prepare base T_profile data
+  res1_prep <- res1 %>%
+    mutate(scenario = "base_Tprofile") %>%
+    group_by(lakeID, speciesID, depth, speciesGroup, lakeClass) %>%
+    summarise(
+      Biomass_cat = if_else(mean(biomass, na.rm = TRUE) > 0, 1, 0, missing = 0))
+  
+  saveRDS(res1_prep, file = file.path(save_comparison, paste0("res", name1, "_prep.rds")))
+  
+  # prepare T_steady data
+  res2_prep <- res2 %>%
+    mutate(scenario = "base_Tsteady") %>%
+    group_by(lakeID, speciesID, depth, speciesGroup, lakeClass) %>%
+    summarise(
+      Biomass_cat = if_else(mean(biomass, na.rm = TRUE) > 0, 1, 0, missing = 0))
+  
+  saveRDS(res2_prep, file = file.path(save_comparison, paste0("res", name2, "_prep.rds")))
+  
+  
+  # combine both datasets
+  res_combined <- res1_prep %>%
+    left_join(res2_prep, by = c("lakeID", "depth", "speciesID", "speciesGroup", "lakeClass"), 
+              suffix = c(name1, name2)) %>%
+    mutate(
+      Biomass_cat_baseTP = replace_na(Biomass_cat_baseTP, 0),
+      Biomass_cat_baseTS   = replace_na(Biomass_cat_baseTS, 0)
+    ) %>%
+    rename(
+      baseTP = Biomass_cat_baseTP,
+      baseTS = Biomass_cat_baseTS
+    )
+  
+  print(any(res_combined$baseTP != res_combined$baseTS)) # TRUE  -> mindestens ein Wert ist unterschiedlich
+  saveRDS(res_combined, file = file.path(save_comparison, "res_combined_base.rds"))
+  
+  return(list(res1_prep = res1_prep, res2_prep = res2_prep, res_combined = res_combined))
+}
+
+# ----------------------------------------------------------
+# DDG DATA PREP BIOMASS Comparision between T_profile vs without T_profile ------------------
+# Depth diversity gradient of potential and observed species richness (%):
+
+func_dataprep_compare_DDG <- function(res1, res2, name1 = "base_Tprofile", name2 = "base_Tsteady", save_comparison){
+  # prepare base T_profile data
+  res1_prep <- res1 %>%
+    group_by(lakeClass, speciesGroup, depth, lakeID, speciesID) %>%
+    summarise(biomass = sum(biomass)) %>%  ungroup() %>%
+    mutate(biomass_orig = biomass) %>%
+    mutate(depth_label = paste0("depth_", dense_rank(depth))) %>%
+    pivot_wider(
+      names_from = depth_label,
+      values_from = biomass
+    ) %>%  relocate(biomass_orig) %>%
+    
+    # Replace NA in all pivoted columns with 0
+    replace_na(list(
+      depth_1 = 0,
+      depth_2 = 0,
+      depth_3 = 0,
+      depth_4 = 0
+    )) %>% 
+    mutate(Biomass_cat = if_else(biomass_orig > 0, 1, 0, missing = 0))# %>% filter(biomass_orig!= 0)
+  
+  res1_prep$Group <- as.factor(res1_prep$speciesGroup)
+  res1_prep$Species <- res1_prep$speciesID
+  res1_prep$Lake <- paste0("lake_", res1_prep$lakeID)
+  res1_prep$scenario <- name1
+  
+  saveRDS(res1_prep, file = file.path(save_comparison, paste0("DDG_reshape_",name1,".rds")))
+  
+  # prepare T_steady data
+  res2_prep <- res2 %>%
+    group_by(lakeClass, speciesGroup, depth, lakeID, speciesID) %>%
+    summarise(biomass = sum(biomass)) %>%  ungroup() %>%
+    mutate(biomass_orig = biomass) %>%
+    mutate(depth_label = paste0("depth_", dense_rank(depth))) %>%
+    pivot_wider(
+      names_from = depth_label,
+      values_from = biomass
+    ) %>%  relocate(biomass_orig) %>%
+    
+    # Replace NA in all pivoted columns with 0
+    replace_na(list(
+      depth_1 = 0,
+      depth_2 = 0,
+      depth_3 = 0,
+      depth_4 = 0
+    )) %>% 
+    mutate(Biomass_cat = if_else(biomass_orig > 0, 1, 0, missing = 0))# %>% filter(biomass_orig!= 0)
+  
+  res2_prep$Group <- as.factor(res2_prep$speciesGroup)
+  res2_prep$Species <- res2_prep$speciesID
+  res2_prep$Lake <- paste0("lake_", res2_prep$lakeID)
+  res2_prep$scenario <- name2
+  
+  saveRDS(res2_prep, file = file.path(save_comparison, paste0("DDG_reshape_",name2,".rds")))
+  
+  return(list(res1_prep= res1_prep, res2_prep = res2_prep))
+}
+

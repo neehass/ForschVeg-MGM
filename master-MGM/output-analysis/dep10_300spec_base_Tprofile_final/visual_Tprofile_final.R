@@ -64,6 +64,13 @@ load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
 # head(data_lakes_env_class) # Turbidity classes 
 
 # ---------------------------------------------------------------------------------------------------------
+# ---- Environmental variables ----------------------------------------------------------------------
+# ---- plot ------------------
+scenario <- "base T-Profile"
+sort_env_Tprof <- func_sortENV_plot(sort_env, save_figures, scenario, k) # defined in help-func.R
+# lightAttenuation_mean missing 
+
+# ---- Results -------------------------------------------
 # ---- plot ------------------------------------------------------------------------------------------
 sort_res_mean <- sort_res %>% group_by(speciesGroup, lakeClass, AreaGroup, day) %>%
   summarise(biomass_mean = mean(biomass_mean, rm.na = TRUE)) %>% ungroup()
@@ -99,11 +106,6 @@ ggsave(file.path(save_figures, "BOX_biomass_day.png"), p_box, height = 10, width
 # ---------------------------------------------------------------------------------------------------------
 
 # ---- Environmental variables ----------------------------------------------------------------------
-# ---- plot ------------------
-scenario <- "base_Tprofile"
-func_sortENV_plot(sort_env, save_figures, scenario) # defined in help-func.R
-# lightAttenuation_mean missing 
-
 # --- TProfile Development over Days ------
 # mean Depths per lakeClass and lakeGroup_Area
 # head(sort_env)
@@ -132,10 +134,8 @@ sort_env_Tprof_DAY_long <- sort_env_Tprof_DAY %>%
   unnest(c(T_prof, depth)) 
 # View(sort_env_Tprof_DAY_long)
 
+# plotting 
 all_days <- sort(unique(sort_env_Tprof_DAY_long$month_bin))
-show_days <- as.character(c(head(all_days, 3), all_days[q25], 
-                            all_days[mid], all_days[q75], tail(all_days, 3)))
-
 lake_classes <- unique(sort_env_Tprof_DAY_long$lakeClass)
 max_rows <- sort_env_Tprof_DAY_long %>%
   group_by(lakeClass) %>%
@@ -161,6 +161,7 @@ for(i in 1:3){
          p_Tprofile_DAY[[i]], height = 4, width = 2*h)
   
 }
+
 p_Tprofile_DAY_all <- (p_Tprofile_DAY[[1]] / 
                          p_Tprofile_DAY[[2]] / p_Tprofile_DAY[[3]]) +
   plot_layout(guides = "collect" ) &
@@ -183,7 +184,6 @@ p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth,
        x =  "mean Temperature [°C]",
        y = "Depth [m]",
        color = "approx. Months")  +
-  #scale_color_discrete(breaks = show_days) +   # << show only selected days
   theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 1))
 
 p_Tprofile_DAY
@@ -270,10 +270,3 @@ p_combo <-  p_macro + p_Tprofile + plot_layout(guides = "collect") +
   theme(legend.position = "bottom")
 p_combo
 ggsave(file.path(save_figures, "Tprof_biomass_day.png"), p_combo, height = 10, width = 12)
-
-# --- plot nutrients / lake parameters per day ---
-# .....
-# -----------
-# ----------------------------------------------------------------------------------------------
-# Gradient potential species richness vs observed species richness  --------------------------------
-# in data&visual_specPot-Observed. R

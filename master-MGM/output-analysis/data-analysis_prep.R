@@ -37,8 +37,6 @@ func_prep_data(output = base_Tprofile, save_figures = save_base_Tprofile, lake_p
 # slower beacause data is loaded to each core
 #func_prep_data_dt_parallel(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir, ncores = NULL)
 # func_prep_data_fast(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir)
-
-
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
@@ -46,22 +44,32 @@ func_prep_data(output = base_Tprofile, save_figures = save_base_Tprofile, lake_p
 # T-steady + base scenario, 100 species, all lakes < -10 m depth -------------------------
 # Folder output of MGM experiment and Analysis results folder
 
-base_Tsteady <- "output/dep10_lakes_300spec_base_Tsteady"
-save_base_Tsteady <- "output-analysis/dep10_lakes_300spec_base_Tsteady"
+base_Tsteady <- "output/dep300_5spec_base_Tsteady_final"
+save_base_Tsteady <- "output-analysis/dep300_5spec_base_Tsteady_final"
 
 dir.create(save_base_Tsteady)
 
 # input files
 lake_path <- "input/lakes"
 
-func_prep_data_dt_parallel(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir, ncores = NULL)
+func_prep_data(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir)
+func_dataprep_compare_DDG(res1, res2, name1 = "base_Tprofile", name2 = "base_Tsteady", save_comparison)
+
+# func_prep_data_dt_parallel(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir, ncores = NULL)
 # func_prep_data_fast(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir)
-# func_prep_data(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir)
-# ---------------------------------------------------------------------------------------------------------
-# ---------------------------------------------------------------------------------------------------------
-# ---------------------------------------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# COMPARISON 
+save_comparison <- "output-analysis/comparison/final_TprofileVSTsteady"
+dir.create(save_comparison)
 
+res1 <- readRDS(file.path(base_Tprofile, "added_all_res.rds")) 
+res2 <- readRDS(file.path(base_Tsteady, "added_all_res.rds"))
+
+data <- func_dataprep_compare_DDG(res1, res2, name1 = "base_Tprofile", name2 = "base_Tsteady", save_comparison) # in func_data_prep.R
+View(data)
 
 # Test -------------------
 # -----------------------------------------------------------------------------------------
