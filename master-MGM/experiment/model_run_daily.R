@@ -16,11 +16,11 @@ setwd(dir)
 ## General configurations ----
 # ---------------------------------------------------------------------------------------------------
 machine <- "NoMachine" # "home" # NoMachine !! doesnt work yet !!
-n <- 5 # number of species per group (oligotroph, mesotroph, eutroph)
+n <- 300 # number of species per group (oligotroph, mesotroph, eutroph)
 # n <- 10
 
 setting <- "local" # "HPC" # HPC, # parallel
-modelrun <- "dep10_lakes_5spec_base_Tprofile" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+modelrun <- "test_oli_plus5_notparallel" #"dep10_lakes_5spec_base_Tprofile" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # -3.0, -5.0, # only 4 depths possible here
 yearsoutput <- 2
@@ -92,10 +92,11 @@ if(length(species) != 300){stop(paste("stop species ERORR", length(species)))}
 # ./input/species/species_16299.config.txt
 # ./input/species/species_16300.config.txt
 
-# species_id <- c(16001:16300)
+# test oligo 
+species_id <- c(14001:14300)
 # species_id <- species_id[species_id > 16299]
 # species_id <- 14121
-# species <- paste0("species_", species_id)
+species <- paste0("species_", species_id)
 
 # lakes -----------------------
 lakes <- c(1:31) # c(6,1,7) 
@@ -168,6 +169,7 @@ library(here)
 #Scenario
 scenarios <- data.table(
   #para=c("maxTemp","maxNutrient", "maxKd"),
+  test_oli= c(5.0,0.0,0.0),
   base=c(0.0, 0.0, 0.0) #,  
   #BLIZ_2.6_Biodiv=c(0.5, -0.25, -0.25),
   #BLIZ_2.6_Mit=c(0.5, 0.25, 0.25),
@@ -285,6 +287,7 @@ for (S in 1:length(scenarios)){
   } else if (setting == "local") {
      model2 <- julia_eval("CHARISMA_biomass_N_weight_hight_env()")
   }
+  saveRDS(model2,  file = file.path(wd, "output", modelrun, "model.rds"))
   
   comb_l_s <- seq(1, length(model2), by = 2)
 
@@ -328,8 +331,9 @@ for (S in 1:length(scenarios)){
 
   # unique(all_df$speciesID)
   # View(all_df)
-  write.table(all_df, file = paste0(wd,"/output/",modelrun,"/all_res_biomass_number_weight_height_daily.txt"), 
-              col.names = T, row.names = F) 
+  saveRDS(all_df, file = file.path(wd, "output", modelrun, paste0(scenario_name, "_all_res.rds")))
+  rm(all_df) # delete variable
+  
   print("macrophyt data saved")
   # save environment data ------------------------------------------------------
   # tempEpi, tempHypo, metaDepth, irradiance, waterlevel, lightAttenuation
@@ -373,8 +377,8 @@ for (S in 1:length(scenarios)){
 
   } # svae env
   # View(all_env)
-  write.table(all_env, file = paste0(wd,"/output/",modelrun,"/env.txt"), 
-              col.names = T, row.names = F) 
+  saveRDS(all_env, file = file.path(wd, "output", modelrun, paste0(scenario_name, "_all_env.rds")))
+  rm(all_env) # delete variable
   print("env data saved")
   
   end_time_dat <- Sys.time()

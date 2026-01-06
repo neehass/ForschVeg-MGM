@@ -742,7 +742,7 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
     #ggtitle("Realised species richness (mapped)")+
     scale_fill_manual(values = c(rev(TrophiePalette)))+
     ylab("Observed \nspec. richness (%)")
-  
+  # A1
   A3<-lakesDDG %>%
     #filter(type=="mapped")%>%
     left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
@@ -756,10 +756,13 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
     #geom_smooth(model=lm, method=lm, se=F, formula = my.formula,
     #            #aes(group=factor(depth), col=factor(depth))
     #            )+
-    stat_correlation(vstep = 0.1,label.x = "centre")+
-    #stat_poly_eq(formula = my.formula,
+    #stat_correlation(vstep = 0.1,label.x = "centre", parse = TRUE)+
+    # stat_poly_eq(formula = my.formula,
     #              eq.with.lhs = "italic(hat(y))~`=`~",
     #              aes(label = paste(..rr.label.., sep = "~~~")))+
+    stat_cor(
+      aes(label = after_stat(paste0("italic(R)==", round(r, 2)))),
+      parse = TRUE) +
     scale_colour_manual(values = c(rev(TrophiePalette)))+
     #ggtitle("comparison")+ 
     geom_abline(intercept = 0, slope = 1)+
@@ -767,7 +770,7 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
     xlab("Potential spec. richness (%)")+
     ylab("Observed \nspec. richness (%)")+
     ylim(0,40)+xlim(0,40)
-  
+  # A3
   p_DDG <-((A1/A2) / A3) +theme(legend.position = "bottom")+ 
     labs(col="Spec. group") + 
     plot_annotation(tag_levels = 'a',

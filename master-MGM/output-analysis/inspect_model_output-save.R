@@ -167,3 +167,87 @@ p_box <- ggplot(sort_res5, aes(x = factor(depth, levels = rev(sort(unique(depth)
   scale_fill_brewer(palette = "Accent") 
 p_box
 ggsave(file.path(save_figures, "BOX_biomass_day.png"), p_box, height = 20, width = 15)
+
+#################################################################
+# inspect final restults --------------------------------------------
+
+save_base_Tprofile <- "output-analysis/dep10_300spec_base_Tprofile_final"
+
+sort_res <- readRDS(file.path(save_base_Tprofile, "sortRES.rds"))
+sort_res <- as.data.table(sort_res)
+sort_env <- readRDS(file.path(save_base_Tprofile, "sortENV.rds"))
+sort_env <- as.data.table(sort_env)
+View(sort_res)
+
+# print nrow where biomass > 0
+specgroup <- unique(sort_res$speciesGroup)
+for(i in 1:3){
+  oli <- sort_res %>% filter(speciesGroup == specgroup[i])
+  message(specgroup[i], ":",nrow(oli))
+}
+
+#
+save_comparison <- "output-analysis/comparison/final_TprofileVSTsteady_sortRES"
+dir.create(save_comparison)
+
+base_Tprofile <- "output/dep10_300spec_base_Tprofile_final"
+base_Tsteady <- "output/dep300_5spec_base_Tsteady_final"
+
+res1 <- readRDS(file.path(base_Tprofile, "added_all_res.rds")) 
+res2 <- readRDS(file.path(base_Tsteady, "added_all_res.rds"))
+View(res1)
+
+data <- func_dataprep_compare_DDG(res1, res2, name1 = "base_Tprofile", name2 = "base_Tsteady", save_comparison) # in func_data_prep.R
+
+View(data$res1_prep) # depth bennenung ist umgekehrt 
+
+d <- c(-0.5, -1.5, -3, -5)
+dense_rank(d)
+# prepare base T_profile data
+res1_prep <- res1 %>%
+  group_by(lakeClass, speciesGroup, depth, lakeID, speciesID) %>%
+  summarise(biomass = sum(biomass)) %>%  ungroup() %>%
+  mutate(biomass_orig = biomass) %>%
+  mutate(depth_label = paste0("depth_", dense_rank(abs(depth)))) %>% # abs hier wichtig
+  pivot_wider(
+    names_from = depth_label,
+    values_from = biomass
+  ) %>%  relocate(biomass_orig) %>%
+  
+  # Replace NA in all pivoted columns with 0
+  replace_na(list(
+    depth_1 = 0, # -0.5
+    depth_2 = 0,
+    depth_3 = 0,
+    depth_4 = 0
+  )) %>% 
+  mutate(Biomass_cat = if_else(biomass_orig > 0, 1, 0, missing = 0))# %>% filter(biomass_orig!= 0)
+
+
+oli <- res1_prep %>% filter(speciesGroup == "oligotrophentic")  %>% filter(Biomass_cat > 0)
+sum(oli$Biomass_cat)
+View(res1_prep)
+
+
+# --------------------
+base_Tprofile <- "output/dep10_300spec_base_Tprofile_final"
+res <- readRDS(file.path(base_Tprofile, "all_res.rds"))
+res <- as.data.table(res)
+res1 <- readRDS(file.path(base_Tprofile, "added_all_res.rds"))
+
+colnames(res1)
+
+res_oli <- res %>% filter(speciesID > 14000 & speciesID < 14301) %>% filter(biomass > 0) 
+nrow(res_oli)
+
+res_oli <- res1 %>% filter(speciesID > 14000 & speciesID < 14301) %>% filter(biomass > 0) 
+nrow(res_oli)
+
+res_oli <- res1 %>% filter(speciesGroup == "oligotrophentic") %>% filter(biomass > 0) 
+nrow(res_oli)
+
+res_oli <- res1 %>% filter(speciesGroup == "oligotrophentic") %>% filter(biomass > 0) %>%
+  group_by(lakeClass, speciesGroup, AreaGroup, depth, lakeID, speciesID) %>%
+  summarise(
+    biomass_mean = mean(biomass)) %>% ungroup()
+nrow(res_oli)
