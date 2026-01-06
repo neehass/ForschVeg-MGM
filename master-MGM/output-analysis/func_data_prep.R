@@ -609,11 +609,11 @@ func_dataprep_compare_DDG <- function(res1, res2, name1 = "base_Tprofile", name2
     group_by(lakeClass, speciesGroup, depth, lakeID, speciesID) %>%
     summarise(biomass = sum(biomass)) %>%  ungroup() %>%
     mutate(biomass_orig = biomass) %>%
-    mutate(depth_label = paste0("depth_", dense_rank(depth))) %>%
+    mutate(depth_label = paste0("depth_", dense_rank(abs(depth)))) %>% # abs wichitg hier sonst werden depths falsch herum zugeordnet!
     pivot_wider(
       names_from = depth_label,
       values_from = biomass
-    ) %>%  relocate(biomass_orig) %>%
+    ) %>% relocate(biomass_orig) %>%
     
     # Replace NA in all pivoted columns with 0
     replace_na(list(
@@ -636,7 +636,7 @@ func_dataprep_compare_DDG <- function(res1, res2, name1 = "base_Tprofile", name2
     group_by(lakeClass, speciesGroup, depth, lakeID, speciesID) %>%
     summarise(biomass = sum(biomass)) %>%  ungroup() %>%
     mutate(biomass_orig = biomass) %>%
-    mutate(depth_label = paste0("depth_", dense_rank(depth))) %>%
+    mutate(depth_label = paste0("depth_", dense_rank(abs(depth)))) %>% # abs wichitg, sonst depth falschherum 
     pivot_wider(
       names_from = depth_label,
       values_from = biomass
@@ -644,7 +644,7 @@ func_dataprep_compare_DDG <- function(res1, res2, name1 = "base_Tprofile", name2
     
     # Replace NA in all pivoted columns with 0
     replace_na(list(
-      depth_1 = 0,
+      depth_1 = 0, # -0.5
       depth_2 = 0,
       depth_3 = 0,
       depth_4 = 0
