@@ -2,7 +2,7 @@
 # Depth diversity gradient of potential and observed species richness
 # as in analysis.Rmd
 
-# load data from data_prep_comparison.R
+# load data from data-analysis-prep.R
 
 # packages & functions
 library(dplyr)

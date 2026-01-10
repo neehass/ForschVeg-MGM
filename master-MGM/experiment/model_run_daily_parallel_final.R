@@ -19,7 +19,7 @@ n <- 300 # number of species per group (oligotroph, mesotroph, eutroph)
 chunk_size <- 1000 # split size of modeloutput for saving output 
 
 setting <- "parallel" # "HPC" # local # parallel
-modelrun <- "test_oli_plus5" # "dep300_5spec_base_Tsteady_final" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+modelrun <- "dep10_300spec_base_Tprofile_final2.0" # "dep300_5spec_base_Tsteady_final" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 10 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # only 4 depths possible here
 yearsoutput <- 2
@@ -59,7 +59,7 @@ if(machine == "home") {
 
 # species selection -----------------------
 # first run, select species randomly
-# species <- func_sel_spec(n, species_path)
+species <- func_sel_spec(n, species_path)
 
 # second run/ want to take same species as path_configFile
 # path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_100spec_base_Tprofile/general.config.txt" # 100 spec
@@ -81,9 +81,9 @@ NSpec <- length(species)
 if(length(species) != 300){stop(paste("stop species ERORR", NSpec))}
 
 # test oligo 
-species_id <- c(14001:14300)
-species <- paste0("species_", species_id)
-NSpec <- length(species)
+# species_id <- c(14001:14300)
+# species <- paste0("species_", species_id)
+# NSpec <- length(species)
 
 # lakes -----------------------
 lakes <- c(1:31) # c(1:31) # c(6,1,7) 
@@ -150,7 +150,7 @@ library(here)
 #Scenario
 scenarios <- data.table(
   #para=c("maxTemp","maxNutrient", "maxKd"),
-  test_oli= c(5.0,0.0,0.0),
+  #test_oli= c(5.0,0.0,0.0),
   base=c(0.0, 0.0, 0.0) #,  
   #BLIZ_2.6_Biodiv=c(0.5, -0.25, -0.25),
   #BLIZ_2.6_Mit=c(0.5, 0.25, 0.25),

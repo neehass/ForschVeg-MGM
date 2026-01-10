@@ -24,8 +24,8 @@ source("./output-analysis/func_data_prep.R")
 # T-Profile + base scenario, 100 species, all lakes < -10 m depth -------------------------
 # Folder output of MGM experiment and Analysis results folder
 
-base_Tprofile <- "output/dep10_300spec_base_Tprofile_final"
-save_base_Tprofile <- "output-analysis/dep10_300spec_base_Tprofile_final"
+base_Tprofile <- "output/dep10_300spec_base_Tprofile_final2.0"
+save_base_Tprofile <- "output-analysis/dep10_300spec_base_Tprofile_final2.0"
 
 dir.create(save_base_Tprofile)
 
@@ -70,6 +70,34 @@ res2 <- readRDS(file.path(base_Tsteady, "added_all_res.rds"))
 data <- func_dataprep_compare_DDG(res1, res2, name1 = "base_Tprofile", name2 = "base_Tsteady", save_comparison) # in func_data_prep.R
 
 # Test -------------------
+# -----------------------------------------------------------------------------------------
+# test oligotroph species T-Profile + 5 scenario, 100 species, all lakes < -10 m depth -------------------------
+# Folder output of MGM experiment and Analysis results folder
+base_Tprofile <- "output/test_oli_plus5"
+save_base_Tprofile <- "output-analysis/test_oli_plus5"
+
+dir.create(save_base_Tprofile)
+
+# input files
+lake_path <- "input/lakes"
+
+func_prep_data(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir)
+
+# Test -------------------
+# -----------------------------------------------------------------------------------------
+# test oligotroph species T-Profile + 5 scenario, 100 species, all lakes < -10 m depth -------------------------
+# Folder output of MGM experiment and Analysis results folder
+base_Tprofile <- "output/test_oli_plus5_notparallel"
+save_base_Tprofile <- "output-analysis/test_oli_plus5_notparallel"
+
+dir.create(save_base_Tprofile)
+
+# input files
+lake_path <- "input/lakes"
+
+func_prep_data(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir)
+
+# TEst -----------------------------
 # -----------------------------------------------------------------------------------------
 # T-Profile + base scenario, 100 species, all lakes < -10 m depth -------------------------
 # Folder output of MGM experiment and Analysis results folder
