@@ -497,16 +497,13 @@ function getRespiration(day, height1, LevelOfGrid,
     distPlantTopFromSurf = waterdepth - height1
     
     if tempProfile == true
-        # Temp at distWaterSurf (at LevelOfGrid)
-        tempEpi = dynamicData[day].tempEpi
-        tempHypo = dynamicData[day].tempHypo
-        metaDepth = dynamicData[day].metaDepth
-        # Temp from profile
+  
+        # if TempProfile true
         Temper = getTemperatureProfile_depth(distPlantTopFromSurf, dynamicData[day].tempEpi, 
                                             dynamicData[day].tempHypo, dynamicData[day].metaDepth,
                                              settings["k"])
     else
-        # Temp from function
+        # if TempProfile false, steady Temperature
         Temper = getTemperatureProfile_depth(0, dynamicData[day].tempEpi, 
                                             dynamicData[day].tempHypo, dynamicData[day].metaDepth,
                                              settings["k"]) # get the same Tepi 
@@ -605,15 +602,12 @@ function getPhotosynthesis(
     #lightFactor_new = exp(-((lightPlantHour-mPhotoLight)^ 2)/(2*bPhotoLight^2))
 
     if tempProfile == true
+        # if TempProfile true
         # Temp at distWaterSurf (at LevelOfGrid)
-        tempEpi = dynamicData[day].tempEpi
-        tempHypo = dynamicData[day].tempHypo
-        metaDepth = dynamicData[day].metaDepth
-        # Temp from profile
         temp = getTemperatureProfile_depth(distWaterSurf, dynamicData[day].tempEpi, 
                     dynamicData[day].tempHypo, dynamicData[day].metaDepth, settings["k"])
     else
-        # Temp from function
+        # if TempProfile false, steady Temperature
         temp = getTemperatureProfile_depth(0, dynamicData[day].tempEpi, 
                                             dynamicData[day].tempHypo, dynamicData[day].metaDepth,
                                              settings["k"]) # get the same Tepi 

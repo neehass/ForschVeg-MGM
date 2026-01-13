@@ -220,7 +220,8 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                     superIndSeeds[d-1, 4, y] = WaterDepth
                 end
 
-                growthSeeds[d, 2, y] = getRespiration(d,superIndSeeds[d-1, 4, y], LevelOfGrid, settings, dynamicData,tempProfile) #[g / g*d]
+                growthSeeds[d, 2, y] = getRespiration(d, superIndSeeds[d-1, 4, y], # height1
+                 LevelOfGrid, settings, dynamicData,tempProfile) #[g / g*d]
 
                 growthSeeds[d, 1, y] = getPhotosynthesisPLANTDay( #[g / g*d]
                     d,
@@ -825,7 +826,6 @@ function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int1
         for d = 1:settings["yearlength"]
             dynamicData[d] = DayData()
             push!(tempEpi, getTemperature_Epi(d,settings,dynamicData))
-            # push!(tempHypo, getTemperature_Hypo_mean(d,settings,dynamicData))
             push!(tempHypo, getTemperature_Hypo_area(d,settings,dynamicData,HypoFrac_dir))
             push!(irradiance, getSurfaceIrradianceDay(d,settings,dynamicData))
             push!(waterlevel, getWaterlevel(d,settings,dynamicData))
@@ -836,10 +836,9 @@ function simulateEnvironment(settings::Dict{String, Any}, dynamicData::Dict{Int1
     # seperate loop for metalimnion depth
         for d = 1:settings["yearlength"]
             # dynamicData[d] = DayData() <-- sonst wird überschreiben!
-            push!(metaDepth, getMetalimnion_Depth_area(d, tempEpi, tempHypo, settings, dynamicData, MetaFrac_dir))
-            #push!(metaDepth, getMetalimnion_Depth_mean(d, tempEpi, tempHypo, settings, dynamicData)) 
+            push!(metaDepth, getMetalimnion_Depth_area(d, tempEpi, tempHypo, settings, dynamicData, MetaFrac_dir)) 
             
-           # Tempertureprofile will be simulated in depths needed (in simulate function)
+           # Tempertureprofile will be simulated in Photosynthesis & Respiration function, if Temp is needed for specific depths (in simulate function)
         end
 
     return (tempEpi, tempHypo, metaDepth, irradiance, waterlevel, lightAttenuation)
