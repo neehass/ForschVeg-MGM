@@ -496,9 +496,7 @@ function getRespiration(day, height1, LevelOfGrid,
 
     # get water depth at LevelOfGrid
     waterdepth = getWaterDepth(day, LevelOfGrid, settings, dynamicData)
-    distPlantTopFromSurf = waterdepth - height1
-
-    waterdepth = getWaterDepth(day, LevelOfGrid, settings, dynamicData)
+    # distPlantTopFromSurf = waterdepth - height1 # old version
 
     Respiration = 0
     for i = 1:floor(daylength) #Rundet ab # Loop über alle Stunden
