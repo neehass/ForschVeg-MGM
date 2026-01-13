@@ -485,7 +485,9 @@ Source: van Nes et al. (2003)
 Arguments from settings: resp20, q10
 
 Result: (Respiration) #[g g^-1 d^-1]
+
 """
+
 function getRespiration(day, height1, LevelOfGrid, 
                         settings::Dict{String, Any}, 
                         dynamicData::Dict{Int16, DayData}, tempProfile::Bool) #DAILY VALUE
@@ -495,22 +497,35 @@ function getRespiration(day, height1, LevelOfGrid,
     # get water depth at LevelOfGrid
     waterdepth = getWaterDepth(day, LevelOfGrid, settings, dynamicData)
     distPlantTopFromSurf = waterdepth - height1
-    
-    if tempProfile == true
-  
-        # if TempProfile true
-        Temper = getTemperatureProfile_depth(distPlantTopFromSurf, dynamicData[day].tempEpi, 
-                                            dynamicData[day].tempHypo, dynamicData[day].metaDepth,
-                                             settings["k"])
-    else
-        # if TempProfile false, steady Temperature
-        Temper = getTemperatureProfile_depth(0, dynamicData[day].tempEpi, 
-                                            dynamicData[day].tempHypo, dynamicData[day].metaDepth,
-                                             settings["k"]) # get the same Tepi 
-        # getTemperature_Epi(day, settings, dynamicData) #Â°C
+
+    waterdepth = getWaterDepth(day, LevelOfGrid, settings, dynamicData)
+
+    Respiration = 0
+    for i = 1:floor(daylength) #Rundet ab # Loop über alle Stunden
+        i = convert(Int64, i)
+        for j in 0:0.1:1
+           
+            distFromPlantTop = height1 * j # wie in getPhotosynthesisPLANTDay und getPhotosynthesis
+            distWaterSurf = waterdepth - height1 + distFromPlantTop
+
+            if tempProfile == true
+        
+                # if TempProfile true
+                Temper = getTemperatureProfile_depth(distWaterSurf, dynamicData[day].tempEpi, 
+                                                    dynamicData[day].tempHypo, dynamicData[day].metaDepth,
+                                                    settings["k"])
+            else
+                # if TempProfile false, steady Temperature
+                Temper = getTemperatureProfile_depth(0, dynamicData[day].tempEpi, 
+                                                    dynamicData[day].tempHypo, dynamicData[day].metaDepth,
+                                                    settings["k"]) # get the same Tepi 
+                # getTemperature_Epi(day, settings, dynamicData) #Â°C
+            end
+
+            Respiration = Respiration + (settings["resp20"] * settings["q10"]^((Temper - 20.0) / 10)) * 1/11 #because it is calculated in 11 steps, to calc the mean
+        end 
     end
 
-    Respiration = settings["resp20"] * settings["q10"]^((Temper - 20.0) / 10)
     return (Respiration) #[g g^-1 d^-1]
 end
 
@@ -682,7 +697,7 @@ function getPhotosynthesisPLANTDay(
                 PS =
                     PS + getPhotosynthesis(
                             day,i,
-                            j* height1,
+                            j* height1, # distFromPlantTop
                             Biomass1,Biomass2,
                             height1,height2,
                             LevelOfGrid,settings,dynamicData, tempProfile,

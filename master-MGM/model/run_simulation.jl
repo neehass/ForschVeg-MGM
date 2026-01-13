@@ -221,7 +221,7 @@ function simulate(LevelOfGrid, settings::Dict{String, Any}, dynamicData::Dict{In
                 end
 
                 growthSeeds[d, 2, y] = getRespiration(d, superIndSeeds[d-1, 4, y], # height1
-                 LevelOfGrid, settings, dynamicData,tempProfile) #[g / g*d]
+                 LevelOfGrid, settings, dynamicData, tempProfile) #[g / g*d]
 
                 growthSeeds[d, 1, y] = getPhotosynthesisPLANTDay( #[g / g*d]
                     d,
