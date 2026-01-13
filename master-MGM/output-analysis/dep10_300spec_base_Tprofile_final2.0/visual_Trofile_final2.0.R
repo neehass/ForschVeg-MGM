@@ -66,7 +66,7 @@ load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
 # ---------------------------------------------------------------------------------------------------------
 # ---- Environmental variables ----------------------------------------------------------------------
 # ---- plot ------------------
-scenario <- "+5 sceanrio T-Profile"
+scenario <- "base sceanrio T-Profile"
 sort_env_Tprof <- func_sortENV_plot(sort_env, save_figures, scenario, k) # defined in help-func.R
 # lightAttenuation_mean missing 
 

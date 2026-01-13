@@ -49,6 +49,7 @@ res <- readRDS(file.path(out_Tprofile, "added_all_res.rds"))
 gen.conf <- readLines(file.path(out_Tprofile,"general.config.txt"))
 k <- as.numeric(strsplit(gen.conf[8], " ")[[1]][2])
 
+unique(res$scenario)
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 # DATA PREP Comparision between T_profile vs without T_profile ------------------

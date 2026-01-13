@@ -44,8 +44,8 @@ func_prep_data(output = base_Tprofile, save_figures = save_base_Tprofile, lake_p
 # T-steady + base scenario, 100 species, all lakes < -10 m depth -------------------------
 # Folder output of MGM experiment and Analysis results folder
 
-base_Tsteady <- "output/dep300_5spec_base_Tsteady_final"
-save_base_Tsteady <- "output-analysis/dep300_5spec_base_Tsteady_final"
+base_Tsteady <- "output/dep10_300spec_base_Tsteady_final2.0"
+save_base_Tsteady <- "output-analysis/dep10_300spec_base_Tsteady_final2.0"
 
 dir.create(save_base_Tsteady)
 

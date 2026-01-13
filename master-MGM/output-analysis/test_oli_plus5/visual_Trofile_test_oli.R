@@ -41,6 +41,7 @@ out_ana_path <- "output-analysis/test_oli_plus5"
 save_figures <- "output-analysis/test_oli_plus5/figures"
 
 dir.create(save_figures)
+name <- "test_oli_plus5"
 
 # input files
 lake_path <- "input/lakes"
@@ -68,6 +69,8 @@ load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
 # ---- Environmental variables ----------------------------------------------------------------------
 # ---- plot ------------------
 scenario <- "+5 sceanrio T-Profile"
+sort_env$tempEpi_mean <- sort_env$tempEpi_mean + 5
+sort_env$tempHypo_mean <- sort_env$tempHypo_mean + 5
 sort_env_Tprof <- func_sortENV_plot(sort_env, save_figures, scenario, k) # defined in help-func.R
 # lightAttenuation_mean missing 
 
@@ -86,7 +89,7 @@ p_macro <- ggplot(sort_res_mean, aes(x = day, y = biomass_mean,
   scale_color_brewer(palette = "Set2") + theme(legend.position = "bottom") +
   guides(color = guide_legend(nrow = 1))
 p_macro
-ggsave(file.path(save_figures, "biomass_day.png"), p_macro, height = 10, width = 12)
+ggsave(file.path(save_figures, paste0(name,"_biomass_day.png")), p_macro, height = 10, width = 12)
 
 # ---- boxplot per dephts ------------------------------------------------------------------------------------------
 maxDay <- max(unique(sort_res$day))
@@ -102,7 +105,7 @@ p_box <- ggplot(sort_res, aes(x = factor(depth, levels = rev(sort(unique(depth))
   scale_fill_brewer(palette = "Set2")  + theme(legend.position = "bottom") +
   guides(color = guide_legend(nrow = 1))
 p_box
-ggsave(file.path(save_figures, "BOX_biomass_day.png"), p_box, height = 10, width = 12)
+ggsave(file.path(save_figures, paste0(name,"_BOX_biomass_day.png")), p_box, height = 10, width = 12)
 
 # ---------------------------------------------------------------------------------------------------------
 
@@ -172,7 +175,7 @@ p_Tprofile_DAY_all <- (p_Tprofile_DAY[[1]] /
   ) 
 
 p_Tprofile_DAY_all
-ggsave(file.path(save_figures, "Tprof_perAproxMonth.png"), p_Tprofile_DAY_all, height = 10, width = 10)
+ggsave(file.path(save_figures, paste0(name,"_Tprof_perAproxMonth.png")), p_Tprofile_DAY_all, height = 10, width = 10)
 
 
 p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth, 
@@ -188,7 +191,7 @@ p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth,
   theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 1))
 
 p_Tprofile_DAY
-ggsave(file.path(save_figures, "Tprof_perAproxMonth2.png"), p_Tprofile_DAY, height = 10, width = 10)
+ggsave(file.path(save_figures, paste0(name,"_Tprof_perAproxMonth2.png")), p_Tprofile_DAY, height = 10, width = 10)
 
 # Biomass plot + temp 
 
@@ -258,16 +261,17 @@ p_Tprofile <- ggplot(mean_profiles, aes(x = depth, y = T_prof_mean, color = Area
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 
 p_Tprofile 
-ggsave(file.path(save_figures, "Tprofile_depth.png"), p_Tprofile, height = 10, width = 12)
+ggsave(file.path(save_figures, paste0(name, "_Tprofile_depth.png")), p_Tprofile, height = 10, width = 12)
 
 p_combo <-  p_box + p_Tprofile + plot_layout(guides = "collect") +
   plot_layout(ncol = 1, heights = c(3, 1)) &
   theme(legend.position = "bottom")
 p_combo
-ggsave(file.path(save_figures, "BOX-Tprof_biomass_day.png"), p_combo, height = 10, width = 12)
+ggsave(file.path(save_figures,  paste0(name,"_BOX-Tprof_biomass_day.png")), p_combo, height = 10, width = 12)
 
 p_combo <-  p_macro + p_Tprofile + plot_layout(guides = "collect") + 
   plot_layout(ncol = 1, heights = c(3, 1)) &
   theme(legend.position = "bottom")
 p_combo
-ggsave(file.path(save_figures, "Tprof_biomass_day.png"), p_combo, height = 10, width = 12)
+ggsave(file.path(save_figures, paste0(name,"_Tprof_biomass_day.png")), p_combo, height = 10, width = 12)
+
