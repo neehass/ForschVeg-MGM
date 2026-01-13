@@ -58,6 +58,7 @@ lake_path <- "input/lakes"
 # DDG res_reshape
 res_reshape_Tprofile <- readRDS(file.path(save_comparison, paste0("DDG_reshape_",name1,".rds"))) # res_reshape_Tprofile
 res_reshape_Tprofile <- res_reshape_Tprofile[, !names(res_reshape_Tprofile) %in% "depth_NA"]
+unique(res_reshape_Tprofile$scenario)
 
 # print nrow where biomass > 0
 specgroup <- unique(res_reshape_Tprofile$speciesGroup)

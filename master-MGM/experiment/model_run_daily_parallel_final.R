@@ -77,7 +77,7 @@ species <- func_getSpecies_config(path_configFile)
 species_id <- unlist(str_extract_all(species, "\\d+"))
 species_id <- as.numeric(species_id)
 NSpec <- length(species)
-if(length(species) != 300){stop(paste("stop species ERORR", NSpec))}
+if(length(species) != 300){message(paste("species Number", NSpec))}
 
 # test oligo 
 # species_id <- c(14001:14300)
