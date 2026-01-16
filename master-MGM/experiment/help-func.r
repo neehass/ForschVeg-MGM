@@ -21,7 +21,7 @@ set.seed(42)
 # func_getAreaKm2 ----------------------------------
 func_getAreaKm2 <- function(lake_path) {
   files <- list.files(lake_path, full.name = TRUE)
-
+  
   areakm2 <- c()
   id <- c()
   for(i in 1:length(files)){
@@ -58,19 +58,19 @@ func_getLakeDepth <- function(lake_path) {
       
     } else {lakeDepth[i] <- as.numeric(a)}
     
-
+    
     id[i] <- as.numeric(unlist(str_extract_all(lake$V2[lake$V1 == "Lake"], "\\d+")))
   }
   return(list(lakeDepth = lakeDepth, id = id))
-
+  
 }
 
 # func_getAreaGroup ----------------------------
 # same like in input.jl
 # by Areakm2 --> AreaGroup is derived
-    # ”very.small”: <1, ”small”: <2, ”medium”: 2km2, ”large”: 5km2 and ”very.large”: 20km2
+# ”very.small”: <1, ”small”: <2, ”medium”: 2km2, ”large”: 5km2 and ”very.large”: 20km2
 
-    # Returns the area group for a given lake configuration file.
+# Returns the area group for a given lake configuration file.
 func_getAreaGroup <- function(areakm2) {
   if(is.na(areakm2)){
     g <- NA
@@ -126,23 +126,23 @@ find_julia <- function() {
 # random selection of certain number (n) per species group
 
 func_sel_spec <- function(n, species_path){
-    files <- list.files(species_path)
-    cleaned <- sub("\\.config\\.txt$", "", files)
-
-    # select groups 
-    oli <- cleaned[grepl("species_14\\d*", cleaned)]
-    meso <- cleaned[grepl("species_15\\d*", cleaned)]
-    eut <- cleaned[grepl("species_16\\d*", cleaned)]
-
-    # select random 
-    oli_n  <- sample(oli,  min(n, length(oli)))
-    meso_n <- sample(meso, min(n, length(meso)))
-    eut_n <- sample(eut,  min(n, length(eut)))
-
-    selected_files <- c(oli_n, meso_n, eut_n)
-    
-    # length(selected_files)
-    return(selected_files)
+  files <- list.files(species_path)
+  cleaned <- sub("\\.config\\.txt$", "", files)
+  
+  # select groups 
+  oli <- cleaned[grepl("species_14\\d*", cleaned)]
+  meso <- cleaned[grepl("species_15\\d*", cleaned)]
+  eut <- cleaned[grepl("species_16\\d*", cleaned)]
+  
+  # select random 
+  oli_n  <- sample(oli,  min(n, length(oli)))
+  meso_n <- sample(meso, min(n, length(meso)))
+  eut_n <- sample(eut,  min(n, length(eut)))
+  
+  selected_files <- c(oli_n, meso_n, eut_n)
+  
+  # length(selected_files)
+  return(selected_files)
 }
 # --------------------------------------------
 
@@ -153,7 +153,7 @@ func_getSpecies_config <- function(path_configFile){
   cleaned <- sub(".*(?=species_)", "", spec, perl = TRUE)
   species <- sub("\\.config\\.txt$", "", cleaned)
   # species_id <- as.numeric(sub(".*species_", "", species))
-
+  
   return(species)
 }
 
@@ -366,11 +366,11 @@ func_prepMACRO <- function(model, Nlak, NSpec, depths, species_id, lake_id, scen
   
   # env data = 2,4,6
   idxenv <- seq(2, NSpec*2*Nlak, 2)
- 
+  
   # lake = NSpec 1-27 = lake1, 28-54 = lake1
   idxlak <- seq(NSpec, NSpec*2*Nlak, NSpec)
   idxlak_start <- seq(1, NSpec*2*Nlak, NSpec)
- 
+  
   df_all <- vector("list", Nlak)
   for(l in 1:Nlak){
     im <- iCOMBO[idxlak_start[l]:idxlak[l]]
@@ -400,7 +400,7 @@ func_prepMACRO <- function(model, Nlak, NSpec, depths, species_id, lake_id, scen
     lak_bind <- do.call(rbind, df_lak)
     df_all[[l]] <- lak_bind
   }
-
+  
 }
 
 # --------------------------------------------------------------
@@ -447,7 +447,7 @@ func_prepENV <- function(model, Nlak, NSpec, depths, species_id, lake_id, scenar
     lak_bind <- do.call(rbind, df_lak)
     env_all[[l]] <- lak_bind
   }
- 
+  
   # final binding
   final_env <- do.call(rbind, env_all)
   return(final_env)
@@ -460,7 +460,7 @@ T_profile <- function(z, T_epi, T_hypo, z0, k) {
   t <- T_hypo + (T_epi - T_hypo) / (1+exp((abs(z) - abs(z0)) / k))
   if (length(z) > 1) {
     # t[1] <- T_epi
-     t[length(t)] <- T_hypo
+    t[length(t)] <- T_hypo
   }
   return(t)
 }
@@ -474,216 +474,217 @@ T_profile_1 <- function(z, T_epi, T_hypo, z0, k) {
 # --- env plot function -----------------------------
 func_sortENV_plot <- function(sort_env, save_figures, scenario, k){
   sort_env <- sort_env %>% # sort_env[sort_env$day %in% unique(sort_res$day), ] 
-      mutate(
-        T_prof = T_profile(z = sort(0, decreasing = TRUE), 
-                           T_epi = tempEpi_mean, T_hypo = tempHypo_mean,
-                           z0 = metaDepth_mean, k = k))  %>%
-      ungroup()
+    mutate(
+      T_prof = T_profile(z = sort(0, decreasing = TRUE), 
+                         T_epi = tempEpi_mean, T_hypo = tempHypo_mean,
+                         z0 = metaDepth_mean, k = k))  %>%
+    ungroup()
   
-    p_temp <- ggplot(sort_env, aes(x = day)) +
-        geom_line(aes(y = tempEpi_mean, color = AreaGroup, linetype = "input TempEpi"), linewidth = 0.5) +
-                        # color = "TempEpi", linetype = lakeClass)) +
-        geom_line(aes(y = T_prof, color = AreaGroup, linetype = "model TempEpi")) +
-        geom_line(aes(y = tempHypo_mean, color = AreaGroup, linetype = "TempHypo")) +
-                        #color = "TempHypo", linetype = lakeClass)) +
-        
-        theme_bw() +
-        scale_color_brewer(palette = "Set2", name = "AreaGroup") +
-        scale_linetype_manual(values = c("model TempEpi" = "solid", "input TempEpi" = "dotted", "TempHypo" = "dashed"), name = "a)") +
-        # scale_color_manual(values = c("TempEpi" = "red", "TempHypo" = "blue"), name = "a)") +
-        labs(title = "a) Temperatur Data",
-            y = "Temp [°C]", x = "Days",  linetype = "AreaGroup",color = "Linecolor") + 
-        facet_grid( ~  lakeClass) 
-    # p_temp
-
-    p_metadepth <- ggplot(sort_env, aes(x = day)) +
-            geom_line(aes(y = metaDepth_mean, color = AreaGroup, linetype = "meatDpeth")) + # color = "metaDepth", linetype = lakeClass)) +
-            geom_line(aes(y = waterlevel_mean, color = AreaGroup, linetype = "waterlevel")) + # color ="waterlevel",  linetype = lakeClass)) +
-            # scale_color_manual(values = c("metaDepth" = "magenta", "waterlevel" = "darkgreen"),
-            #     labels = c("Mesolimnion Depth", "Waterlevel"), name = "b)") +
-            scale_linetype_manual(values = c("meatDpeth" = "solid", "waterlevel" = "dashed"), name = "b)") +
-            scale_color_brewer(palette = "Set2", name = "AreaGroup") +
-            facet_grid( ~  lakeClass) +
-            # annotate("rect",
-            #         xmin = min(days), xmax = max(days),
-            #         ymin = -Inf, ymax = Inf,
-            #         alpha = 0.2, fill = "grey") +
-            labs(title = "b) Waterlevel & Metalimnion Depth",
-            y = "Depth [m]", x = "Days",  linetype = "AreaGroup",color = "Linecolor") +
-            theme_bw()
-    # p_metadepth
-
-    p_light <- ggplot(sort_env, aes(x = day)) +
-        geom_line(aes(y = irradiance_mean, color = "irradiance")) +
-        facet_grid( ~  lakeClass) +
-        scale_color_manual(values = c("irradiance" = "orange"),
-            labels = c("Irradiance"), name = "c)") +
-        # annotate("rect",
-        #         xmin = min(days), xmax = max(days),
-        #         ymin = -Inf, ymax = Inf,
-        #         alpha = 0.2, fill = "grey") +
-        labs(title= "c) Irradiance related", x = "Day",y = "[W/m2]") +
-        theme_bw()
-    # p_light
-
-
-    p_env <- p_temp + p_metadepth + p_light + plot_layout(ncol = 1, guides = "collect") &  # collect all legends
-        theme(legend.position = "right")               # move legend to left
-
-    p_env <- p_env + 
-        plot_annotation(title = paste("Environmental Data","\nScenario: ", scenario))
-    p_env
-    # save
-    ggsave(file.path(save_figures, "env_day.png"), p_env, height = 10, width = 10)
+  p_temp <- ggplot(sort_env, aes(x = day)) +
+    geom_line(aes(y = tempEpi_mean, color = AreaGroup, linetype = "input TempEpi"), linewidth = 0.5) +
+    # color = "TempEpi", linetype = lakeClass)) +
+    geom_line(aes(y = T_prof, color = AreaGroup, linetype = "model TempEpi")) +
+    geom_line(aes(y = tempHypo_mean, color = AreaGroup, linetype = "TempHypo")) +
+    #color = "TempHypo", linetype = lakeClass)) +
     
-    return(sort_env)
+    theme_bw() +
+    scale_color_brewer(palette = "Set2", name = "AreaGroup") +
+    scale_linetype_manual(values = c("model TempEpi" = "solid", "input TempEpi" = "dotted", "TempHypo" = "dashed"), name = "a)") +
+    # scale_color_manual(values = c("TempEpi" = "red", "TempHypo" = "blue"), name = "a)") +
+    labs(title = "a) Temperatur Data",
+         y = "Temp [°C]", x = "Days",  linetype = "AreaGroup",color = "Linecolor") + 
+    facet_grid( ~  lakeClass) 
+  # p_temp
+  
+  p_metadepth <- ggplot(sort_env, aes(x = day)) +
+    geom_line(aes(y = metaDepth_mean, color = AreaGroup, linetype = "meatDpeth")) + # color = "metaDepth", linetype = lakeClass)) +
+    geom_line(aes(y = waterlevel_mean, color = AreaGroup, linetype = "waterlevel")) + # color ="waterlevel",  linetype = lakeClass)) +
+    # scale_color_manual(values = c("metaDepth" = "magenta", "waterlevel" = "darkgreen"),
+    #     labels = c("Mesolimnion Depth", "Waterlevel"), name = "b)") +
+    scale_linetype_manual(values = c("meatDpeth" = "solid", "waterlevel" = "dashed"), name = "b)") +
+    scale_color_brewer(palette = "Set2", name = "AreaGroup") +
+    facet_grid( ~  lakeClass) +
+    # annotate("rect",
+    #         xmin = min(days), xmax = max(days),
+    #         ymin = -Inf, ymax = Inf,
+    #         alpha = 0.2, fill = "grey") +
+    labs(title = "b) Waterlevel & Metalimnion Depth",
+         y = "Depth [m]", x = "Days",  linetype = "AreaGroup",color = "Linecolor") +
+    theme_bw()
+  # p_metadepth
+  
+  p_light <- ggplot(sort_env, aes(x = day)) +
+    geom_line(aes(y = irradiance_mean, color = "irradiance")) +
+    facet_grid( ~  lakeClass) +
+    scale_color_manual(values = c("irradiance" = "orange"),
+                       labels = c("Irradiance"), name = "c)") +
+    # annotate("rect",
+    #         xmin = min(days), xmax = max(days),
+    #         ymin = -Inf, ymax = Inf,
+    #         alpha = 0.2, fill = "grey") +
+    labs(title= "c) Irradiance related", x = "Day",y = "[W/m2]") +
+    theme_bw()
+  # p_light
+  
+  
+  p_env <- p_temp + p_metadepth + p_light + plot_layout(ncol = 1, guides = "collect") &  # collect all legends
+    theme(legend.position = "right")               # move legend to left
+  
+  p_env <- p_env + 
+    plot_annotation(title = paste("Environmental Data","\nScenario: ", scenario))
+  p_env
+  # save
+  ggsave(file.path(save_figures, paste0("ENV_day_", gsub(" ", "_", scenario),".png")), p_env, 
+         width = 6.5, height=8, dpi="print", bg="white", scale=1)
+  
+  return(sort_env)
 }
 
 
 # test plot functions ------------------------------------------------
 # ---- Plot results -------------------------------
 func_plot_macroDay <- function(macrodata, speciesID_nam, name, days, scenario) {
-    
-    # Plot
-    p_macro <- ggplot(data = macrodata, aes(x = day, y = biomass, 
-            group = interaction(speciesID, depth), 
-            color = depth)) +
-        geom_line() +
-        theme_bw() +
-        labs(
-        title = paste("Biomass over time per species:",name,"\nScenario: ", scenario), x = "Day",
-        y = "Biomass", color = "Depth"
-        ) + facet_wrap(~ speciesID, labeller = labeller(speciesID = speciesID_nam))
-    # p_macro
-
-    # Save
-    ggsave(paste0(name, "_macrophytesDay.png"), plot = p_macro, width = 10, height = 8)
-
-
+  
+  # Plot
+  p_macro <- ggplot(data = macrodata, aes(x = day, y = biomass, 
+                                          group = interaction(speciesID, depth), 
+                                          color = depth)) +
+    geom_line() +
+    theme_bw() +
+    labs(
+      title = paste("Biomass over time per species:",name,"\nScenario: ", scenario), x = "Day",
+      y = "Biomass", color = "Depth"
+    ) + facet_wrap(~ speciesID, labeller = labeller(speciesID = speciesID_nam))
+  # p_macro
+  
+  # Save
+  ggsave(paste0(name, "_macrophytesDay.png"), plot = p_macro, width = 10, height = 8)
+  
+  
 }
 
 func_plot_macroDepth <- function(macrodata, speciesID_nam, name, days, scenario) {
-     macrodata$depth <- as.numeric(as.character(macrodata$depth))
-    p_macro <- ggplot(data = macrodata, aes(x = depth, y = biomass, 
-        color = as.factor(day), group = as.factor(day))) +
-      geom_line() +
-      theme_bw() +
-        theme(legend.position = "none") +
-      labs(title = paste("Biomass per Species per Depth:",name,
-            "\n(grouped by day)",
-            "\nScenario: ", scenario), 
-      x = "Depth [m]", y = "Biomass") + 
-      facet_wrap(~ speciesID, labeller = labeller(speciesID = speciesID_nam))+
-      scale_x_reverse()
+  macrodata$depth <- as.numeric(as.character(macrodata$depth))
+  p_macro <- ggplot(data = macrodata, aes(x = depth, y = biomass, 
+                                          color = as.factor(day), group = as.factor(day))) +
+    geom_line() +
+    theme_bw() +
+    theme(legend.position = "none") +
+    labs(title = paste("Biomass per Species per Depth:",name,
+                       "\n(grouped by day)",
+                       "\nScenario: ", scenario), 
+         x = "Depth [m]", y = "Biomass") + 
+    facet_wrap(~ speciesID, labeller = labeller(speciesID = speciesID_nam))+
+    scale_x_reverse()
   # p_macro
-
-    # Save
-    ggsave(paste0(name, "_macrophytesDepth.png"), plot = p_macro, width = 10, height = 8)
-
+  
+  # Save
+  ggsave(paste0(name, "_macrophytesDepth.png"), plot = p_macro, width = 10, height = 8)
+  
 }
 
 # plot ENV -----------------------------------
 func_plot_env <- function(envdata, name, days, scenario){
-    # --- Env 
-    p_temp <- ggplot(envdata, aes(x = day)) +
-        geom_line(aes(y = tempEpi, colour = factor("tempEpi"))) +
-        geom_line(aes(y = tempHypo, colour = factor("tempHypo"))) +
-        scale_color_manual(values = c("tempEpi" = "red", "tempHypo" = "blue"),
-            labels = c("Epilimnion Temp.", "Hypolimnion Temp."),
-            name = "Parameter") +
-        annotate("rect",
-                xmin = min(days), xmax = max(days),
-                ymin = -Inf, ymax = Inf,
-                alpha = 0.2, fill = "grey") +
-        labs(title = "Temperature",x = "Day",y = "Temp [°C]") +
-        theme_bw()
-    # p_temp
-
-    p_mesodepth <- ggplot(envdata, aes(x = day)) +
-        geom_line(aes(y = mesoDepth, colour = factor("mesoDepth"))) +
-        geom_line(aes(y = waterlevel, colour = factor("waterlevel"))) +
-        scale_color_manual(values = c("mesoDepth" = "magenta", "waterlevel" = "darkgreen"),
-            labels = c("Mesolimnion Depth", "Waterlevel"), name = "") +
-        annotate("rect",
-                xmin = min(days), xmax = max(days),
-                ymin = -Inf, ymax = Inf,
-                alpha = 0.2, fill = "grey") +
-        labs(title= "Waterlevel & Mesolimnion Depth", x = "Day",y = "Depth [m]") +
-        theme_bw()
-    # p_mesodepth
-
-    p_light <- ggplot(envdata, aes(x = day)) +
-        geom_line(aes(y = irradiance, colour = factor("irradiance"))) +
-        annotate("text", x = 50, y = max(envdata$irradiance)-50, 
-            label = paste("Light Attenuation \nCoefficient [1/m]:", unique(envdata$lightAttenuation)), 
-        color = "red", size = 3) +
-        scale_color_manual(values = c("irradiance" = "orange"),
-            labels = c("Irradiance"), name = "") +
-        annotate("rect",
-                xmin = min(days), xmax = max(days),
-                ymin = -Inf, ymax = Inf,
-                alpha = 0.2, fill = "grey") +
-        labs(title= "Light related", x = "Day",y = "[W/m2]") +
-        theme_bw()
-    # p_light
-
-    #geom_line(aes(y = irradiance, colour = factor("irradiance"))) +
-
-    p_env <- p_temp + p_mesodepth + p_light + plot_layout(ncol = 1, guides = "collect") &  # collect all legends
-        theme(legend.position = "right")               # move legend to left
-
-    p <- p_env + 
-        plot_annotation(title = paste("Environmental Data: ",name,"\nScenario: ", scenario))
-    # p
-    ggsave(paste0(name, "_env.png"), plot = p, width = 8, height = 10)
+  # --- Env 
+  p_temp <- ggplot(envdata, aes(x = day)) +
+    geom_line(aes(y = tempEpi, colour = factor("tempEpi"))) +
+    geom_line(aes(y = tempHypo, colour = factor("tempHypo"))) +
+    scale_color_manual(values = c("tempEpi" = "red", "tempHypo" = "blue"),
+                       labels = c("Epilimnion Temp.", "Hypolimnion Temp."),
+                       name = "Parameter") +
+    annotate("rect",
+             xmin = min(days), xmax = max(days),
+             ymin = -Inf, ymax = Inf,
+             alpha = 0.2, fill = "grey") +
+    labs(title = "Temperature",x = "Day",y = "Temp [°C]") +
+    theme_bw()
+  # p_temp
+  
+  p_mesodepth <- ggplot(envdata, aes(x = day)) +
+    geom_line(aes(y = mesoDepth, colour = factor("mesoDepth"))) +
+    geom_line(aes(y = waterlevel, colour = factor("waterlevel"))) +
+    scale_color_manual(values = c("mesoDepth" = "magenta", "waterlevel" = "darkgreen"),
+                       labels = c("Mesolimnion Depth", "Waterlevel"), name = "") +
+    annotate("rect",
+             xmin = min(days), xmax = max(days),
+             ymin = -Inf, ymax = Inf,
+             alpha = 0.2, fill = "grey") +
+    labs(title= "Waterlevel & Mesolimnion Depth", x = "Day",y = "Depth [m]") +
+    theme_bw()
+  # p_mesodepth
+  
+  p_light <- ggplot(envdata, aes(x = day)) +
+    geom_line(aes(y = irradiance, colour = factor("irradiance"))) +
+    annotate("text", x = 50, y = max(envdata$irradiance)-50, 
+             label = paste("Light Attenuation \nCoefficient [1/m]:", unique(envdata$lightAttenuation)), 
+             color = "red", size = 3) +
+    scale_color_manual(values = c("irradiance" = "orange"),
+                       labels = c("Irradiance"), name = "") +
+    annotate("rect",
+             xmin = min(days), xmax = max(days),
+             ymin = -Inf, ymax = Inf,
+             alpha = 0.2, fill = "grey") +
+    labs(title= "Light related", x = "Day",y = "[W/m2]") +
+    theme_bw()
+  # p_light
+  
+  #geom_line(aes(y = irradiance, colour = factor("irradiance"))) +
+  
+  p_env <- p_temp + p_mesodepth + p_light + plot_layout(ncol = 1, guides = "collect") &  # collect all legends
+    theme(legend.position = "right")               # move legend to left
+  
+  p <- p_env + 
+    plot_annotation(title = paste("Environmental Data: ",name,"\nScenario: ", scenario))
+  # p
+  ggsave(paste0(name, "_env.png"), plot = p, width = 8, height = 10)
 }
 
 # plot temp Profile ------------------------
 func_plot_Tprofile <- function(envdata, depth, name, days, scenario, k){
-
+  
   temp <- envdata[envdata$day %in% days,]
-
+  
   max <- temp[temp$tempEpi == max(temp$tempEpi), ]
   dmax <- unique(max$day)
-
+  
   min <- temp[temp$tempEpi == min(temp$tempEpi), ]
   dmin <- unique(min$day)
-
+  
   meanTEpi <- mean(temp$tempEpi)
   meanTHypo <- mean(temp$tempHypo)
   meanZ0 <- mean(temp$mesoDepth) 
-
+  
   prof_max <- T_profile(0:depth, unique(temp$tempEpi[temp$day == dmax[1]]), 
-                      unique(temp$tempHypo[temp$day == dmax[1]]), 
-                      z0= unique(temp$mesoDepth[temp$day == dmax[1]]), 
-                      k)
+                        unique(temp$tempHypo[temp$day == dmax[1]]), 
+                        z0= unique(temp$mesoDepth[temp$day == dmax[1]]), 
+                        k)
   prof_min <- T_profile(0:depth, unique(temp$tempEpi[temp$day == dmin[1]]), 
-                      unique(temp$tempHypo[temp$day == dmin[1]]), 
-                      z0= unique(temp$mesoDepth[temp$day == dmin[1]]), 
-                      k)
+                        unique(temp$tempHypo[temp$day == dmin[1]]), 
+                        z0= unique(temp$mesoDepth[temp$day == dmin[1]]), 
+                        k)
   prof_mid <- T_profile(0:depth, meanTEpi, meanTHypo, 
-                      z0= meanZ0, 
-                      k)
+                        z0= meanZ0, 
+                        k)
   df_profile <- data.frame(depth = 0:depth, prof_max = prof_max, 
-                    prof_mid = prof_mid, prof_min = prof_min)
-
+                           prof_mid = prof_mid, prof_min = prof_min)
+  
   p_profile <- ggplot(df_profile, aes(y = depth))+
-            geom_line(aes(x = prof_max, color = "max")) + 
-            geom_line(aes(x = prof_min, color = "min")) + 
-            geom_line(aes(x = prof_mid, color = "mid")) + 
-            scale_color_manual(values = c("max" = "red", "mid" =  "orange", "min" = "blue"),
-              labels = c("Max Temp.", "mean Temp.", "Min. Temp"),
-              name = "Parameter") + theme_bw() +
-            annotate("text", x = max(prof_max)-2, y = depth, 
-                label = paste("steepness parameter \nk = ", k), 
-                color = "black", size = 3) +
-            labs(
-              title = paste("Temperature Profile: ",name,
-                "\nat the max, min and mean Temp. of timespan \nDays: ", dmax[1] , dmin[1], 
-                "\nScenario: ", scenario), 
-                x = "Temp [°C]", y = "Depth [m]") 
-
-#   p_profile
+    geom_line(aes(x = prof_max, color = "max")) + 
+    geom_line(aes(x = prof_min, color = "min")) + 
+    geom_line(aes(x = prof_mid, color = "mid")) + 
+    scale_color_manual(values = c("max" = "red", "mid" =  "orange", "min" = "blue"),
+                       labels = c("Max Temp.", "mean Temp.", "Min. Temp"),
+                       name = "Parameter") + theme_bw() +
+    annotate("text", x = max(prof_max)-2, y = depth, 
+             label = paste("steepness parameter \nk = ", k), 
+             color = "black", size = 3) +
+    labs(
+      title = paste("Temperature Profile: ",name,
+                    "\nat the max, min and mean Temp. of timespan \nDays: ", dmax[1] , dmin[1], 
+                    "\nScenario: ", scenario), 
+      x = "Temp [°C]", y = "Depth [m]") 
+  
+  #   p_profile
   ggsave(paste0(name, "_Tprofile.png"), plot = p_profile, width = 8, height = 10)
 }
 
@@ -695,8 +696,10 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
   #unique(lakesDDG$Group)
   #length(unique(lakesDDG$Group))
   
-  WinnerLoserPalette<- c(carto_pal(2,"PinkYl")[c(2)],carto_pal(2,"TealGrn")[c(1)])
-  TrophiePalette <- c("cornflowerblue","aquamarine4","coral4")
+  TrophiePalette <- c("#56B4E9", "#E69F00", "#009E73")
+  # c("#56B4E9", "#E69f00", "#CC79A7")# aus Okabe–Ito-Palette
+  # https://stackoverflow.com/questions/57153428/r-plot-color-combinations-that-are-colorblind-accessible
+  # old: c("cornflowerblue","aquamarine4","coral4") #F0E442 #D55E00 
   
   # plot Gradient -----------------------------------------------
   my.formula <- y ~ x 

@@ -136,12 +136,12 @@ func_prep_data <- function(output, save_figures, lake_path, lewSpec_dir){
   load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
   
   # ---------- 2. species groups (vectorized) ----------
-  res[, speciesGroup := fifelse(speciesID > 14000 & speciesID < 14301, "oligotrophentic",
-                                fifelse(speciesID > 15000 & speciesID < 15301, "mesotrophentic",
-                                        fifelse(speciesID > 16000 & speciesID < 16301, "eutrophentic", NA_character_)))]
-  env[, speciesGroup := fifelse(speciesID > 14000 & speciesID < 14301, "oligotrophentic",
-                                fifelse(speciesID > 15000 & speciesID < 15301, "mesotrophentic",
-                                        fifelse(speciesID > 16000 & speciesID < 16301, "eutrophentic", NA_character_)))]
+  res[, speciesGroup := fifelse(speciesID > 14000 & speciesID < 14301, "oligotraphentic",
+                                fifelse(speciesID > 15000 & speciesID < 15301, "mesotraphentic",
+                                        fifelse(speciesID > 16000 & speciesID < 16301, "eutraphentic", NA_character_)))]
+  env[, speciesGroup := fifelse(speciesID > 14000 & speciesID < 14301, "oligotraphentic",
+                                fifelse(speciesID > 15000 & speciesID < 15301, "mesotraphentic",
+                                        fifelse(speciesID > 16000 & speciesID < 16301, "eutraphentic", NA_character_)))]
   
   # ---------- 3. lakeClass join ----------
   res <- as.data.table(res)
@@ -518,9 +518,9 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
     relocate(LakeID, .before = Group) %>%
     rename(Lake=LakeID) %>%
     filter(Group!="none")%>%
-    mutate(Group=ifelse(Group==1, "oligotrophentic", 
-                        ifelse(Group==2, "mesotrophentic", 
-                               ifelse(Group==3, "eutrophentic", NA)))) %>%
+    mutate(Group=ifelse(Group==1, "oligotraphentic", 
+                        ifelse(Group==2, "mesotraphentic", 
+                               ifelse(Group==3, "eutraphentic", NA)))) %>%
     filter(Lake %in% lakesDDGModel$Lake)
   # head(lakesDDGMapped)
   
@@ -661,3 +661,137 @@ func_dataprep_compare_DDG <- function(res1, res2, name1 = "base_Tprofile", name2
   return(list(res1_prep= res1_prep, res2_prep = res2_prep))
 }
 
+# -------------------------------------
+# data prep for DDG
+func_prep_DDG <- function(output, lewSpec_dir, save_out, name1){
+  
+    # load data --------------------------------------------------------------------------------
+  load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda")) # lake info
+  
+  res <- readRDS(file.path(out_Tprofile, "added_all_res.rds")) 
+  
+  gen.conf <- readLines(file.path(out_Tprofile,"general.config.txt"))
+  k <- as.numeric(strsplit(gen.conf[8], " ")[[1]][2])
+  
+  unique(res$scenario)
+
+  load(file.path(lewSpec_dir, "data/all_diff_presabs_tobase.rda"))
+  head(all_diff_presabs_tobase)
+  # bring data in this format
+  # ------------------------------------------------------------------------------------------
+  # prepare data for DDG
+  res1_prep <- res %>%
+    group_by(lakeClass, speciesGroup, depth, lakeID, speciesID) %>%
+    summarise(biomass = sum(biomass)) %>%  ungroup() %>%
+    mutate(biomass_orig = biomass) %>%
+    mutate(depth_label = paste0("depth_", dense_rank(abs(depth)))) %>% # abs wichitg hier sonst werden depths falsch herum zugeordnet!
+    pivot_wider(
+      names_from = depth_label,
+      values_from = biomass
+    ) %>% relocate(biomass_orig) %>%
+    
+    # Replace NA in all pivoted columns with 0
+    replace_na(list(
+      depth_1 = 0, # -0.5
+      depth_2 = 0,
+      depth_3 = 0,
+      depth_4 = 0
+    )) %>% 
+    mutate(Biomass_cat = if_else(biomass_orig > 0, 1, 0, missing = 0))# %>% filter(biomass_orig!= 0)
+  
+  res1_prep$Group <- as.factor(res1_prep$speciesGroup)
+  res1_prep$Species <- res1_prep$speciesID
+  res1_prep$Lake <- paste0("lake_", res1_prep$lakeID)
+  res1_prep$scenario <- name1
+  
+  saveRDS(res1_prep, file = file.path(save_out, paste0("DDG_reshape_",name1,".rds")))
+  
+}
+
+# ---------------------------------------------------------------------------------------------------
+# data prep for Biomass comparison 
+func_prepBIO_compare <- function(res_baseTP, scenTP, res_baseTS, scenTS, save_out){
+  
+  # Presence Absence
+  # ------------------------------------------------------------------------------------------
+  # prepare base T_profile data
+  res_baseTprofile_prep <- res_baseTP %>%
+    mutate(scenario = "base_Tprofile") %>%
+    group_by(lakeID, speciesID, depth, speciesGroup, lakeClass) %>%
+    summarise(
+      Biomass_cat = if_else(mean(biomass, na.rm = TRUE) > 0, 1, 0, missing = 0))
+  head(res_baseTprofile_prep)
+  save(res_baseTprofile_prep, file = file.path(save_comparison, paste0("res_", scenTP, "_prep.rda")))
+  
+  # prepare T_steady data
+  res_baseTSteady_prep <- res_baseTS %>%
+    mutate(scenario = "base_Tsteady") %>%
+    group_by(lakeID, speciesID, depth, speciesGroup, lakeClass) %>%
+    summarise(
+      Biomass_cat = if_else(mean(biomass, na.rm = TRUE) > 0, 1, 0, missing = 0))
+  head(res_baseTSteady_prep)
+  save(res_baseTSteady_prep, file = file.path(save_comparison, paste0("res_", scenTS, "_prep.rda")))
+  
+  
+  # combine both datasets
+  res_combined <- res_baseTprofile_prep %>%
+    left_join(res_baseTSteady_prep, by = c("lakeID", "depth", "speciesID", "speciesGroup", "lakeClass"), 
+              suffix = c("_baseTP", "_baseTS")) %>%
+    mutate(
+      Biomass_cat_baseTP = replace_na(Biomass_cat_baseTP, 0),
+      Biomass_cat_baseTS   = replace_na(Biomass_cat_baseTS, 0)
+    ) %>%
+    rename(
+      baseTP = Biomass_cat_baseTP,
+      baseTS = Biomass_cat_baseTS
+    )
+  head(res_combined)
+  any(is.na(res_combined))
+  unique(res_combined$baseTP)
+  unique(res_combined$baseTS)
+  
+  any(res_combined$baseTP != res_combined$baseTS) # TRUE  -> mindestens ein Wert ist unterschiedlich
+  save(res_combined, file = file.path(save_comparison, "res_combined_base.rda"))
+  
+  # PERMANOVA DATA PREP BIOMASS Comparision between T_profile vs without T_profile ------------------
+  
+  # ------------------------------------------------------------------------------------------
+  # prepare base T_profile data
+  res_baseTprofile_bio <- res_baseTP %>%
+    mutate(scenario = scenTP) %>%
+    group_by(lakeID, speciesID, depth, speciesGroup, lakeClass) %>%
+    summarise(
+      biomass = mean(biomass, na.rm = TRUE))
+  
+  save(res_baseTprofile_bio, file = file.path(save_out, paste0("res_", scenTP,"_bio.rda")))
+  
+  # prepare T_steady data
+  res_baseTSteady_bio <- res_baseTS %>%
+    mutate(scenario = scenTS) %>%
+    group_by(lakeID, speciesID, depth, speciesGroup, lakeClass) %>%
+    summarise(
+      biomass = mean(biomass, na.rm = TRUE))
+  
+  save(res_baseTSteady_bio, file = file.path(save_out, paste0("res_", scenTS,"_bio.rda")))
+  
+  
+  # combine both datasets
+  res_combined_BIO <- res_baseTprofile_bio %>%
+    left_join(res_baseTSteady_bio, by = c("lakeID", "depth", "speciesID", "speciesGroup", "lakeClass"), 
+              suffix = c("_baseTP", "_baseTS")) %>%
+    mutate(
+      biomass_baseTP = replace_na(biomass_baseTP, 0),
+      biomass_baseTS   = replace_na(biomass_baseTS, 0)
+    ) %>%
+    rename(
+      baseTP = biomass_baseTP,
+      baseTS = biomass_baseTS
+    )
+  # head(res_combined_BIO)
+  # any(is.na(res_combined_BIO))
+  # unique(res_combined_BIO$baseTP)
+  # unique(res_combined_BIO$baseTS)
+  
+  any(res_combined_BIO$baseTP != res_combined_BIO$baseTS) # TRUE  -> mindestens ein Wert ist unterschiedlich
+  save(res_combined_BIO, file = file.path(save_out, "res_combined_base_BIO.rda"))
+}

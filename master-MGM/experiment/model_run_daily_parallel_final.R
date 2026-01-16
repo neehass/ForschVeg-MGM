@@ -6,9 +6,13 @@
 # sel.general.config: Lakes: chiemsee (large) = 1, AbtsdorfSee (very.small) = 2, Eibsee (medium) = 3
 # general.config: 
 # ---------------------------------------------------------------------------------------------------
-
+# R Packages
 library(parallel) 
 library(future.apply)
+library(tidyverse)
+library(DEoptim)
+library(data.table)
+library(here)
 
 # ---------------------------------------------------------------------------------------------------
 ## General configurations ----
@@ -19,12 +23,26 @@ n <- 300 # number of species per group (oligotroph, mesotroph, eutroph)
 chunk_size <- 1000 # split size of modeloutput for saving output 
 
 setting <- "parallel" # "HPC" # local # parallel
-modelrun <- "dep10_300spec_base_Tprofil_plus5" # "dep300_5spec_base_Tsteady_final" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
-years <- 10 #Number of years to get simulated [n]
+modelrun <- "dep10_300spec_base_Tsteady_20years" # "dep300_5spec_base_Tsteady_final" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+years <- 20 #Number of years to get simulated [n]
 depths <- c(-0.5, -1.5, -3, -5) # only 4 depths possible here
 yearsoutput <- 2
-tempProfile <- "true" # "false" true
+tempProfile <- "false" # "false" true
 k <- 5
+
+# Model settings ----
+#Scenario
+scenarios <- data.table(
+  #para=c("maxTemp","maxNutrient", "maxKd"),
+  #test_oli= c(5.0,0.0,0.0) #,
+  base=c(0.0, 0.0, 0.0) #,  
+  #BLIZ_2.6_Biodiv=c(0.5, -0.25, -0.25),
+  #BLIZ_2.6_Mit=c(0.5, 0.25, 0.25),
+  #BLIZ_2.6_Adap=c(0.5, 0.0, 0.0),
+  #BLIZ_8.6_Biodiv=c(3.0, 0.0, 0.0),
+  #BLIZ_8.6_Mit=c(3.0, 0.5, 0.5),
+  #BLIZ_8.6_Adap=c(3.0, 0.25, 0.25)
+)
 
 # set dir ------------------------------------------------------------------------------------------
 if(machine == "home") {
@@ -63,7 +81,7 @@ if(machine == "home") {
 
 # second run/ want to take same species as path_configFile
 # path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_lakes_100spec_base_Tprofile/general.config.txt" # 100 spec
-path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_300spec_base_Tprofile_final2.0/general.config.txt" # 300 spec
+path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_300spec_base_Tprofil_20years/general.config.txt" # 300 spec
 # path_configFile <- "C:/Users/student/Documents/Neele-ForschVeg-2025/ForschVeg-MGM/master-MGM/output/dep10_300spec_base_Tprofile_final/general.config.txt"
 species <- func_getSpecies_config(path_configFile)
 
@@ -136,28 +154,9 @@ julia_library("DataFrames")
 julia_library("StatsBase")
 julia_library("Base.Threads") # parallel
 
-# R Packages
-# install.packages(c("tidyverse", "DEoptim", "data.table", "here"))
-library(tidyverse)
-library(DEoptim)
-library(data.table)
-library(here)
-
 # -----------------------------------------------------------------------------------------------
 #  Settings for Model ----
 # -----------------------------------------------------------------------------------------------
-#Scenario
-scenarios <- data.table(
-  #para=c("maxTemp","maxNutrient", "maxKd"),
-  test_oli= c(5.0,0.0,0.0) #,
-  # base=c(0.0, 0.0, 0.0) #,  
-  #BLIZ_2.6_Biodiv=c(0.5, -0.25, -0.25),
-  #BLIZ_2.6_Mit=c(0.5, 0.25, 0.25),
-  #BLIZ_2.6_Adap=c(0.5, 0.0, 0.0),
-  #BLIZ_8.6_Biodiv=c(3.0, 0.0, 0.0),
-  #BLIZ_8.6_Mit=c(3.0, 0.5, 0.5),
-  #BLIZ_8.6_Adap=c(3.0, 0.25, 0.25)
-)
 
 # Set working directories 
 if ((setting == "local") | (setting == "parallel")){ # Local Machine{

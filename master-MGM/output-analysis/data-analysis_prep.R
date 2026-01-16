@@ -24,8 +24,9 @@ source("./output-analysis/func_data_prep.R")
 # T-Profile + base scenario, 100 species, all lakes < -10 m depth -------------------------
 # Folder output of MGM experiment and Analysis results folder
 
-base_Tprofile <- "output/dep10_300spec_base_Tprofile_final2.0"
-save_base_Tprofile <- "output-analysis/dep10_300spec_base_Tprofile_final2.0"
+base_Tprofile <- "output/dep10_300spec_base_Tprofil_20years" # dep10_300spec_base_Tprofile_final2.0
+save_base_Tprofile <- "output-analysis/dep10_300spec_base_Tprofil_20years"
+nameTP <- "Tprofile_20years"
 
 dir.create(save_base_Tprofile)
 
@@ -34,18 +35,19 @@ lake_path <- "input/lakes"
 
 func_prep_data(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir)
 
+func_prep_DDG(output = base_Tprofile, lewSpec_dir, save_out = paste0(save_base_Tprofile, "/DDG"), name1 = nameTP)
+
 # slower beacause data is loaded to each core
 #func_prep_data_dt_parallel(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir, ncores = NULL)
 # func_prep_data_fast(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir)
-# ---------------------------------------------------------------------------------------------------------
-# ---------------------------------------------------------------------------------------------------------
-# ---------------------------------------------------------------------------------------------------------
-# -----------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 # T-steady + base scenario, 100 species, all lakes < -10 m depth -------------------------
 # Folder output of MGM experiment and Analysis results folder
 
-base_Tsteady <- "output/dep10_300spec_base_Tsteady_final2.0"
-save_base_Tsteady <- "output-analysis/dep10_300spec_base_Tsteady_final2.0"
+base_Tsteady <- "output/dep10_300spec_base_Tsteady_20years" # dep10_300spec_base_Tsteady_final2.0 # 
+save_base_Tsteady <- "output-analysis/dep10_300spec_base_Tsteady_20years"
+nameTS <- "Tsteady_20years"
 
 dir.create(save_base_Tsteady)
 
@@ -54,6 +56,8 @@ lake_path <- "input/lakes"
 
 func_prep_data(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir)
 
+func_prep_DDG(output = base_Tsteady, lewSpec_dir, save_out = paste0(save_base_Tsteady, "/DDG"), name1 = nameTS)
+  
 # func_prep_data_dt_parallel(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir, ncores = NULL)
 # func_prep_data_fast(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir)
 
@@ -61,14 +65,39 @@ func_prep_data(output = base_Tsteady, save_figures = save_base_Tsteady, lake_pat
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 # COMPARISON 
-save_comparison <- "output-analysis/comparison/final_TprofileVSTsteady"
+save_comparison <- "output-analysis/comparison_final_20years/DDG_TprofileVSTsteady"
 dir.create(save_comparison)
 
-res1 <- readRDS(file.path(base_Tprofile, "added_all_res.rds")) 
-res2 <- readRDS(file.path(base_Tsteady, "added_all_res.rds"))
+res_baseTP <- readRDS(file.path(base_Tprofile, "added_all_res.rds")) 
+res_baseTS <- readRDS(file.path(base_Tsteady, "added_all_res.rds"))
 
-data <- func_dataprep_compare_DDG(res1, res2, name1 = "base_Tprofile", name2 = "base_Tsteady", save_comparison) # in func_data_prep.R
+data <- func_dataprep_compare_DDG(res_baseTP, res2, name1 = "base_Tprofile", name2 = "base_Tsteady", save_comparison) # in func_data_prep.R
 
+save_out <- "output-analysis/comparison_final_20years/bio_TprofVSTsteady"
+dir.create(save_out)
+func_prepBIO_compare(res_baseTP, scenTP = nameTP, res_baseTS, scenTS = nameTS, save_out)
+# 20 years tprofile plus 5 degree ----------------------------------------
+# 20 YEARS T-Profile + base scenario, 100 species, all lakes < -10 m depth  20 YEARS-------------------------
+# Folder output of MGM experiment and Analysis results folder
+
+base_Tprofile20_plus5 <- "output/dep10_300spec_base_Tprofil_20years_plus5"
+save_base_Tprofile20_plus5 <- "output-analysis/dep10_300spec_base_Tprofil_20years_plus5"
+
+dir.create(save_base_Tprofile20_plus5)
+
+# input files
+lake_path <- "input/lakes"
+
+func_prep_data(output = base_Tprofile20_plus5, save_figures = save_base_Tprofile20_plus5, lake_path, lewSpec_dir)
+# slower beacause data is loaded to each core
+#func_prep_data_dt_parallel(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir, ncores = NULL)
+# func_prep_data_fast(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir)
+
+func_prep_DDG(output = base_Tprofile20_plus5, lewSpec_dir, save_out = paste0(save_base_Tprofile20_plus5, "/DDG"), name1 = "Tprofile_20years_plus5")
+
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------------
 # Test -------------------
 # -----------------------------------------------------------------------------------------
 # test oligotroph species T-Profile + 5 scenario, 100 species, all lakes < -10 m depth -------------------------
