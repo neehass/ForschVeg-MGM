@@ -23,9 +23,9 @@ n <- 300 # number of species per group (oligotroph, mesotroph, eutroph)
 chunk_size <- 1000 # split size of modeloutput for saving output 
 
 setting <- "parallel" # "HPC" # local # parallel
-modelrun <- "dep10_300spec_base_Tsteady_20years" # "dep300_5spec_base_Tsteady_final" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
+modelrun <- "dep10_300spec_base_Tsteady_20years_deep" # "dep300_5spec_base_Tsteady_final" # "test_data_paral" # "dep10_lakes_100spec_base_Tsteady" # dep10_lakes_100spec_base_Tprofile #"test_spec_14xxx" #  # "test_NoMachine" #Name of experiment
 years <- 20 #Number of years to get simulated [n]
-depths <- c(-0.5, -1.5, -3, -5) # only 4 depths possible here
+depths <- c(-5.5, -6, -7, -9) # c(-0.5, -1.5, -3, -5) # only 4 depths possible here
 yearsoutput <- 2
 tempProfile <- "false" # "false" true
 k <- 5
