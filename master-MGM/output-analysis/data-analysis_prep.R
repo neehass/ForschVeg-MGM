@@ -21,7 +21,7 @@ source("./output-analysis/func_data_prep.R")
 
 # final projekt ---------------------------
 # -----------------------------------------------------------------------------------------
-# T-Profile + base scenario, 100 species, all lakes < -10 m depth -------------------------
+# T-Profile + base scenario, 0.5-5m, 900species, all lakes < -10 m depth (27) -------------------------
 # Folder output of MGM experiment and Analysis results folder
 
 base_Tprofile <- "output/dep10_300spec_base_Tprofil_20years" # dep10_300spec_base_Tprofile_final2.0
@@ -40,9 +40,24 @@ func_prep_DDG(output = base_Tprofile, lewSpec_dir, save_out = paste0(save_base_T
 # slower beacause data is loaded to each core
 #func_prep_data_dt_parallel(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir, ncores = NULL)
 # func_prep_data_fast(output = base_Tprofile, save_figures = save_base_Tprofile, lake_path, lewSpec_dir)
+
+# deep [5.5-9m] -------------------------------------------------------------------
+baseTP_deep <- "output/dep10_300spec_base_Tprofile_20years_deep"
+save_baseTP_deep <- "output-analysis/dep10_300spec_base_Tprofile_20years_deep"
+nameTP <- "Tprofile_20years_deep"
+
+dir.create(save_baseTP_deep)
+
+# input files
+lake_path <- "input/lakes"
+
+func_prep_data(output = baseTP_deep, save_figures = save_baseTP_deep, lake_path, lewSpec_dir)
+
+func_prep_DDG(output = baseTP_deep, lewSpec_dir, save_out = paste0(save_baseTP_deep, "/DDG"), name1 = nameTP)
+
 # --------------------------------------------------------------------------------------------------------
 # --------------------------------------------------------------------------------------------------------
-# T-steady + base scenario, 100 species, all lakes < -10 m depth -------------------------
+# T-steady + base scenario, 0.5-5m, 900species, all lakes < -10 m depth (27) -------------------------
 # Folder output of MGM experiment and Analysis results folder
 
 base_Tsteady <- "output/dep10_300spec_base_Tsteady_20years" # dep10_300spec_base_Tsteady_final2.0 # 
@@ -60,6 +75,19 @@ func_prep_DDG(output = base_Tsteady, lewSpec_dir, save_out = paste0(save_base_Ts
   
 # func_prep_data_dt_parallel(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir, ncores = NULL)
 # func_prep_data_fast(output = base_Tsteady, save_figures = save_base_Tsteady, lake_path, lewSpec_dir)
+
+# deep [5.5-9m] -------------------------------------------------------------------
+baseTS_deep <- "output/dep10_300spec_base_Tsteady_20years_deep"
+save_baseTS_deep <- "output-analysis/dep10_300spec_base_Tsteady_20years_deep"
+nameTS <- "Tsteady_20years_deep"
+dir.create(save_baseTS_deep)
+
+# input files
+lake_path <- "input/lakes"
+
+func_prep_data(output = baseTS_deep, save_figures = save_baseTS_deep, lake_path, lewSpec_dir)
+
+func_prep_DDG(output = baseTS_deep, lewSpec_dir, save_out = paste0(save_baseTS_deep, "/DDG"), name1 = nameTS)
 
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------

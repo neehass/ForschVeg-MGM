@@ -775,7 +775,7 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
     ylim(0,40)+xlim(0,40)
   # A3
   p_DDG <-((A1/A2) / A3) +theme(legend.position = "bottom")+ 
-    labs(col="Spec. group") + 
+    labs(col="Spec. Group") + 
     plot_annotation(tag_levels = 'a',
                     tag_prefix = '(',
                     tag_suffix = ')')& 
@@ -783,6 +783,48 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
     guides(colour = guide_legend(override.aes = list(size=3)))
   
   return(p_DDG)
+}
+
+# for model deeper < 5 ---------------------------------------
+func_plot_DDG_deep <- function(lewSpec_dir, lakesDDG, scenario){
+  load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
+  
+  #unique(lakesDDG$Group)
+  #length(unique(lakesDDG$Group))
+  
+  TrophiePalette <- c("#56B4E9", "#E69F00", "#009E73")
+  # c("#56B4E9", "#E69f00", "#CC79A7")# aus Okabe–Ito-Palette
+  # https://stackoverflow.com/questions/57153428/r-plot-color-combinations-that-are-colorblind-accessible
+  # old: c("cornflowerblue","aquamarine4","coral4") #F0E442 #D55E00 
+  
+  # plot Gradient -----------------------------------------------
+  my.formula <- y ~ x 
+  
+  lakeclasses <- c("clear lakes","intermediate lakes", "turbid lakes")
+  names(lakeclasses)<-c("clear","medium","turb")
+  
+  A2<-lakesDDG %>%
+    filter(type == paste0("model_", scenario))%>%
+    left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
+                 select(-LakeName)),
+              by=c("Lake"))  %>%
+    ggplot(aes(depth, NSpecP, col=Group, group=interaction(Group,Lake)))+
+    #geom_path(alpha=0.5)+
+    geom_boxplot(aes(group=interaction(depth,Group), fill=Group))+
+    facet_grid(~class, 
+               labeller = labeller(class = lakeclasses))+
+    scale_colour_manual(values = c(rev(TrophiePalette)))+
+    theme(legend.title = element_blank()) +
+    xlab("Depth (m)")+ 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+    theme(legend.position = "none")+
+    #ggtitle("Potential species richness (model)")+
+    ylab("")+
+    scale_fill_manual(values = c(rev(TrophiePalette)))+
+    ylab("Potential \nspec. richness (%)") + theme(legend.position = "bottom")
+  # A2
+  
+  return(A2)
 }
 
 # Function to assign significance codes like in ANOVA ----------------------------

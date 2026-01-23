@@ -558,6 +558,62 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
   return(list(lakesDDG = lakesDDG, NSPECbase = NSPECbase, NSPECtotal = NSPECtotal, NLAKEStotal = NLAKEStotal))
 }
 
+# for depth > 5m 
+func_DDG_deep <- function(res_reshape, lewSpec_dir, scenario, save_figures){
+  
+  # NSPECbase
+  surv_spec <- res_reshape %>%
+    filter(Biomass_cat!= 0) %>%
+    distinct(speciesID)
+  
+  NSPECtotal <- res_reshape %>% select(speciesID) %>% unique() %>% count()
+  NLAKEStotal <- res_reshape %>% select(lakeID) %>% unique() %>% count()
+  
+  NSPECbase <- dim(surv_spec)[[1]]
+  
+  # DDG
+  
+  load(file.path(lewSpec_dir, "data/fulllakenames.rda"))
+  # head(res_reshape)
+  
+  lakesDDGModel <- res_reshape %>% 
+    group_by(Lake, Group) %>%
+    summarise_at(vars(depth_1, depth_2, depth_3, depth_4, 
+                      depth_5, depth_6, depth_7, depth_8), ~ sum(. != 0)) %>%
+    gather("depth", "NSpec", c(3:10))%>%
+    mutate(NSpecP=(NSpec/NSPECbase)*100) %>% 
+    select(-NSpec) %>%
+    mutate(type=paste0("model_", scenario))  
+  # head(lakesDDGModel) 
+  # unique(lakesDDGModel$depth)
+  
+  # drop na 
+  lakesDDGModel <- lakesDDGModel[!is.na(lakesDDGModel$Group), ]
+  # View(lakesDDGModel)
+ 
+  # head(lakesDDGMapped)
+  
+  lakesDDG <- lakesDDGModel %>% 
+    left_join(fulllakenames, by=c("Lake"="LakeID")) %>%
+    rename(LakeName = Lake.y) %>% 
+    mutate(depth=ifelse(depth=="depth_1","-0.5",
+                        ifelse(depth=="depth_2","-1.5",
+                               ifelse(depth=="depth_3","-3.0",
+                                      ifelse(depth=="depth_4","-5.0",
+                                             ifelse(depth=="depth_5","-5.5",
+                                                    ifelse(depth=="depth_6","-6.0",
+                                                           ifelse(depth=="depth_7","-7.0",
+                                                                  ifelse(depth=="depth_8","-9.0","NA"))))))))) 
+  # head(lakesDDG)
+  # unique(lakesDDG$depth)
+  
+  save(lakesDDG,
+       file = file.path(save_figures, paste0("lakesDDG_dep10", scenario, ".RData")))
+  
+  return(list(lakesDDG = lakesDDG, NSPECbase = NSPECbase, NSPECtotal = NSPECtotal, NLAKEStotal = NLAKEStotal))
+}
+
+
 # -----------------------------------------------------------------------------------------------------
 # data prep for comparison
 func_dataprep_comparison <- function(res1, res2, name1 = "_baseTP", name2 = "_baseTS", save_comparison){
@@ -668,9 +724,9 @@ func_prep_DDG <- function(output, lewSpec_dir, save_out, name1){
     # load data --------------------------------------------------------------------------------
   load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda")) # lake info
   
-  res <- readRDS(file.path(out_Tprofile, "added_all_res.rds")) 
+  res <- readRDS(file.path(output, "added_all_res.rds")) 
   
-  gen.conf <- readLines(file.path(out_Tprofile,"general.config.txt"))
+  gen.conf <- readLines(file.path(output,"general.config.txt"))
   k <- as.numeric(strsplit(gen.conf[8], " ")[[1]][2])
   
   unique(res$scenario)
@@ -704,6 +760,7 @@ func_prep_DDG <- function(output, lewSpec_dir, save_out, name1){
   res1_prep$Lake <- paste0("lake_", res1_prep$lakeID)
   res1_prep$scenario <- name1
   
+  dir.create(save_out)
   saveRDS(res1_prep, file = file.path(save_out, paste0("DDG_reshape_",name1,".rds")))
   
 }
