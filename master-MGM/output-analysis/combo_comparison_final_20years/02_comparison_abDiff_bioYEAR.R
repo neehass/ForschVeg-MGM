@@ -53,6 +53,18 @@ mean_res_TP <- sortRES_baseTP %>%
 head(mean_res_TP)
 unique(mean_res_TP$depth)
 
+sortRES_baseTP <- sortRES_baseTP %>%
+  mutate(
+    lakeClass = factor(
+      lakeClass,
+      levels = c("clear", "medium", "turb"),
+      labels = c("clear lakes", "intermediate lakes", "turbid lakes")))
+mean_res_TP <- mean_res_TP %>%
+  mutate(
+    lakeClass = factor(
+      lakeClass,
+      levels = c("clear", "medium", "turb"),
+      labels = c("clear lakes", "intermediate lakes", "turbid lakes")))
 # ---------------------------------------------------------------------------------------------------------
 # Tsteady --------------------------------------------------------------------------------
 sortRES_baseTSteady <- readRDS(file.path(dir_Tsteady, "sortRES_Tsteady_20years_combo.rds")) # sort_res # biomass > 0 sorted macrophyte data (grouped by lakeClass, speciesGroup, lakeGroup_Area, depth, day)
@@ -65,6 +77,20 @@ mean_res_TS <- sortRES_baseTSteady %>%
   summarise(biomass_mean = mean(biomass_mean), .groups = "drop")
 head(mean_res_TS)
 
+sortRES_baseTSteady <- sortRES_baseTSteady %>%
+  mutate(
+    lakeClass = factor(
+      lakeClass,
+      levels = c("clear", "medium", "turb"),
+      labels = c("clear lakes", "intermediate lakes", "turbid lakes")))
+mean_res_TS <- mean_res_TS %>%
+  mutate(
+    lakeClass = factor(
+      lakeClass,
+      levels = c("clear", "medium", "turb"),
+      labels = c("clear lakes", "intermediate lakes", "turbid lakes")
+    )
+  )
 # ----------------------------------
 # ---- plot ------------------------------------------------------------------------------------------
 TrophiePalette <- c("#56B4E9", "#E69F00", "#009E73") # old: TrophiePalette <- c("cornflowerblue","aquamarine4","coral4")
@@ -240,7 +266,7 @@ p_box
 ggsave(file.path(save_comparison, "04_biomass_BOX_compar.png"), p_box,
        height = 8, width = 6, dpi = "print", scale =1.2)
 
-p_combo_bio4 <-  (p_box+p_cb) +
+p_combo_bio5 <-  (p_box+p_cb) +
   # plot_layout(design = layout) +
   plot_layout(guides = "collect") +
   plot_annotation(tag_levels = 'a',
@@ -251,6 +277,6 @@ p_combo_bio4 <-  (p_box+p_cb) +
   theme(legend.position = "bottom", legend.direction = "horizontal" , 
         legend.box = "vertical")
 
-p_combo_bio4
-ggsave(file.path(save_comparison, "05_bio_BOXandDAY_compar.png"), p_combo_bio4,
+p_combo_bio5
+ggsave(file.path(save_comparison, "05_bio_BOXandDAY_compar.png"), p_combo_bio5,
        width  = 8.5, height = 6, dpi = "print", scale =1.2)

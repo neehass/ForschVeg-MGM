@@ -122,6 +122,14 @@ lakesDDG_combo <- rbind(lakesDDG_Tprofile[lakesDDG_Tprofile$dataset == "model_ba
               mutate(Lake = paste0("lake_", Lake)) %>% 
               select(-LakeName), by = "Lake") %>% ungroup()
 lakesDDG_combo_sel <- lakesDDG_combo %>% select(Group, depth, NSpecP, dataset, class)
+lakesDDG_combo <- lakesDDG_combo %>%
+  mutate(
+    class = factor(
+      class,
+      levels = c("clear", "medium", "turb"),
+      labels = c("clear lakes", "intermediate lakes", "turbid lakes")
+    )
+  )
 
 head(lakesDDG_combo_sel)
 # summary(lakesDDG_combo_sel)

@@ -121,6 +121,37 @@ lakesDDG_combo_abDiff <- lakesDDG_combo %>%
 comparison_labels <- c(
   diff_Tprofile_Tsteady = "base Tprofile - \nbase Tsteady"
 )
+lakesDDG_combo_abDiff <- lakesDDG_combo %>% 
+  group_by(Lake, Group, class, depth) %>% 
+  # summarise(NSpecP = list(NSpecP), dataset = list(dataset), .groups = "drop") %>%
+  # unnest(c(NSpecP, dataset)) %>%
+  pivot_wider(
+    names_from = dataset,
+    values_from = NSpecP
+  ) %>%
+  mutate(
+    diff_Tprofile_Tsteady = model_base_Tprofile - model_base_Tsteady 
+  ) %>%
+  pivot_longer(
+    cols = c(diff_Tprofile_Tsteady),
+    names_to = "comparison",
+    values_to = "diff",
+  )
+
+# head(lakesDDG_combo_abDiff)
+
+comparison_labels <- c(
+  diff_Tprofile_Tsteady = "base Tprofile - \nbase Tsteady"
+)
+
+lakesDDG_combo_abDiff <- lakesDDG_combo_abDiff %>%
+  mutate(
+    class = factor(
+      class,
+      levels = c("clear", "medium", "turb"),
+      labels = c("clear lakes", "intermediate lakes", "turbid lakes")
+    )
+  )
 
 #DDG 
 p_DDG_TP <- func_plot_DDG_deep(lewSpec_dir, lakesDDG_Tprofile, scenario = "base_Tprofile") # in help-func.R

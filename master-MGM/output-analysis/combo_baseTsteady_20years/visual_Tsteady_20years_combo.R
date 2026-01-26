@@ -83,10 +83,26 @@ unique(sort_res_deep$depth)
 
 sortRES_combo <- rbind(sort_res_top, sort_res_deep)
 unique(sortRES_combo$depth)
+sortRES_combo <- sortRES_combo %>%
+  mutate(
+    lakeClass = factor(
+      lakeClass,
+      levels = c("clear", "medium", "turb"),
+      labels = c("clear lakes", "intermediate lakes", "turbid lakes")
+    )
+  )
 saveRDS(sortRES_combo, file = file.path(save_out, paste0("sortRES_",name,".rds")))
 
 # environmetnal data is the same
 any(sort_env_top != sort_env_deep)
+sort_env_top <- sort_env_top %>%
+  mutate(
+    lakeClass = factor(
+      lakeClass,
+      levels = c("clear", "medium", "turb"),
+      labels = c("clear lakes", "intermediate lakes", "turbid lakes")
+    )
+  )
 
 # ---- Results -------------------------------------------
 # ---- plot ------------------------------------------------------------------------------------------
@@ -121,7 +137,8 @@ p_box <- ggplot(sortRES_combo, aes(x = factor(depth, levels = rev(sort(unique(de
        y = "Mean Biomass [g]", x = "Depths [m]", fill = "Lake \nArea-Group",  col = "Lake \nArea-Group")+
      scale_fill_brewer(palette = "Set2") + scale_color_brewer(palette = "Set2")  +
   theme(legend.position = "bottom") +
-  guides(fill = guide_legend(nrow = 1))
+  guides(fill = guide_legend(nrow = 1)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 p_box
 ggsave(file.path(save_figures, paste("BOX", name, "_biomass_day.png")), p_box, 
        width = 6.5, height=8, dpi="print", bg="white", scale=1.2)
