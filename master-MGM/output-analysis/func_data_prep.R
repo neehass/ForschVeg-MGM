@@ -498,7 +498,7 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
     gather("depth", "NSpec", c(3:6))%>%
     mutate(NSpecP=(NSpec/NSPECbase)*100) %>% 
     select(-NSpec) %>%
-    mutate(type=paste0("model_", scenario))  
+    mutate(dataset=paste0("model_", scenario))  
   # head(lakesDDGModel)
   
   # drop na 
@@ -510,7 +510,7 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
                         ifelse(Depth==-3.0, "depth_3",
                                ifelse(Depth==-1.5, "depth_2",
                                       ifelse(Depth==-0.5, "depth_1",NA))))) %>%
-    mutate(type="mapped") %>% 
+    mutate(dataset="mapped") %>% 
     rename(NSpecP=NSPECperc) %>% 
     ungroup() %>%
     select(-NSPEC, -Depth, -Lake) %>% 
@@ -535,7 +535,7 @@ func_DDG <- function(res_reshape, lewSpec_dir, scenario, save_figures){
     DDG_mapped_selected <- lakesDDGMapped %>%
       semi_join(mapped_missing, by = c("Lake", "Group", "depth"))
     DDG_mapped_selected$NSpecP <- 0
-    DDG_mapped_selected$type <- paste0("model_", scenario)
+    DDG_mapped_selected$dataset <- paste0("model_", scenario)
     
     lakesDDGModel <- rbind(lakesDDGModel, DDG_mapped_selected)
   }
@@ -583,7 +583,7 @@ func_DDG_deep <- function(res_reshape, lewSpec_dir, scenario, save_figures){
     gather("depth", "NSpec", c(3:10))%>%
     mutate(NSpecP=(NSpec/NSPECbase)*100) %>% 
     select(-NSpec) %>%
-    mutate(type=paste0("model_", scenario))  
+    mutate(dataset=paste0("model_", scenario))  
   # head(lakesDDGModel) 
   # unique(lakesDDGModel$depth)
   

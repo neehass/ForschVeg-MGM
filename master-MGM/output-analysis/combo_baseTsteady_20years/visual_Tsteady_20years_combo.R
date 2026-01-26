@@ -141,10 +141,10 @@ p_macro <- ggplot(sortRES_combo, aes(x = day, y = biomass_mean,
   geom_line(alpha = 0.2) +
   geom_line(data = sort_res_mean, aes(x = day, y = biomass_mean,
                                     color = speciesGroup), linewidth = 0.8) +
-  scale_color_manual(values = TrophiePalette) +
-  facet_grid( depth ~  lakeClass) +
+  scale_color_manual(values =  c(rev(TrophiePalette))) +
+  facet_grid( depth ~  lakeClass,  scales = "free_y") +
   theme_bw() + theme(legend.position = "bottom") +
-  labs(title = "base Tprofile",
+  labs(title = scenario,
        y = "Mean Biomass [g]", x = "Days", color = "Spec. Group") 
 
 p_macro
@@ -319,5 +319,5 @@ p_combo <-  p_macro + p_Tprofile + plot_layout(guides = "collect") +
   
 p_combo
 ggsave(file.path(save_figures, paste0("Biomass_day_temp",name,".png")), p_combo, 
-       width = 4.5, height=6, dpi="print", bg="white", scale=1.2)
+       width = 4.5, height=7, dpi="print", bg="white", scale=1.2)
 

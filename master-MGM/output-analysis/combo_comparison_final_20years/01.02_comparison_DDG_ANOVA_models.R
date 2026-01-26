@@ -8,6 +8,10 @@
 # dep10_300spec_base_Tprofil_20years
 # dep10_300spec_base_Tsteady_20years
 
+# dep10_300spec_base_Tprofil_20years_deep
+# dep10_300spec_base_Tsteady_20years_deep
+
+
 # packages & functions
 library(dplyr)
 library(tidyr)
@@ -49,10 +53,10 @@ source("./output-analysis/func_data_prep.R")
 # dir setup ---------------------------------------------------------------------------------
 # Folder output of MGM experiment and Analysis results folder
 
-dir_Tprofile <- "output-analysis/dep10_300spec_base_Tprofil_20years"
-dir_Tsteady <- "output-analysis/dep10_300spec_base_Tsteady_20years"
+dir_Tprofile <- "output-analysis/combo_baseTprofile_20years"
+dir_Tsteady <- "output-analysis/combo_baseTsteady_20years"
 
-save_comparison <- "output-analysis/comparison_final_20years/DDG_TprofileVSTsteady"
+save_comparison <- "output-analysis/combo_comparison_final_20years/DDG_TprofileVSTsteady/model"
 
 dir.create(save_comparison)
 
@@ -63,41 +67,12 @@ lake_path <- "input/lakes"
 # load data after prep in data-analysisi_prep.R/ or output-analysis folders of models
 
 # DDG res_reshape
-res_reshape_Tprofile <- readRDS(file.path(dir_Tprofile, "DDG", "DDG_reshape_Tprofile_20years.rds")) # res_reshape_Tprofile
-res_reshape_Tprofile <- res_reshape_Tprofile[, !names(res_reshape_Tprofile) %in% "depth_NA"]
+lakesDDG_Tprofile <- readRDS(file.path(dir_Tprofile, "lakesDDG_Tprofile_20years_combo.rds")) # res_reshape_Tprofile
+lakesDDG_Tprofile <- lakesDDG_Tprofile[, !names(lakesDDG_Tprofile) %in% "depth_NA"]
+unique(lakesDDG_Tprofile$dataset)
 
-res_reshape_Tsteady <- readRDS(file.path(dir_Tsteady, "DDG","DDG_reshape_Tsteady_20years.rds")) # res_reshape_Tsteady
-res_reshape_Tsteady <- res_reshape_Tsteady[, !names(res_reshape_Tsteady) %in% "depth_NA"]
-
-# print nrow where biomass > 0
-specgroup <- unique(res_reshape_Tprofile$speciesGroup)
-for(i in 1:3){
-  oli <- res_reshape_Tprofile %>% filter(speciesGroup == specgroup[i])  %>% filter(Biomass_cat > 0)
-  message(specgroup[i], ":", sum(oli$Biomass_cat))
-}
-
-# ---------------------------------------------------------------------------------------
-# T profile ----------------------------
-scenario <- res_reshape_Tprofile$scenario %>% unique()
-
-NSPEC <- func_DDG(res_reshape = res_reshape_Tprofile , 
-                  lewSpec_dir, scenario, save_figures = save_comparison) # in func_data_prep.R
-lakesDDG_Tprofile <- NSPEC$lakesDDG
-NSPEC$NSPECbase
-lakesDDG_Tprofile$dataset[lakesDDG_Tprofile$dataset != "mapped"] <- "model_base_Tprofile"
-# View(lakesDDG_Tprofile)
-# load(file.path(save_comparison, paste0("lakesDDG_dep10", scenario, ".RData"))
-# ---------------------------------------------------------------------------------------
-# T steady ----------------------------
-scenario <- res_reshape_Tsteady$scenario %>% unique()
-
-NSPEC_TS <- func_DDG(res_reshape = res_reshape_Tsteady , 
-                     lewSpec_dir, scenario, save_figures = save_comparison)
-lakesDDG_Tsteady <- NSPEC_TS$lakesDDG
-NSPEC_TS$NSPECbase
-lakesDDG_Tsteady$dataset[lakesDDG_Tsteady$dataset != "mapped"] <- "model_base_Tsteady"
-unique(lakesDDG_Tsteady$dataset)
-# load(file.path(save_comparison, paste0("lakesDDG_dep10", scenario, ".RData"))
+lakesDDG_Tsteady <- readRDS(file.path(dir_Tsteady,"lakesDDG_Tsteady_20years_combo.rds")) # res_reshape_Tsteady
+lakesDDG_Tsteady <- lakesDDG_Tsteady[, !names(lakesDDG_Tsteady) %in% "depth_NA"]
 
 # ---------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------
@@ -109,13 +84,14 @@ abDiffPalette <- brewer.pal(n = 3, name = "Pastel2")
 depthPalette <- brewer.pal(n = 4, name = "Paired")
 
 # combine data 
-lakesDDG_combo <- rbind(lakesDDG_Tprofile[lakesDDG_Tprofile$dataset == "model_base_Tprofile",], lakesDDG_Tsteady) %>%
+lakesDDG_combo <- rbind(lakesDDG_Tprofile, lakesDDG_Tsteady) %>%
   left_join(data_lakes_env_class %>% 
               mutate(Lake = paste0("lake_", Lake)) %>% 
               select(-LakeName), by = "Lake") %>% ungroup()
 lakesDDG_combo_sel <- lakesDDG_combo %>% select(Group, depth, NSpecP, dataset, class)
 
 head(lakesDDG_combo_sel)
+unique(lakesDDG_combo$dataset)
 # summary(lakesDDG_combo_sel)
 # unique(lakesDDG_combo$Group)
 # --------------------------------------------------------------------------------------
@@ -132,12 +108,10 @@ lakesDDG_combo_abDiff <- lakesDDG_combo %>%
     values_from = NSpecP
   ) %>%
   mutate(
-    diff_mapped_Tprofile = mapped - model_base_Tprofile,
-    diff_mapped_Tsteady = mapped - model_base_Tsteady,
     diff_Tprofile_Tsteady = model_base_Tprofile - model_base_Tsteady 
   ) %>%
   pivot_longer(
-    cols = c(diff_mapped_Tprofile, diff_mapped_Tsteady, diff_Tprofile_Tsteady),
+    cols = c(diff_Tprofile_Tsteady),
     names_to = "comparison",
     values_to = "diff",
   )
@@ -145,58 +119,47 @@ lakesDDG_combo_abDiff <- lakesDDG_combo %>%
 # head(lakesDDG_combo_abDiff)
 
 comparison_labels <- c(
-  diff_mapped_Tprofile = "mapped - \nmodel base Tprofile",
-  diff_mapped_Tsteady = "mapped - \nmodel base Tsteady",
   diff_Tprofile_Tsteady = "base Tprofile - \nbase Tsteady"
 )
 
-# Boxplot
-p_box_NSpecP_abDiff <- ggplot(lakesDDG_combo_abDiff, aes(x = comparison, y = diff, fill = comparison)) +
-  geom_boxplot() +
-  scale_x_discrete(labels = comparison_labels) +
-  scale_fill_manual(values = abDiffPalette) +
-  geom_hline(yintercept = 0, linedataset = "dashed", color = "black", linewidth = 0.8)+
-  labs(
-    x = "",
-    y = "Absolute diff. Spec. richness (%)"
-  ) +
-  theme_bw() +
-  theme(legend.position = "none")  # falls keine Legende nötig
+#DDG 
+p_DDG_TP <- func_plot_DDG_deep(lewSpec_dir, lakesDDG_Tprofile, scenario = "base_Tprofile") # in help-func.R
+p_DDG_TP
+ggsave(file.path(save_comparison, "DDG_Tprofile.png"), p_DDG_TP, 
+       height = 4.5, width = 6, dpi = "print", scale =1.2)
 
-# p_box_NSpecP_abDiff
-
-p_box_NSpecP_funcdataset_abDiff <- ggplot(lakesDDG_combo_abDiff,
-                                       aes(x = comparison, y = diff, fill = Group)) +
-  geom_boxplot(position = position_dodge(width = 0.75)) +
-  scale_x_discrete(labels = comparison_labels) +
-  scale_fill_manual(values = TrophiePalette) +
-  geom_hline(yintercept = 0, linedataset = "dashed", color = "black", linewidth = 0.8)+
-  labs(
-    x = "",
-    y = "Absolute diff. \nSpec. richness (%)"
-  ) +
-  theme_bw() +
-  labs(fill = "Spec.Group")
-#p_box_NSpecP_funcdataset_abDiff
+p_DDG_TS <- func_plot_DDG_deep(lewSpec_dir, lakesDDG_Tsteady,  scenario = "base_Tsteady") # in help-func.R
+p_DDG_TS
+ggsave(file.path(save_comparison, "DDG_Tsteady.png"), p_DDG_TS, 
+       height = 4.5, width = 6, dpi = "print", scale =1.2)
 
 # diff per depth
-p_box_NSpecP_depth_abDiff <- ggplot(lakesDDG_combo_abDiff[lakesDDG_combo_abDiff$comparison == "diff_Tprofile_Tsteady", ],
-                                    aes(x = depth, y = diff, fill = Group)) +
-  geom_boxplot(position = position_dodge(width = 0.75)) +
+p_box_NSpecP_depth_abDiff <- 
+  ggplot(lakesDDG_combo_abDiff, aes(depth, diff, col=Group, group=interaction(Group,Lake)))+
+  #geom_path(alpha=0.5)+
+  geom_boxplot(aes(group=interaction(depth,Group), fill=Group))+
+  
   scale_x_discrete(labels = comparison_labels) +
-  scale_fill_manual(values = TrophiePalette) +
-  geom_hline(yintercept = 0, linedataset = "dashed", color = "black", linewidth = 0.8)+
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black", linewidth = 0.8)+
   labs(
     x = "",
     y = "Absolute diff. \nSpec. richness (%)"
   ) +
-  theme_bw() + 
+  theme(legend.title = element_blank()) + 
   facet_wrap(~class, ncol = 3) +
-  labs(title = "model base \n Tprofile - Tsteady", fill = "Spec.Group")
-# p_box_NSpecP_depth_abDiff
+  labs(title = "model base \n Tprofile - Tsteady") +
+  scale_colour_manual(values = c(rev(TrophiePalette)))+
+  theme(legend.title = element_blank()) +
+  xlab("Depth (m)")+ 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  theme(legend.position = "none")+
+  #ggtitle("Potential species richness (model)")+
+  ylab("")+
+  scale_fill_manual(values = c(rev(TrophiePalette)))+
+  ylab("Absolute diff. \nSpec. richness (%)") 
+p_box_NSpecP_depth_abDiff
 
-p_box_combo_abDiff <- ((#p_box_NSpecP_abDiff / 
-  p_box_NSpecP_funcdataset_abDiff)/ p_box_NSpecP_depth_abDiff) + 
+p_box_combo_abDiff <- ((p_DDG_TS/ p_DDG_TP)/ p_box_NSpecP_depth_abDiff) + 
   plot_layout(guides = "collect") &
   theme(legend.position = "bottom") &
   plot_annotation(tag_levels = 'a',
@@ -214,45 +177,34 @@ lakesDDG_combo_sel$depth <- factor(lakesDDG_combo_sel$depth)
 lakesDDG_combo_sel$Group <- factor(lakesDDG_combo_sel$Group)
 lakesDDG_combo_sel$dataset <- factor(lakesDDG_combo_sel$dataset)
 lakesDDG_combo_sel$class <- factor(lakesDDG_combo_sel$class)
-
-lakesDDG_combo_sel2 <- lakesDDG_combo_sel %>% filter(dataset != "mapped") # only Tsteady & Tprofile 
-
-# Is NSpecP significantly different among the 3 datasets? ----------------------- 
-# ANOVA 
-anova1 <- aov(NSpecP ~ dataset, data = lakesDDG_combo_sel)
-summary(anova1) 
-# effect of dataset on NSpecP is highly significant. p 1.18e-08 und F= 18.6 means difference is strong
-
-# Post-hoc pairwise tests (ANOVA signifcant)
-TukeyHSD(anova1) 
-# Mapped has significantly lower NSpecP than both model datasets.
-# Tprofile +3.3 einheiten höher als mapped
-# Tsteady 3.9 einheiten höher als mapped
-# kein sign unterschied zwischen Tprofiel and Tsteady, kleiner unterschied
+unique(lakesDDG_combo$dataset)
 
 # 1. is Nspec sign. differnt between Trpofile base & Tsteady ?? ------------------------------------
 # !!! without mapped !!!
 # ANOVA Assumptions
-anova2 <- aov(NSpecP ~ dataset, data = lakesDDG_combo_sel2)
-summary(anova2) # not significant different !
+# ANOVA 
+anova1 <- aov(NSpecP ~ dataset, data = lakesDDG_combo_sel)
+summary(anova1) 
+# effect of dataset on NSpecP not sign
 
-res <- residuals(anova2)
-shapiro.test(res) # H0= residuals are normal dis. --> p<4.231e-16 not perfectly nomral distribution 
+res <- residuals(anova1)
+shapiro.test(res) # H0= residuals are normal dis. --> p<2.2e-16 not perfectly nomral distribution 
 
-leveneTest(NSpecP ~ dataset, data = lakesDDG_combo_sel2) # H0 = Variances are equal --> p=0.9839 varainces are homogen
+leveneTest(NSpecP ~ dataset, data = lakesDDG_combo_sel) 
+# H0 = Variances are equal --> p=0.3235 varainces are homogen
 
 # conclusion Hapriro shows not perfectly dist. residuals, but with large n of smaples 'ANOVA is robust
 ## due to homogenous Variance: 
 # ANOVA is robust to unequal sample sizes as long as variance is homogeneous — which your Levene’s test confirmed.
 
 # 2. ANOVA dataset* Group -----------------------------------------------
-anova3 <- aov(NSpecP ~ dataset + dataset *Group, data = lakesDDG_combo_sel2)
-summary(anova3)
-emmeans(anova3, pairwise ~ dataset * Group)
+anova2 <- aov(NSpecP ~ dataset + dataset *Group, data = lakesDDG_combo_sel)
+summary(anova2)
+emmeans(anova2, pairwise ~ dataset * Group)
 # species Groups unterscheiden sich signifikant, innerhalb der datasets * Group nicht 
 
 # 3. NSpecP multi-factor datasets, group, depth, class -----------------------------------------
-anova_multi <- aov(NSpecP ~ dataset + Group + depth + class, data = lakesDDG_combo_sel2)
+anova_multi <- aov(NSpecP ~ dataset + Group + depth + class, data = lakesDDG_combo_sel)
 summary(anova_multi)
 
 # Post-hoc pairwise tests (ANOVA signifcant)
@@ -261,7 +213,7 @@ emmeans(anova_multi, pairwise ~ class) # Class significant effect on NSpecP, va 
 emmeans(anova_multi, pairwise ~ depth) # all depth combos sign differeces only -05 ~ -3 not sign
 
 # 4. ANOVA Interaction class, group, depth ----------------------------
-anova_group_depth_class <- aov(NSpecP ~ Group * class * depth, data = lakesDDG_combo_sel2)
+anova_group_depth_class <- aov(NSpecP ~ Group * class * depth, data = lakesDDG_combo_sel)
 summary(anova_group_depth_class)
 sum_gdc <- summary(anova_group_depth_class)[[1]]
 p_values_gdc <- sum_gdc$`Pr(>F)`
@@ -284,7 +236,7 @@ p_values_gdc_df$p_values <- as.character(p_values_gdc_df$p_values)
 
 # plot 
 # plot Group *Class interaction
-p_g_c <- ggplot(lakesDDG_combo_sel2, aes(x = Group, y = NSpecP, color = class)) +
+p_g_c <- ggplot(lakesDDG_combo_sel, aes(x = Group, y = NSpecP, color = class)) +
   stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "point", size = 3) +
   stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "line", aes(group = class)) +
   annotate("text", x = 1, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
@@ -295,7 +247,7 @@ p_g_c <- ggplot(lakesDDG_combo_sel2, aes(x = Group, y = NSpecP, color = class)) 
     color = "Turbidity", x = "Spec. Group", y = "Spec. richness (%)")
 # p_g_c
 # group x depth interaction
-p_g_d <- ggplot(lakesDDG_combo_sel2, aes(x = depth, y = NSpecP, color = Group)) +
+p_g_d <- ggplot(lakesDDG_combo_sel, aes(x = depth, y = NSpecP, color = Group)) +
   stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "point", size = 3) +
   stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "line", aes(group = Group)) +
   scale_color_manual(values = TrophiePalette) +
@@ -307,7 +259,7 @@ p_g_d <- ggplot(lakesDDG_combo_sel2, aes(x = depth, y = NSpecP, color = Group)) 
     color = "Spec. Group", x = "Depth", y = "Spec. richness (%)")
 # p_g_d
 
-p_c_d <- ggplot(lakesDDG_combo_sel2, aes(x = depth, y = NSpecP, color = class)) +
+p_c_d <- ggplot(lakesDDG_combo_sel, aes(x = depth, y = NSpecP, color = class)) +
   stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "point", size = 3) +
   stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "line", aes(group = class)) +
   annotate("text", x = 1, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
@@ -318,11 +270,11 @@ p_c_d <- ggplot(lakesDDG_combo_sel2, aes(x = depth, y = NSpecP, color = class)) 
     color = "Turbidity", x = "Depth", y = "Spec. richness (%)")
 # p_c_d
 
-p_class_group_depth <- ggplot(lakesDDG_combo_sel2, aes(x = depth, y = NSpecP, color = Group, linedataset = class)) +
+p_class_group_depth <- ggplot(lakesDDG_combo_sel, aes(x = depth, y = NSpecP, color = Group, linetype = class)) +
   stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "point") +
   stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "line", aes(group = interaction(Group, class))) +
   scale_color_manual(values = TrophiePalette  ) + # depthPalette
-  labs(color = "Spec. Group", x = "Depth", y = "Spec. richness (%)", linedataset = "Turbidity") +
+  labs(color = "Spec. Group", x = "Depth", y = "Spec. richness (%)", linetype = "Turbidity") +
   theme_bw()
 
 # p_class_group_depth
@@ -353,7 +305,7 @@ emmeans(anova_group_depth_class, pairwise ~ Group* class * depth)
 # >> no evidence that depth-dependent group effects vary consistently across classes.
 
 # 5. ANOVA possible two-way interactions ------------------------------------------------------------
-anova_inter <- aov(NSpecP ~ dataset * Group + dataset * depth + dataset * class, data = lakesDDG_combo_sel2)
+anova_inter <- aov(NSpecP ~ dataset * Group + dataset * depth + dataset * class, data = lakesDDG_combo_sel)
 summary(anova_inter) # NSpecP differences among datasets are not constant across groups, depths, or classes.
 # dataset no sign unterschied | group, depth, class haben in sich signifikante unterschiede
 
@@ -511,125 +463,4 @@ p_DDG_comp
 ggsave(file.path(save_comparison, paste0("DDG_dep10_COMP_base.png")), p_DDG_comp, 
        height = 6, width = 4.5, dpi = "print", scale =1.2)
 
-# ---------------------------------
-# ANOVA including  mapped  -------------------------------------------------------------------
-anova31 <- aov(NSpecP ~ dataset + dataset* Group, data = lakesDDG_combo_sel)
-summary(anova31)
-emmeans(anova31, pairwise ~ dataset * Group)
-
-cont2_df <- as.data.frame(emmeans(anova31, pairwise ~ dataset)[[2]])
-cont2_df$sign <- sapply(cont2_df$p.value, get_signif)
-cont2_df$p.value <- sapply(cont2_df$p.value, getformat_p)
-cont2_df[,c(1,6,7)]
-
-# boxplot 
-p_box_NSpecP <- ggplot(lakesDDG_combo_sel,
-                       aes(x = dataset, y = NSpecP, fill = dataset)) +
-  geom_boxplot(position = position_dodge(width = 0.75)) +
-  scale_fill_manual(values = modeldatasetPalette) +
-  labs(#title = "NSpecP by dataset",
-    x = "Modeldataset",
-    y = "Spec. richness (%)") +
-  theme_bw() 
-# p_box_NSpecP
-
-spacing <- 2
-y_pos <- max(lakesDDG_combo_sel$NSpecP) + seq(spacing, spacing * 3, by = spacing)
-p_box_NSpecP_text <- p_box_NSpecP +
-  geom_text(
-    data = cont2_df,
-    aes(x = 0.7,  
-        y = y_pos,
-        label = paste(contrast, ": p.value", p.value, sign)),
-    inherit.aes = FALSE,
-    hjust = 0 , # linksbündig
-    size = 3
-  )
-# p_box_NSpecP_text
-
-p_box_NSpecP_funcdataset <- ggplot(lakesDDG_combo_sel,
-                                aes(x = dataset, y = NSpecP, fill = Group)) +
-  geom_boxplot(position = position_dodge(width = 0.75)) +
-  scale_fill_manual(values = TrophiePalette) +
-  labs(#title = "NSpecP by dataset and Functional Species Group",
-    x = "Modeldataset",
-    y = "Spec. richness (%)", 
-    fill = "Spec. Group") +
-  theme_bw() 
-# theme(axis.text.x = element_text(angle = 45, hjust = 1))
-# p_box_NSpecP_funcdataset
-
-p_box_combo <- p_box_NSpecP_text / p_box_NSpecP_funcdataset +
-  plot_annotation(tag_levels = 'a',
-                  tag_prefix = '(',
-                  tag_suffix = ')')& 
-  theme(plot.tag = element_text(size = 12))& 
-  guides(colour = guide_legend(override.aes = list(size=3)))
-p_box_combo
-ggsave(file.path(save_comparison, "DDG_anova_box_modledataset.png"), p_box_combo, height = 8, width = 6, dpi = "print", scale =1.2)
-
-# ANOVA possible two-way interactions ------------------------------------------------------------
-# !! mapped included !!!
-anova_inter <- aov(NSpecP ~ dataset * Group + dataset * depth + dataset * class, data = lakesDDG_combo_sel)
-summary(anova_inter) # NSpecP differences among datasets are not constant across groups, depths, or classes.
-
-sum_inter <- summary(anova_inter)[[1]]
-p_values_inter <- sapply(sum_inter$`Pr(>F)`, getformat_p)
-sign_inter <- sapply(p_values_inter, get_signif)
-
-p_values_inter_df <- data.frame(x = rownames(sum_inter), p_values = p_values_inter , sign = sign_inter, stringsAsFactors = FALSE)
-p_values_inter_df$x <- as.character(p_values_inter_df$x)
-p_values_inter_df
-
-# Post-hoc pairwise tests (ANOVA signifcant)
-emmeans(anova_inter,  ~ dataset*Group)
-
-# plot 
-p_group <- ggplot(lakesDDG_combo_sel, aes(x = dataset, y = NSpecP, color = Group)) +
-  stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "point", size = 3) +
-  stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "line", aes(group = Group)) +
-  annotate("text", x = 1, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
-           label = paste("p-value", p_values_inter_df$p_values[5], p_values_inter_df$sign[5]), 
-           color = "black", size = 3) +
-  scale_color_manual(values = TrophiePalette) +
-  theme_bw() +
-  labs(# title = "Interaction: NSpecP ~ dataset * Group",
-    x = "Modeldataset", y = "Spec. richness (%)")
-p_depth <- ggplot(lakesDDG_combo_sel, aes(x = dataset, y = NSpecP, color = depth)) +
-  stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "point", size = 3) +
-  stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "line", aes(group = depth)) +
-  scale_color_manual(values = depthPalette) +
-  annotate("text", x = 1, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
-           label = paste("p-value", p_values_inter_df$p_values[6], p_values_inter_df$sign[6]), 
-           color = "black", size = 3) +
-  theme_bw() +
-  labs(# title = "Interaction: NSpecP ~ dataset * depth",
-    x = "Modeldataset", y = "Spec. richness (%)")
-p_class <- ggplot(lakesDDG_combo_sel, aes(x = dataset, y = NSpecP, color = class)) +
-  stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "point", size = 3) +
-  stat_summary(fun = function(x) mean(x, na.rm = TRUE), geom = "line", aes(group = class)) +
-  theme_bw() +
-  annotate("text", x = 1, y = max(lakesDDG_combo_sel$NSpecP) * 0.95, 
-           label = paste("p-value", p_values_inter_df$p_values[7], p_values_inter_df$sign[7]), 
-           color = "black", size = 3) +
-  labs(#title = "Interaction: NSpecP ~ dataset * class",
-    x = "Modeldataset", y = "Spec. richness (%)")
-
-p_inter_combo <- ((p_group / p_depth)/ p_class) +
-  plot_annotation(tag_levels = 'a',
-                  tag_prefix = '(',
-                  tag_suffix = ')')& 
-  theme(plot.tag = element_text(size = 12))& 
-  guides(colour = guide_legend(override.aes = list(size=3)))
-p_inter_combo
-ggsave(file.path(save_comparison, "DDG_anova_modeldataset_inter.png"), p_inter_combo, height = 8, width = 6, dpi = "print", scale =1.2)
-
-# Artenreichtum (% NSpecP) unterscheidet sich deutlich zwischen den Modelldatasetn.
-# nterschiedliche Gruppen zeigen unterschiedliche NSpecP-Werte.
-# Tiefe beeinflusst NSpecP stark.
-# Klassifizierung alleine hat keinen signifikanten Einfluss auf NSpecP.
-# interaktion
-# Der Effekt von dataset auf NSpecP hängt davon ab, welche Group betrachtet wird, Unterschiede zwischen Modelldatasetn sind nicht konstant über Gruppen
-# Der Effekt von dataset auf NSpecP variiert mit der Tiefe
-# Der Effekt von dataset auf NSpecP variiert mit der Klassifizierung
 

@@ -117,6 +117,9 @@ NSPEC$NSPECbase
 
 head(lakesDDG_Tprofile)
 unique(lakesDDG_Tprofile$depth)
+lakesDDG_Tprofile$dataset <- "model_base_Tprofile"
+
+saveRDS(lakesDDG_Tprofile, file = file.path(save_out, paste0("lakesDDG_",name1,".rds")))
 
 # Plot Depth diversity gradient -------------
 p_DDG_TP <- func_plot_DDG_deep(lewSpec_dir, lakesDDG_Tprofile, scenario) # in help-func.R

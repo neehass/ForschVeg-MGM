@@ -708,7 +708,7 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
   names(lakeclasses)<-c("clear","medium","turb")
   
   A2<-lakesDDG %>%
-    filter(type == paste0("model_", scenario))%>%
+    filter(dataset == paste0("model_", scenario))%>%
     left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
                  select(-LakeName)),
               by=c("Lake"))%>%
@@ -728,7 +728,7 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
     ylab("Potential \nspec. richness (%)")
   # A2
   A1<-lakesDDG %>%
-    filter(type=="mapped")%>%
+    filter(dataset=="mapped")%>%
     left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
                  select(-LakeName)),
               by=c("Lake"))%>%
@@ -747,11 +747,11 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
     ylab("Observed \nspec. richness (%)")
   # A1
   A3<-lakesDDG %>%
-    #filter(type=="mapped")%>%
+    #filter(dataset=="mapped")%>%
     left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
                  select(-LakeName)),
               by=c("Lake")) %>%
-    spread(type,NSpecP) %>%
+    spread(dataset,NSpecP) %>%
     ggplot(aes(x= !!sym(paste0("model_", scenario)) ,y=mapped, col=Group))+
     geom_point()+
     facet_grid(~class, 
@@ -787,6 +787,7 @@ func_plot_DDG <- function(lewSpec_dir, lakesDDG, scenario){
 
 # for model deeper < 5 ---------------------------------------
 func_plot_DDG_deep <- function(lewSpec_dir, lakesDDG, scenario){
+  # lakesDDG <- lakesDDG_Tprofile
   load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
   
   #unique(lakesDDG$Group)
@@ -804,7 +805,7 @@ func_plot_DDG_deep <- function(lewSpec_dir, lakesDDG, scenario){
   names(lakeclasses)<-c("clear","medium","turb")
   
   A2<-lakesDDG %>%
-    filter(type == paste0("model_", scenario))%>%
+    filter(dataset == paste0("model_", scenario))%>%
     left_join((data_lakes_env_class %>% mutate(Lake=paste0("lake_",Lake)) %>%
                  select(-LakeName)),
               by=c("Lake"))  %>%
@@ -822,7 +823,7 @@ func_plot_DDG_deep <- function(lewSpec_dir, lakesDDG, scenario){
     ylab("")+
     scale_fill_manual(values = c(rev(TrophiePalette)))+
     ylab("Potential \nspec. richness (%)") + theme(legend.position = "bottom")
-  # A2
+  A2
   
   return(A2)
 }

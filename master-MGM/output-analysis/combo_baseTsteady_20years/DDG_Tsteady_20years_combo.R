@@ -68,58 +68,61 @@ lake_path <- "input/lakes"
 # load data after prep in data-analysisi_prep.R
 
 # DDG res_reshape 0-5 m
-res_reshape_Tprofile_top <- readRDS(file.path(out_ana_path_top, paste0("DDG_reshape_",nametop,".rds"))) # res_reshape_Tprofile
-res_reshape_Tprofile_top <- res_reshape_Tprofile_top[, !names(res_reshape_Tprofile_top) %in% "depth_NA"]
-unique(res_reshape_Tprofile_top$scenario)
-res_reshape_Tprofile_top$depth_5 <- 0
-res_reshape_Tprofile_top$depth_6 <- 0
-res_reshape_Tprofile_top$depth_7 <- 0
-res_reshape_Tprofile_top$depth_8 <- 0
+res_reshape_Tsteady_top <- readRDS(file.path(out_ana_path_top, paste0("DDG_reshape_",nametop,".rds"))) # res_reshape_Tsteady
+res_reshape_Tsteady_top <- res_reshape_Tsteady_top[, !names(res_reshape_Tsteady_top) %in% "depth_NA"]
+unique(res_reshape_Tsteady_top$scenario)
+res_reshape_Tsteady_top$depth_5 <- 0
+res_reshape_Tsteady_top$depth_6 <- 0
+res_reshape_Tsteady_top$depth_7 <- 0
+res_reshape_Tsteady_top$depth_8 <- 0
 
 # DDG res_reshape 5-9 m
-res_reshape_Tprofile_deep <- readRDS(file.path(out_ana_path_deep, paste0("DDG_reshape_",namedeep,".rds"))) # res_reshape_Tprofile
-res_reshape_Tprofile_deep <- res_reshape_Tprofile_deep[, !names(res_reshape_Tprofile_deep) %in% "depth_NA"]
-res_reshape_Tprofile_deep <- res_reshape_Tprofile_deep %>% rename(depth_5 = depth_1, 
+res_reshape_Tsteady_deep <- readRDS(file.path(out_ana_path_deep, paste0("DDG_reshape_",namedeep,".rds"))) # res_reshape_Tsteady
+res_reshape_Tsteady_deep <- res_reshape_Tsteady_deep[, !names(res_reshape_Tsteady_deep) %in% "depth_NA"]
+res_reshape_Tsteady_deep <- res_reshape_Tsteady_deep %>% rename(depth_5 = depth_1, 
                                                                   depth_6 = depth_2,
                                                                   depth_7 = depth_3,
                                                                   depth_8 = depth_4)
-res_reshape_Tprofile_deep$depth_1 <- 0
-res_reshape_Tprofile_deep$depth_2 <- 0
-res_reshape_Tprofile_deep$depth_3 <- 0
-res_reshape_Tprofile_deep$depth_4 <- 0
+res_reshape_Tsteady_deep$depth_1 <- 0
+res_reshape_Tsteady_deep$depth_2 <- 0
+res_reshape_Tsteady_deep$depth_3 <- 0
+res_reshape_Tsteady_deep$depth_4 <- 0
 
-unique(res_reshape_Tprofile_deep$scenario)
-res_reshape_Tprofile_deep$scenario <- unique(res_reshape_Tprofile_top$scenario)
+unique(res_reshape_Tsteady_deep$scenario)
+res_reshape_Tsteady_deep$scenario <- unique(res_reshape_Tsteady_top$scenario)
 
-setdiff(names(res_reshape_Tprofile_top), names(res_reshape_Tprofile_deep))
+setdiff(names(res_reshape_Tsteady_top), names(res_reshape_Tsteady_deep))
 
-res_reshape_Tprofile <- bind_rows(res_reshape_Tprofile_top, res_reshape_Tprofile_deep)
-head(res_reshape_Tprofile)
-unique(res_reshape_Tprofile$depth)
-saveRDS(res_reshape_Tprofile, file = file.path(save_out, paste0("DDG_reshape_",name1,".rds")))
+res_reshape_Tsteady <- bind_rows(res_reshape_Tsteady_top, res_reshape_Tsteady_deep)
+head(res_reshape_Tsteady)
+unique(res_reshape_Tsteady$depth)
+saveRDS(res_reshape_Tsteady, file = file.path(save_out, paste0("DDG_reshape_",name1,".rds")))
 
 
 # print nrow where biomass > 0
-specgroup <- unique(res_reshape_Tprofile$speciesGroup)
+specgroup <- unique(res_reshape_Tsteady$speciesGroup)
 for(i in 1:3){
-  oli <- res_reshape_Tprofile %>% filter(speciesGroup == specgroup[i])  %>% filter(Biomass_cat > 0)
+  oli <- res_reshape_Tsteady %>% filter(speciesGroup == specgroup[i])  %>% filter(Biomass_cat > 0)
   message(specgroup[i], ":", sum(oli$Biomass_cat))
 }
 
 # ---------------------------------------------------------------------------------------
 # DDG plot for 0-9m 
 
-NSPEC <- func_DDG_deep(res_reshape = res_reshape_Tprofile , 
+NSPEC <- func_DDG_deep(res_reshape = res_reshape_Tsteady , 
                   lewSpec_dir, scenario, save_figures = save_comparison) # in func_data_prep.R
 
-lakesDDG_Tprofile <- NSPEC$lakesDDG
+lakesDDG_Tsteady <- NSPEC$lakesDDG
 NSPEC$NSPECbase
 
-head(lakesDDG_Tprofile)
-unique(lakesDDG_Tprofile$depth)
+head(lakesDDG_Tsteady)
+lakesDDG_Tsteady$dataset <- "model_base_Tsteady"
+unique(lakesDDG_Tsteady$dataset)
+
+saveRDS(lakesDDG_Tsteady, file = file.path(save_out, paste0("lakesDDG_",name1,".rds")))
 
 # Plot Depth diversity gradient -------------
-p_DDG_TP <- func_plot_DDG_deep(lewSpec_dir, lakesDDG_Tprofile, scenario) # in help-func.R
+p_DDG_TP <- func_plot_DDG_deep(lewSpec_dir, lakesDDG_Tsteady, scenario) # in help-func.R
 p_DDG_TP
 
 ggsave(file.path(save_comparison, paste0("DDG_dep10_deep",scenario,".png")), p_DDG_TP, 
@@ -127,19 +130,19 @@ ggsave(file.path(save_comparison, paste0("DDG_dep10_deep",scenario,".png")), p_D
 
 # ---------------------------------------------------------------------------------------
 # comparison with observation data just 0-5m ----------------------------
-scenario <- res_reshape_Tprofile$scenario %>% unique()
+scenario <- res_reshape_Tsteady$scenario %>% unique()
 
-NSPEC <- func_DDG(res_reshape = res_reshape_Tprofile , 
+NSPEC <- func_DDG(res_reshape = res_reshape_Tsteady , 
                   lewSpec_dir, scenario, save_figures = save_comparison) # in func_data_prep.R
-lakesDDG_Tprofile <- NSPEC$lakesDDG
+lakesDDG_Tsteady <- NSPEC$lakesDDG
 NSPEC$NSPECbase
-head(lakesDDG_Tprofile)
-unique(lakesDDG_Tprofile$depth)
-#View(lakesDDG_Tprofile)
+head(lakesDDG_Tsteady)
+unique(lakesDDG_Tsteady$depth)
+#View(lakesDDG_Tsteady)
 # load(file.path(save_comparison, paste0("lakesDDG_dep10", scenario, ".RData"))
 
 # Plot Depth diversity gradient -------------
-p_DDG_TP <- func_plot_DDG(lewSpec_dir, lakesDDG_Tprofile, scenario) # in help-func.R
+p_DDG_TP <- func_plot_DDG(lewSpec_dir, lakesDDG_Tsteady, scenario) # in help-func.R
 p_DDG_TP
 ggsave(file.path(save_comparison, paste0("DDG_dep10_observ_data",scenario,".png")), p_DDG_TP, 
        width = 6.5, height=8, dpi="print", bg="white", scale=1.2)
