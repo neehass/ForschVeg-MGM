@@ -92,18 +92,6 @@ func_prep_DDG(output = baseTS_deep, lewSpec_dir, save_out = paste0(save_baseTS_d
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
 # ---------------------------------------------------------------------------------------------------------
-# COMPARISON 
-save_comparison <- "output-analysis/comparison_final_20years/DDG_TprofileVSTsteady"
-dir.create(save_comparison)
-
-res_baseTP <- readRDS(file.path(base_Tprofile, "added_all_res.rds")) 
-res_baseTS <- readRDS(file.path(base_Tsteady, "added_all_res.rds"))
-
-data <- func_dataprep_compare_DDG(res_baseTP, res2, name1 = "base_Tprofile", name2 = "base_Tsteady", save_comparison) # in func_data_prep.R
-
-save_out <- "output-analysis/comparison_final_20years/bio_TprofVSTsteady"
-dir.create(save_out)
-func_prepBIO_compare(res_baseTP, scenTP = nameTP, res_baseTS, scenTS = nameTS, save_out)
 # 20 years tprofile plus 5 degree ----------------------------------------
 # 20 YEARS T-Profile + base scenario, 100 species, all lakes < -10 m depth  20 YEARS-------------------------
 # Folder output of MGM experiment and Analysis results folder

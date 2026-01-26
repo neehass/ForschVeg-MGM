@@ -40,7 +40,6 @@ out_ana_path_top <- "output-analysis/dep10_300spec_base_Tsteady_20years"
 output_deep <- "output/dep10_300spec_base_Tsteady_20years_deep"
 out_ana_path_deep <- "output-analysis/dep10_300spec_base_Tsteady_20years_deep"
 
-
 # combo 
 save_figures <- "output-analysis/combo_baseTsteady_20years/figures"
 save_out <- "output-analysis/combo_baseTsteady_20years"
@@ -58,12 +57,10 @@ lake_path <- "input/lakes"
 # load data (Data preparation should be run before data_prep.R) ------------------------------------------------
 
 # results 
-# res <- readRDS(file.path(out_ana_path, "all_res.rds"))   # res # all data
 sort_res_top <- readRDS(file.path(out_ana_path_top, "sortRES.rds")) # sort_res # biomass > 0 sorted macrophyte data (grouped by lakeClass, speciesGroup, lakeGroup_Area, depth, day)
 sort_res_deep <- readRDS(file.path(out_ana_path_deep, "sortRES.rds"))
 
 # environment
-# env <- readRDS(file.path(out_ana_path, "all_env.rds"))  # env # all environmental data
 sort_env_top <- readRDS(file.path(out_ana_path_top, "sortENV.rds")) # env_sort # sorted environmental data (grouped by llakeClass, lakeGroup_Area, day)
 sort_env_deep <- readRDS(file.path(out_ana_path_deep, "sortENV.rds"))
 
@@ -80,6 +77,7 @@ load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
 # head(data_lakes_env_class) # Turbidity classes 
 
 # --- combine results ----------------------------------------
+# sort results biomass > 0
 unique(sort_res_top$depth)
 unique(sort_res_deep$depth)
 
@@ -101,7 +99,7 @@ p_macro <- ggplot(sort_res_mean, aes(x = day, y = biomass_mean,
   facet_grid(speciesGroup ~  lakeClass) +
   theme_bw() +
   labs(title = "Biomass over Active Days (mean over all dephts)",
-       y = "Mean Biomass", x = "Days", color = "Lake \nArea-Group") +
+       y = "Mean Biomass [g]", x = "Days", color = "Lake \nArea-Group") +
   scale_color_brewer(palette = "Set2") + theme(legend.position = "bottom") +
   guides(color = guide_legend(nrow = 1))
 p_macro
@@ -120,7 +118,7 @@ p_box <- ggplot(sortRES_combo, aes(x = factor(depth, levels = rev(sort(unique(de
   facet_grid(speciesGroup ~  lakeClass) +
   theme_bw() +
   labs(title = paste("Biomass over Active Days, days", minDay, "to", maxDay),
-       y = "Mean Biomass", x = "Depths [m]", fill = "Lake \nArea-Group",  col = "Lake \nArea-Group")+
+       y = "Mean Biomass [g]", x = "Depths [m]", fill = "Lake \nArea-Group",  col = "Lake \nArea-Group")+
      scale_fill_brewer(palette = "Set2") + scale_color_brewer(palette = "Set2")  +
   theme(legend.position = "bottom") +
   guides(fill = guide_legend(nrow = 1))

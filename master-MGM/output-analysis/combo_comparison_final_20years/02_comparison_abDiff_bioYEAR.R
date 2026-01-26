@@ -28,15 +28,11 @@ source("./experiment/help-func.r")
 source("./output-analysis/func_data_prep.R")
 
 # dir setup ---------------------------------------------------------------------------------
-dir_Tprofile <- "output-analysis/dep10_300spec_base_Tprofil_20years"
-dir_Tsteady <- "output-analysis/dep10_300spec_base_Tsteady_20years"
+dir_Tprofile <- "output-analysis/combo_baseTprofile_20years"
+dir_Tsteady <- "output-analysis/combo_baseTsteady_20years"
 
-save_comparison <- "output-analysis/comparison_final_20years/bio_TprofVSTsteady/adDiff"
+save_comparison <- "output-analysis/combo_comparison_final_20years/bio_TprofVSTsteady/adDiff"
 
-dir.create(save_comparison)
-
-# Folder output of MGM experiment and Analysis results folder
-save_comparison <- "output-analysis/comparison/biomassYear"
 dir.create(save_comparison)
 
 # input files
@@ -46,8 +42,7 @@ lake_path <- "input/lakes"
 # load data prep in data_prep_comparison.R
 # ---------------------------------------------------------------------------------------------------------
 # Tprofile --------------------------------------------------------------------------------
-sortRES_baseTP <- readRDS(file.path(dir_Tprofile, "sortRES.rds")) # sort_res # biomass > 0 sorted macrophyte data (grouped by lakeClass, speciesGroup, lakeGroup_Area, depth, day)
-sortENV_baseTP <- readRDS(file.path(dir_Tprofile, "sortENV.rds")) # env_sort # sorted environmental data (grouped by llakeClass, lakeGroup_Area, day)
+sortRES_baseTP <- readRDS(file.path(dir_Tprofile, "sortRES_Tprofile_20years_combo.rds")) # sort_res # biomass > 0 sorted macrophyte data (grouped by lakeClass, speciesGroup, lakeGroup_Area, depth, day)
 
 sortRES_baseTP$depth <- factor(sortRES_baseTP$depth,
                                 levels = sort(unique(sortRES_baseTP$depth), decreasing = TRUE))
@@ -56,11 +51,11 @@ mean_res_TP <- sortRES_baseTP %>%
   group_by(day, lakeClass, depth, speciesGroup) %>%
   summarise(biomass_mean = mean(biomass_mean), .groups = "drop")
 head(mean_res_TP)
+unique(mean_res_TP$depth)
 
 # ---------------------------------------------------------------------------------------------------------
 # Tsteady --------------------------------------------------------------------------------
-sortRES_baseTSteady <- readRDS(file.path(dir_Tsteady, "sortRES.rds")) # sort_res # biomass > 0 sorted macrophyte data (grouped by lakeClass, speciesGroup, lakeGroup_Area, depth, day)
-sortENV_baseTSteady <- readRDS(file.path(dir_Tsteady, "sortENV.rds")) # env_sort # sorted environmental data (grouped by llakeClass, lakeGroup_Area, day)
+sortRES_baseTSteady <- readRDS(file.path(dir_Tsteady, "sortRES_Tsteady_20years_combo.rds")) # sort_res # biomass > 0 sorted macrophyte data (grouped by lakeClass, speciesGroup, lakeGroup_Area, depth, day)
 
 sortRES_baseTSteady$depth <- factor(sortRES_baseTSteady$depth,
                                 levels = sort(unique(sortRES_baseTSteady$depth), decreasing = TRUE))
@@ -83,8 +78,8 @@ p_macro_TP <- ggplot(sortRES_baseTP, aes(x = day, y = biomass_mean,
   geom_line(alpha = 0.2) +
   geom_line(data = mean_res_TP, aes(x = day, y = biomass_mean,
                                     color = speciesGroup), linewidth = 0.8) +
-  scale_color_manual(values = TrophiePalette) +
-  facet_grid( depth ~  lakeClass) +
+  scale_color_manual(values = c(rev(TrophiePalette))) +
+  facet_grid( depth ~  lakeClass, scales = "free_y") +
   theme_bw() + theme(legend.position = "bottom") +
   labs(title = "base Tprofile",
        y = "Mean Biomass [g]", x = "Days", color = "Spec. Group") 
@@ -98,8 +93,8 @@ p_macro_TS <- ggplot(sortRES_baseTSteady, aes(x = day, y = biomass_mean,
   geom_line(alpha = 0.2) +
   geom_line(data = mean_res_TS, aes(x = day, y = biomass_mean,
                                     color = speciesGroup), linewidth = 0.8) +
-  scale_color_manual(values = TrophiePalette) +
-  facet_grid( depth ~  lakeClass) +
+  scale_color_manual(values = c(rev(TrophiePalette))) +
+  facet_grid( depth ~  lakeClass,  scales = "free_y") +
   theme_bw() + theme(legend.position = "bottom") +
   labs(title = "base Tsteady",
        y = "Mean Biomass [g]", x = "Days", color = "Spec. Group") 
@@ -119,9 +114,20 @@ res_combo <- sortRES_baseTP %>%
     suffix = c("_Tprofile", "_Tsteady")
   ) 
 head(res_combo)
+unique(res_combo$depth)
 
 mean_res_combo <- res_combo %>%
   group_by(day, lakeClass, depth, speciesGroup) %>%
+  summarise(bio_mean_Tprofile = mean(biomass_mean_Tprofile, na.rm = TRUE), 
+            bio_mean_Tsteady = mean(biomass_mean_Tsteady, na.rm = TRUE),
+            .groups = "drop") %>%
+  mutate(across(where(is.numeric), ~ replace_na(., 0)),
+         diff = bio_mean_Tprofile - bio_mean_Tsteady,
+         proDiff = (bio_mean_Tprofile - bio_mean_Tsteady)/ bio_mean_Tsteady * 100, # prozentual diff
+         log_proDiff = log(bio_mean_Tprofile/bio_mean_Tsteady)*100) 
+
+mean_res_combo_AREAgroup <- res_combo %>%
+  group_by(day, lakeClass, depth, speciesGroup,AreaGroup) %>%
   summarise(bio_mean_Tprofile = mean(biomass_mean_Tprofile, na.rm = TRUE), 
             bio_mean_Tsteady = mean(biomass_mean_Tsteady, na.rm = TRUE),
             .groups = "drop") %>%
@@ -134,7 +140,7 @@ mean_res_combo <- res_combo %>%
 p_compar_bio <- ggplot(data = mean_res_combo, aes(x = day, y = diff,
                                                   color = speciesGroup)) +
   geom_line(linewidth = 0.8) +
-  scale_color_manual(values = TrophiePalette) +
+  scale_color_manual(values = c(rev(TrophiePalette))) +
   facet_grid( depth ~  lakeClass, scales = "free_y") +
   theme_bw() + theme(legend.position = "bottom") +
   labs(title = "Tprofile - Tsteady",
@@ -147,7 +153,7 @@ ggsave(file.path(save_comparison, "adDiff_biomass_day_compar.png"), p_compar_bio
 p_compar_bio_pro <- ggplot(data = mean_res_combo, aes(x = day, y = proDiff, # log_proDiff
                                                   color = speciesGroup)) +
   geom_line(linewidth = 0.8) +
-  scale_color_manual(values = TrophiePalette) +
+  scale_color_manual(values = c(rev(TrophiePalette))) +
   facet_grid( depth ~  lakeClass, scales = "free_y") +
   theme_bw() + theme(legend.position = "bottom") +
   labs(title = "(Tprofile - Tsteady)/ Tsteady * 100",
@@ -180,6 +186,7 @@ p_combo_bio1
 ggsave(file.path(save_comparison, "01_biomass_day_compar.png"), p_combo_bio1,
        height = 6, width = 6, dpi = "print", scale =1.2)
 
+
 # added plots
 # layout <- "
 # A C
@@ -199,3 +206,51 @@ p_combo_bio2
 ggsave(file.path(save_comparison, "02_biomass_day_compar.png"), p_combo_bio2,
        height = 6, width = 6, dpi = "print", scale =1.2)
 
+
+# added plot absolut and proz diff
+p_combo_bio3 <-  (p_cb/p__pdiff) +
+  # plot_layout(design = layout) +
+  plot_layout(guides = "collect") +
+  plot_annotation(tag_levels = 'a',
+                  tag_prefix = '(',
+                  tag_suffix = ')')& 
+  theme(plot.tag = element_text(size = 12))&  
+  theme(legend.position = "bottom")&
+  guides(colour = guide_legend(override.aes = list(size=3)))
+
+p_combo_bio3  
+ggsave(file.path(save_comparison, "03_biomass_day_compar.png"), p_combo_bio3,
+       height = 8, width = 6, dpi = "print", scale =1.2)
+
+# box -------------------------
+names(mean_res_combo_AREAgroup)
+p_box <- ggplot(mean_res_combo_AREAgroup, aes(x = factor(depth, levels = rev(sort(unique(depth)))), 
+                                   y = diff, col=AreaGroup, group=interaction(AreaGroup,lakeClass))) +# fill = AreaGroup)) ++
+  #geom_path(alpha=0.5)+
+  geom_boxplot(aes(group=interaction(depth,AreaGroup), fill=AreaGroup)) +
+  
+  facet_grid(speciesGroup ~  lakeClass) +
+  theme_bw() +
+  labs(title = "Tprofile - Tsteady",
+       y = "absolut Diff. of Mean Biomass [g]", x = "Depths [m]", fill = "Lake \nArea-Group",  col = "Lake \nArea-Group")+
+  scale_fill_brewer(palette = "Set2") + scale_color_brewer(palette = "Set2")  +
+  theme(legend.position = "bottom") +
+  guides(fill = guide_legend(nrow = 1))
+p_box
+ggsave(file.path(save_comparison, "04_biomass_BOX_compar.png"), p_box,
+       height = 8, width = 6, dpi = "print", scale =1.2)
+
+p_combo_bio4 <-  (p_box+p_cb) +
+  # plot_layout(design = layout) +
+  plot_layout(guides = "collect") +
+  plot_annotation(tag_levels = 'a',
+                  tag_prefix = '(',
+                  tag_suffix = ')')& 
+  theme(plot.tag = element_text(size = 12))&  
+  guides(colour = guide_legend(override.aes = list(size=3)))&
+  theme(legend.position = "bottom", legend.direction = "horizontal" , 
+        legend.box = "vertical")
+
+p_combo_bio4
+ggsave(file.path(save_comparison, "05_bio_BOXandDAY_compar.png"), p_combo_bio4,
+       width  = 8.5, height = 6, dpi = "print", scale =1.2)
