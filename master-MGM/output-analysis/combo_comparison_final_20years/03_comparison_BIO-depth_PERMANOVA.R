@@ -156,7 +156,7 @@ permanova_all_bio <- vegan::adonis2(
 print(permanova_all_bio) # main result
 
 # Beta-dispersion (test if PERMANOVA valid) --------------------------------------------------------------------------------------------
-# test if Jaccard-Distanzen has homogeneous dispersion within groups (Tsteady/ Tprofile)
+# test if bray crutis has homogeneous dispersion within groups (Tsteady/ Tprofile)
 disp_bio <- betadisper(dist_bray, meta_all_bio$dataset)
 anova(disp_bio) # F = 4.4, p = 0.036 → signifikant auf dem 5%-Niveau
 

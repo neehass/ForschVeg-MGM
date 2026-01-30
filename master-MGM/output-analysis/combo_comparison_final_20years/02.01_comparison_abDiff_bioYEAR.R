@@ -236,7 +236,7 @@ p_box_comp <- ggplot(mean_res_combo_AREAgroup, aes(x = factor(depth, levels = so
        y = "absolut Diff. of Mean Biomass [g]", x = "Depths [m]", fill = "Lake \nArea-Group",  col = "Lake \nArea-Group")+
   scale_fill_brewer(palette = "Set2") + scale_color_brewer(palette = "Set2")  +
   geom_hline(yintercept = 0, col = "black", linetype = "dashed") +
-  theme(legend.position = "bottom") +
+  theme(legend.position = "bottom", axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
   guides(fill = guide_legend(nrow = 1))
 p_box_comp
 ggsave(file.path(save_comparison, "04_biomass_BOX_compar.png"), p_box_comp,
