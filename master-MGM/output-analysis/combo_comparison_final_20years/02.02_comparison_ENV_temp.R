@@ -251,20 +251,20 @@ sort_env_DAY_long_combo <- sort_env_Tprof_DAY_long %>%
   mutate(dif_Tprof = T_prof - T_prof_TS)
 
 sort_env_DAY_long_combo_mean <- sort_env_DAY_long_combo %>%
-  filter(depth %in% depth_bio) %>% filter(day >= 75) %>%
+  filter(depth %in% depth_bio) %>% filter(depth < 0) %>% filter(day >= 75) %>%
   group_by(lakeClass, AreaGroup, day, depth) %>%
   summarise(
     dif_Tprof_mean = mean(dif_Tprof, na.rm = TRUE),
     .groups = "drop"
-  )
+  ) %>% mutate(depth = factor(depth, levels = sort(unique(depth), decreasing = TRUE)))
 
 mean_DAY_long_combo <- sort_env_DAY_long_combo %>% group_by(lakeClass, day, depth) %>%   
-  filter(depth %in% depth_bio) %>% filter(day >= 75) %>%
+  filter(depth %in% depth_bio) %>% filter(depth < 0) %>% filter(day >= 75) %>%
   group_by(lakeClass, day, depth) %>%
   summarise(
     dif_Tprof_mean = mean(dif_Tprof, na.rm = TRUE),
     .groups = "drop"
-  )
+  ) %>% mutate(depth = factor(depth, levels = sort(unique(depth), decreasing = TRUE)))
 
 
 p_comp_day <- ggplot() +
@@ -276,7 +276,7 @@ p_comp_day <- ggplot() +
   theme_bw() +
   labs(title =" ",# paste("mean Temperature Profiles, days", minDay, "to", maxDay),
        y =  "mean abs. temperature differnce [°C]",
-       x = "Depth [m]",  #+ # ,
+       x = "Day",  #+ # ,
        color = "Lake \nArea-Group") + 
   scale_color_brewer(palette = "Set2") +
   theme(legend.position = "bottom") # + guides(color = guide_legend(nrow = 2)) +
