@@ -225,7 +225,7 @@ ggsave(file.path(save_comparison, "03_biomass_day_compar.png"), p_combo_bio3,
 
 # box -------------------------
 names(mean_res_combo_AREAgroup)
-p_box_comp <- ggplot(mean_res_combo_AREAgroup, aes(x = factor(depth, levels = rev(sort(unique(depth)))), 
+p_box_comp <- ggplot(mean_res_combo_AREAgroup, aes(x = factor(depth, levels = sort(unique(depth))), 
                                    y = diff, col=AreaGroup, group=interaction(AreaGroup,lakeClass))) +# fill = AreaGroup)) ++
   #geom_path(alpha=0.5)+
   geom_boxplot(aes(group=interaction(depth,AreaGroup), fill=AreaGroup)) +
