@@ -235,7 +235,7 @@ p_comp <- ggplot(mean_env_profile_combo, aes(x = depth, y = diff_temp, color = A
   geom_hline(yintercept = 0, col ="grey") +
   theme_bw() +
   labs(title =" ",# paste("mean Temperature Profiles, days", minDay, "to", maxDay),
-       y =  "mean Temperature [°C]",
+       y =  "mean abs. temperature differnce [°C]",
        x = "Depth [m]",
        color = "Lake \nArea-Group") + 
   scale_color_brewer(palette = "Set2") +
@@ -244,3 +244,40 @@ p_comp <- ggplot(mean_env_profile_combo, aes(x = depth, y = diff_temp, color = A
 
 p_comp 
 ggsave(file.path(save_comparison, paste0("diff_temp_depth.png")), p_comp, height = 4.5, width = 4.5)
+
+# anual temp diff ---------------------------
+sort_env_DAY_long_combo <- sort_env_Tprof_DAY_long %>%
+  left_join(sort_env_TS_DAY_long, by = c("lakeClass", "AreaGroup", "depth", "day", "month_bin"), suffix = c("", "_TS")) %>%
+  mutate(dif_Tprof = T_prof - T_prof_TS)
+
+sort_env_DAY_long_combo_mean <- sort_env_DAY_long_combo%>% group_by(lakeClass, AreaGroup, day) %>%   
+  summarise(
+    dif_Tprof_mean = mean(dif_Tprof, na.rm = TRUE), 
+    .groups = "drop"
+  )
+
+mean_DAY_long_combo <- sort_env_DAY_long_combo %>% group_by(lakeClass, day) %>%   
+  summarise(
+    dif_Tprof_mean = mean(dif_Tprof, na.rm = TRUE), 
+    .groups = "drop"
+  )
+
+p_comp_day <- ggplot() +
+  geom_line(data= sort_env_DAY_long_combo_mean, aes(x = day, y = dif_Tprof_mean, color = AreaGroup, 
+                                                    group = AreaGroup)) +
+  geom_line(data = mean_DAY_long_combo, aes(x = day, y = dif_Tprof_mean), color = "black", linetype = "dashed") +
+  facet_wrap(~ lakeClass, nrow = 1) +
+  geom_hline(yintercept = 0, col ="grey") +
+  theme_bw() +
+  labs(title =" ",# paste("mean Temperature Profiles, days", minDay, "to", maxDay),
+       y =  "mean abs. temperature differnce [°C]",
+       x = "Depth [m]",
+       color = "Lake \nArea-Group") + 
+  scale_color_brewer(palette = "Set2") +
+  theme(legend.position = "bottom") # + guides(color = guide_legend(nrow = 2)) +
+  # theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+p_comp_day 
+ggsave(file.path(save_comparison, paste0("day_diff_temp_depth.png")), p_comp_day, 
+       height = 4.5, width = 4.5, scale =1.2)
+
+  
