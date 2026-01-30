@@ -251,7 +251,7 @@ sort_env_DAY_long_combo <- sort_env_Tprof_DAY_long %>%
   mutate(dif_Tprof = T_prof - T_prof_TS)
 
 sort_env_DAY_long_combo_mean <- sort_env_DAY_long_combo %>%
-  filter(depth %in% depth_bio) %>%
+  filter(depth %in% depth_bio) %>% filter(day >= 75) %>%
   group_by(lakeClass, AreaGroup, day, depth) %>%
   summarise(
     dif_Tprof_mean = mean(dif_Tprof, na.rm = TRUE),
@@ -259,7 +259,7 @@ sort_env_DAY_long_combo_mean <- sort_env_DAY_long_combo %>%
   )
 
 mean_DAY_long_combo <- sort_env_DAY_long_combo %>% group_by(lakeClass, day, depth) %>%   
-  filter(depth %in% depth_bio) %>%
+  filter(depth %in% depth_bio) %>% filter(day >= 75) %>%
   group_by(lakeClass, day, depth) %>%
   summarise(
     dif_Tprof_mean = mean(dif_Tprof, na.rm = TRUE),
@@ -271,18 +271,18 @@ p_comp_day <- ggplot() +
   geom_line(data= sort_env_DAY_long_combo_mean, aes(x = day, y = dif_Tprof_mean, color = AreaGroup, 
                                                     group = AreaGroup)) +
   geom_line(data = mean_DAY_long_combo, aes(x = day, y = dif_Tprof_mean), color = "black", linetype = "dashed") +
-  facet_grid(depth ~ lakeClass) +
+  facet_grid(depth ~ lakeClass, scale = "free_y") +
   geom_hline(yintercept = 0, col ="grey") +
   theme_bw() +
   labs(title =" ",# paste("mean Temperature Profiles, days", minDay, "to", maxDay),
        y =  "mean abs. temperature differnce [°C]",
-       x = "Depth [m]") + # ,
-       #color = "Lake \nArea-Group") + 
+       x = "Depth [m]",  #+ # ,
+       color = "Lake \nArea-Group") + 
   scale_color_brewer(palette = "Set2") +
   theme(legend.position = "bottom") # + guides(color = guide_legend(nrow = 2)) +
   # theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
 p_comp_day 
 ggsave(file.path(save_comparison, paste0("day_diff_temp_depth.png")), p_comp_day, 
-       height = 4.5, width = 4.5, scale =1.2)
+       height = 4.5, width = 4.5, scale =1.5)
 
   
