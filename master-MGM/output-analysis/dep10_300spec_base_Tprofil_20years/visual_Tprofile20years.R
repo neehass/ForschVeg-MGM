@@ -66,6 +66,14 @@ load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
 # head(Morphology)
 # head(data_lakes_env_class) # Turbidity classes 
 
+sort_env <- sort_env %>%
+  mutate(
+    lakeClass = factor(
+      lakeClass,
+      levels = c("clear", "medium", "turb"),
+      labels = c("clear lakes", "intermediate lakes", "turbid lakes")
+    )
+  )
 # ---------------------------------------------------------------------------------------------------------
 # ---- Environmental variables ----------------------------------------------------------------------
 # ---- plot ------------------

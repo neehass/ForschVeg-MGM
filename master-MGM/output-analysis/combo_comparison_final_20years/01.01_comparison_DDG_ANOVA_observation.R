@@ -268,7 +268,7 @@ leveneTest(NSpecP ~ dataset, data = lakesDDG_combo_sel) # H0 = Variances are equ
 ## due to homogenous Variance: 
 # ANOVA is robust to unequal sample sizes as long as variance is homogeneous — which your Levene’s test confirmed.
 # ---------------------------------
-# ANOVA including  mapped  -------------------------------------------------------------------
+# ANOVA  -------------------------------------------------------------------
 anova31 <- aov(NSpecP ~ dataset + dataset* Group, data = lakesDDG_combo_sel)
 summary(anova31)
 emmeans(anova31, pairwise ~ dataset * Group)
