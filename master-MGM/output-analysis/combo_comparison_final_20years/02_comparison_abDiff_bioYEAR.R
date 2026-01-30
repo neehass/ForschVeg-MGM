@@ -228,7 +228,7 @@ names(mean_res_combo_AREAgroup)
 p_box_comp <- ggplot(mean_res_combo_AREAgroup, aes(x = factor(depth, levels = sort(unique(depth))), 
                                    y = diff, col=AreaGroup, group=interaction(AreaGroup,lakeClass))) +# fill = AreaGroup)) ++
   #geom_path(alpha=0.5)+
-  geom_boxplot(aes(group=interaction(depth,AreaGroup), fill=AreaGroup)) +
+  geom_boxplot(aes(group=interaction(factor(depth, levels = sort(unique(depth))),AreaGroup), fill=AreaGroup)) +
   
   facet_grid(speciesGroup ~  lakeClass) +
   theme_bw() +
