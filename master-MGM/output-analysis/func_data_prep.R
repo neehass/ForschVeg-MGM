@@ -852,3 +852,119 @@ func_prepBIO_compare <- function(res_baseTP, scenTP, res_baseTS, scenTS, save_ou
   any(res_combined_BIO$baseTP != res_combined_BIO$baseTS) # TRUE  -> mindestens ein Wert ist unterschiedlich
   save(res_combined_BIO, file = file.path(save_out, "res_combined_base_BIO.rda"))
 }
+
+# --------------------------------------------------
+# DDG comparison tbale:
+# Potential species richness per lake type and species group (%):
+func_DDG_table <- function(reshape_data, NSPECbase,lewSpec_dir){
+  load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda")) # lake info
+  
+  Nspecies_P_groupes<-reshape_data %>%
+    left_join((data_lakes_env_class %>% 
+                 select(Lake, class)%>%
+                 mutate(Lake=paste0("lake_",Lake))),
+              by=c("Lake"))%>%
+    group_by(class, speciesID, Group) %>%
+    summarise_at(vars(Biomass_cat), ~ sum(. != 0)) %>%
+    mutate(Biomass_cat=ifelse(Biomass_cat>0,1,0))%>%
+    
+    ungroup() %>% group_by(class, Group) %>%
+    summarise(Biomass_cat=sum(Biomass_cat)) %>%
+    rename("Nspecies" = Biomass_cat) %>%
+    mutate(Nspecies_P = (Nspecies/NSPECbase)*100) %>%
+    select(-Nspecies) %>%
+    spread(Group, Nspecies_P)
+  
+  Nspecies_P_groupes_all<-reshape_data %>%
+    left_join((data_lakes_env_class %>% 
+                 select(Lake, class)%>%
+                 mutate(Lake=paste0("lake_",Lake))),
+              by=c("Lake"))%>%
+    
+    group_by(class, speciesID) %>%
+    summarise_at(vars(Biomass_cat), ~ sum(. != 0)) %>%
+    mutate(Biomass_cat=ifelse(Biomass_cat>0,1,0))%>%
+    
+    ungroup() %>% group_by(class) %>%
+    summarise(Biomass_cat=sum(Biomass_cat)) %>%
+    rename("Nspecies" = Biomass_cat) %>%
+    mutate(Nspecies_P_all = (Nspecies/NSPECbase)*100) %>%
+    select(-Nspecies) 
+  
+  return(list(Nspecies_P_groupes = Nspecies_P_groupes, Nspecies_P_groupes_all  = Nspecies_P_groupes_all))
+}
+
+# Observes species richness within lake types and per species groups (%)
+func_DDG_observ_table <- function(lewSpec_dir){
+  load(file.path(lewSpec_dir, "data/Makroph_comm_S.rda")) # observed data
+  load(file.path(lewSpec_dir, "data/GroupsSpecies.rda")) # observed data
+  load(file.path(lewSpec_dir, "data/MAK_MAPPED_NSPEC_indicationspec.rda")) # observed data
+  
+  
+  Nspaclakclass<-Makroph_comm_S %>%
+    gather("Species", "Kohler",5:89) %>%
+    mutate(Species = str_replace(Species, " ", "."))%>%
+    left_join(GroupsSpecies, by = c("Species"="Taxon")) %>%
+    select(-Trophie,-Typ, -Depth) %>%
+    mutate(Gruppe = ifelse(is.na(Gruppe),"none", Gruppe)) %>%
+    filter(!Lake %in% c("Altmuehlsee", "Drachensee", "Eixendorfer See",
+                        "Grosser Brombachsee",
+                        "Gruentensee","Igelsbachsee", "Kleiner Brombachsee",
+                        "Liebensteinspeicher","Rottachsee",
+                        "Steinberger See","Hofstaetter See",
+                        "Untreusee","Walchensee","Murnersee","Rothsee",
+                        "Seehamer See"))%>%
+    rename(Group=Gruppe)%>%
+    ungroup() %>%
+    group_by(Lake) %>%
+    filter(YEAR==max(YEAR))%>% #select last mapping per lake
+    ungroup() %>%
+    left_join(data_lakes_env_class, by=c("Lake"="LakeName")) %>%
+    rename(LakeID=Lake.y) %>%
+    
+    
+    group_by(Species, Group, class) %>%
+    summarise_at(vars("Kohler"), sum, na.rm=T)%>% # Mean of Kohler per Lake, YEAR, Depth, Species and Group
+    ungroup()%>%
+    group_by(Group, class) %>%
+    mutate(Kohler=ifelse(Kohler>0,1,0)) %>%
+    summarise(NSPEC=sum(Kohler)) %>%
+    mutate(NSPECperc = NSPEC/MAK_MAPPED_NSPEC_indicationspec$n*100) %>%
+    select(-NSPEC)%>%
+    spread(Group,NSPECperc)%>%
+    rename(oligotrophic="1", mesotrophic="2", eutrophic="3")
+  
+  
+  Nspaclakclass_all<-Makroph_comm_S %>%
+    gather("Species", "Kohler",5:89)%>%
+    mutate(Species = str_replace(Species, " ", ".")) %>%
+    left_join(GroupsSpecies, by = c("Species"="Taxon")) %>%
+    select(-Trophie,-Typ, -Depth) %>%
+    mutate(Gruppe = ifelse(is.na(Gruppe),"none", Gruppe)) %>%
+    filter(!Lake %in% c("Altmuehlsee", "Drachensee", "Eixendorfer See",
+                        "Grosser Brombachsee",
+                        "Gruentensee","Igelsbachsee", "Kleiner Brombachsee",
+                        "Liebensteinspeicher","Rottachsee",
+                        "Steinberger See","Hofstaetter See",
+                        "Untreusee","Walchensee","Murnersee","Rothsee",
+                        "Seehamer See"))%>%
+    rename(Group=Gruppe)%>%
+    ungroup() %>%
+    group_by(Lake) %>%
+    filter(YEAR==max(YEAR))%>% #select last mapping per lake
+    ungroup() %>%
+    left_join(data_lakes_env_class, by=c("Lake"="LakeName")) %>%
+    rename(LakeID=Lake.y) %>%
+    filter(Group!="none")%>%
+    
+    group_by(Species, class) %>%
+    summarise_at(vars("Kohler"), sum, na.rm=T)%>% # Mean of Kohler per Lake, YEAR, Depth, Species and Group
+    ungroup()%>%
+    group_by(class) %>%
+    mutate(Kohler=ifelse(Kohler>0,1,0)) %>%
+    summarise(NSPEC=sum(Kohler)) %>%
+    mutate(NSPECperc_all = NSPEC/MAK_MAPPED_NSPEC_indicationspec$n*100) %>%
+    select(-NSPEC)
+  
+  return(list(Nspaclakclass = Nspaclakclass, Nspaclakclass_all  = Nspaclakclass_all, NsBase = MAK_MAPPED_NSPEC_indicationspec))
+}

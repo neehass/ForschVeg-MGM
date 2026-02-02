@@ -89,7 +89,7 @@ scenario <- res_reshape_Tprofile$scenario %>% unique()
 NSPEC <- func_DDG(res_reshape = res_reshape_Tprofile , 
                   lewSpec_dir, scenario, save_figures = save_comparison) # in func_data_prep.R
 lakesDDG_Tprofile <- NSPEC$lakesDDG
-NSPEC$NSPECbase
+NSPECbaseTP <- NSPEC$NSPECbase
 unique(lakesDDG_Tprofile$depth)
 
 lakesDDG_Tprofile$dataset[lakesDDG_Tprofile$dataset != "mapped"] <- "model_base_Tprofile"
@@ -102,7 +102,8 @@ scenario <- res_reshape_Tsteady$scenario %>% unique()
 NSPEC_TS <- func_DDG(res_reshape = res_reshape_Tsteady , 
                      lewSpec_dir, scenario, save_figures = save_comparison)
 lakesDDG_Tsteady <- NSPEC_TS$lakesDDG
-NSPEC_TS$NSPECbase
+NSPECbaseTS <- NSPEC_TS$NSPECbase
+
 lakesDDG_Tsteady$dataset[lakesDDG_Tsteady$dataset != "mapped"] <- "model_base_Tsteady"
 unique(lakesDDG_Tsteady$dataset)
 # load(file.path(save_comparison, paste0("lakesDDG_dep10", scenario, ".RData"))
@@ -237,6 +238,13 @@ p_box_combo_abDiff <- ((p_box_NSpecP_funcdataset_abDiff /
 p_box_combo_abDiff
 ggsave(file.path(save_comparison, "DDG_abDiff_box_modledataset_observ.png"), p_box_combo_abDiff, 
        height = 6, width = 4.5, dpi = "print", scale =1.2)
+
+# comapriosn tabelle % :
+tabTP <- func_DDG_table(reshape_data = res_reshape_Tprofile, NSPECbaseTP, lewSpec_dir)
+tabTS <- func_DDG_table(reshape_data = res_reshape_Tsteady, NSPECbaseTS, lewSpec_dir)
+
+tabObserv <- func_DDG_observ_table(lewSpec_dir)
+
 
 # ---------------------------------------------------------------------------------------
 # ANOVA -----------------------------------

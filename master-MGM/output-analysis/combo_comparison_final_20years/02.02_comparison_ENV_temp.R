@@ -276,7 +276,7 @@ p_comp_day <- ggplot() +
   theme_bw() +
   labs(title =" ",# paste("mean Temperature Profiles, days", minDay, "to", maxDay),
        y =  "mean abs. temperature differnce [°C]",
-       x = "Day",  #+ # ,
+       x = "Days",  #+ # ,
        color = "Lake \nArea-Group") + 
   scale_color_brewer(palette = "Set2") +
   theme(legend.position = "bottom") # + guides(color = guide_legend(nrow = 2)) +
