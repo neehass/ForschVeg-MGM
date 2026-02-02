@@ -239,9 +239,9 @@ p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth,
                                                       color = factor(month_bin))) +
   geom_line(linewidth = 1) +
   # scale_x_reverse( breaks = c(-5.0, -3.0, -1.5, -0.5),  limits = c(0, -5)) + # limits = c(0, -5),
-  facet_wrap(lakeClass  ~AreaGroup, ncol = 3) +
+  facet_grid(AreaGroup ~lakeClass) +
   theme_bw() +
-  labs(title = paste("monthly mean Temperature Profiles \n(Days 1-365 summairsed in 30 day steps)" ),
+  labs(title = "", #paste("monthly mean Temperature Profiles \n(Days 1-365 summairsed in 30 day steps)" ),
        x =  "mean Temperature [°C]",
        y = "Depth [m]",
        color = "approx. Months")  +
