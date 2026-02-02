@@ -96,8 +96,8 @@ setdiff(names(res_reshape_Tprofile_top), names(res_reshape_Tprofile_deep))
 res_reshape_Tprofile <- bind_rows(res_reshape_Tprofile_top, res_reshape_Tprofile_deep)
 head(res_reshape_Tprofile)
 unique(res_reshape_Tprofile$depth)
-saveRDS(res_reshape_Tprofile, file = file.path(save_out, paste0("DDG_reshape_",name1,".rds")))
-
+# saveRDS(res_reshape_Tprofile, file = file.path(save_out, paste0("DDG_reshape_",name1,".rds")))
+res_reshape_Tprofile <- readRDS(file.path(save_out, paste0("DDG_reshape_",name1,".rds")))
 
 # print nrow where biomass > 0
 specgroup <- unique(res_reshape_Tprofile$speciesGroup)
@@ -113,7 +113,7 @@ NSPEC <- func_DDG_deep(res_reshape = res_reshape_Tprofile ,
                   lewSpec_dir, scenario, save_figures = save_comparison) # in func_data_prep.R
 
 lakesDDG_Tprofile <- NSPEC$lakesDDG
-NSPEC$NSPECbase
+NSPECbaseTP <- NSPEC$NSPECbase
 
 head(lakesDDG_Tprofile)
 unique(lakesDDG_Tprofile$depth)
@@ -127,6 +127,9 @@ p_DDG_TP
 
 ggsave(file.path(save_comparison, paste0("DDG_dep10_deep",scenario,".png")), p_DDG_TP, 
        width = 6.5, height=8, dpi="print", bg="white", scale=1.2)
+
+# comapriosn tabelle % :
+tabTP <- func_DDG_table(reshape_data = res_reshape_Tprofile, NSPECbaseTP, lewSpec_dir)
 
 # ---------------------------------------------------------------------------------------
 # comparison with observation data just 0-5m ----------------------------

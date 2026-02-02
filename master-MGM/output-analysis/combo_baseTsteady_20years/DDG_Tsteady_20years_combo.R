@@ -96,7 +96,8 @@ setdiff(names(res_reshape_Tsteady_top), names(res_reshape_Tsteady_deep))
 res_reshape_Tsteady <- bind_rows(res_reshape_Tsteady_top, res_reshape_Tsteady_deep)
 head(res_reshape_Tsteady)
 unique(res_reshape_Tsteady$depth)
-saveRDS(res_reshape_Tsteady, file = file.path(save_out, paste0("DDG_reshape_",name1,".rds")))
+# saveRDS(res_reshape_Tsteady, file = file.path(save_out, paste0("DDG_reshape_",name1,".rds")))
+res_reshape_Tsteady <- readRDS(file.path(save_out, paste0("DDG_reshape_",name1,".rds")))
 
 
 # print nrow where biomass > 0
@@ -117,7 +118,7 @@ NSPEC$NSPECbase
 
 head(lakesDDG_Tsteady)
 lakesDDG_Tsteady$dataset <- "model_base_Tsteady"
-unique(lakesDDG_Tsteady$dataset)
+unique(lakesDDG_Tsteady$depth)
 
 saveRDS(lakesDDG_Tsteady, file = file.path(save_out, paste0("lakesDDG_",name1,".rds")))
 

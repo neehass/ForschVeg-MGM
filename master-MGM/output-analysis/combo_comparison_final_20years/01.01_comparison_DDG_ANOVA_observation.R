@@ -245,7 +245,6 @@ tabTS <- func_DDG_table(reshape_data = res_reshape_Tsteady, NSPECbaseTS, lewSpec
 
 tabObserv <- func_DDG_observ_table(lewSpec_dir)
 
-
 # ---------------------------------------------------------------------------------------
 # ANOVA -----------------------------------
 lakesDDG_combo_sel$depth <- factor(lakesDDG_combo_sel$depth)

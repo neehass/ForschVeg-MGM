@@ -891,7 +891,16 @@ func_DDG_table <- function(reshape_data, NSPECbase,lewSpec_dir){
     mutate(Nspecies_P_all = (Nspecies/NSPECbase)*100) %>%
     select(-Nspecies) 
   
-  return(list(Nspecies_P_groupes = Nspecies_P_groupes, Nspecies_P_groupes_all  = Nspecies_P_groupes_all))
+  Tv2TP <-reshape_data %>%
+    #filter(Biomass_cat != 0) %>% 
+    group_by(Biomass_cat,Group) %>%
+    distinct(Species) %>% count(Group)%>%
+    spread("Biomass_cat","n") %>%
+    rename("base"="0", "growing"="1") %>% 
+    mutate(per = (growing / NSPECbase)*100 )
+  
+  return(list(Nspecies_P_groupes = Nspecies_P_groupes, Nspecies_P_groupes_all  = Nspecies_P_groupes_all,
+              NspecType = Tv2TP))
 }
 
 # Observes species richness within lake types and per species groups (%)
@@ -966,5 +975,41 @@ func_DDG_observ_table <- function(lewSpec_dir){
     mutate(NSPECperc_all = NSPEC/MAK_MAPPED_NSPEC_indicationspec$n*100) %>%
     select(-NSPEC)
   
-  return(list(Nspaclakclass = Nspaclakclass, Nspaclakclass_all  = Nspaclakclass_all, NsBase = MAK_MAPPED_NSPEC_indicationspec))
+  
+  NspacType <-Makroph_comm_S %>%
+    gather("Species", "Kohler",5:89) %>%
+    mutate(Species = str_replace(Species, " ", "."))%>%
+    left_join(GroupsSpecies, by = c("Species"="Taxon")) %>%
+    select(-Trophie,-Typ, -Depth) %>%
+    mutate(Gruppe = ifelse(is.na(Gruppe),"none", Gruppe)) %>%
+    filter(!Lake %in% c("Altmuehlsee", "Drachensee", "Eixendorfer See",
+                        "Grosser Brombachsee",
+                        "Gruentensee","Igelsbachsee", "Kleiner Brombachsee",
+                        "Liebensteinspeicher","Rottachsee",
+                        "Steinberger See","Hofstaetter See",
+                        "Untreusee","Walchensee","Murnersee","Rothsee",
+                        "Seehamer See"))%>%
+    rename(Group=Gruppe)%>%
+    ungroup() %>%
+    group_by(Lake) %>%
+    filter(YEAR==max(YEAR))%>% #select last mapping per lake
+    ungroup() %>%
+    left_join(data_lakes_env_class, by=c("Lake"="LakeName")) %>%
+    rename(LakeID=Lake.y) %>%
+    
+    
+    group_by(Species, Group) %>%
+    summarise_at(vars("Kohler"), sum, na.rm=T)%>% # Mean of Kohler per Lake, YEAR, Depth, Species and Group
+    ungroup()%>%
+    group_by(Group)%>%
+    mutate(Kohler=ifelse(Kohler>0,1,0)) %>%
+    summarise(NSPEC=sum(Kohler))%>%
+    mutate(NSPECperc = NSPEC/MAK_MAPPED_NSPEC_indicationspec$n*100) %>%
+    select(-NSPEC)%>%
+    spread(Group,NSPECperc)%>%
+    rename(oligotrophic="1", mesotrophic="2", eutrophic="3")
+  
+  
+  return(list(Nspaclakclass = Nspaclakclass, Nspaclakclass_all  = Nspaclakclass_all,
+              NsBase = MAK_MAPPED_NSPEC_indicationspec, NspacType = NspacType))
 }
