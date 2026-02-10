@@ -173,7 +173,6 @@ ggsave(file.path(save_figures, paste("Biomass_depth_day_",name,".png")), p_macro
 # mean Depths per lakeClass and lakeGroup_Area
 # head(sort_env)
 
-
 sort_env_Tprof_DAY <- sort_env_top %>% # sort_env[sort_env$day %in% unique(sort_res$day), ] 
   group_by(lakeClass, AreaGroup, day) %>%
   # mutate(day_bin = floor((day - 1) / 30) * 30 + 1) %>%  # days 1–7 → 1, 8–14 → 8, etc.
@@ -261,7 +260,7 @@ p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth,
        x =  "mean Temperature [°C]",
        y = "Depth [m]",
        color = "approx. Months")  +
-  theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 2)) +
+  theme(legend.position = "none") +
   scale_color_manual(values = cols)
   #scale_color_discrete_divergingx(palette = "RdYlBu")
 
@@ -269,6 +268,12 @@ p_Tprofile_DAY
 ggsave(file.path(save_figures, paste0(name,"_perAproxMonth2.png")), p_Tprofile_DAY, 
        height = 4.5, width = 4.5, scale = 1.1)
 
+# get legend
+library(cowplot)
+legend <- p_Tprofile_DAY + theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 1)) 
+legend <- get_legend(legend)
+ggsave(file.path(save_figures, paste0(name,"_perAproxMonth2_LEGEND.png")), legend,
+       height = 1, width = 8, scale = 1.1)
 
 # ----------------------------------------------------------------------------
 # # Biomass plot + temp  -------------------------------------

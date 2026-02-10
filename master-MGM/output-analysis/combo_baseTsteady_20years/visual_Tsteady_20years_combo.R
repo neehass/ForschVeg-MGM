@@ -259,13 +259,18 @@ p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth,
        x =  "mean Temperature [°C]",
        y = "Depth [m]",
        color = "approx. Months")  +
-  theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 2)) +
-  scale_color_manual(values = cols)
-
+  scale_color_manual(values = cols) +
+  theme(legend.position = "none")
+  # theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 2)) +
 p_Tprofile_DAY
 ggsave(file.path(save_figures, paste0(name,"_perAproxMonth2.png")), p_Tprofile_DAY,
        height = 4.5, width = 4.5, scale = 1.1)
-
+# get legend
+library(cowplot)
+legend <- p_Tprofile_DAY + theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 1)) 
+legend <- get_legend(legend)
+ggsave(file.path(save_figures, paste0(name,"_perAproxMonth2_LEGEND.png")), legend,
+       height = 1, width = 8, scale = 1.1)
 
 # ----------------------------------------------------------------------------
 # # Biomass plot + temp  -------------------------------------
