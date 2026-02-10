@@ -14,6 +14,7 @@ library(RColorBrewer)
 library(ggrepel)
 library(ggpmisc)
 library(ggpubr)
+library(colorspace)
 # library(tidyverse)
 
 # home
@@ -172,6 +173,7 @@ ggsave(file.path(save_figures, paste("Biomass_depth_day_",name,".png")), p_macro
 # mean Depths per lakeClass and lakeGroup_Area
 # head(sort_env)
 
+
 sort_env_Tprof_DAY <- sort_env_top %>% # sort_env[sort_env$day %in% unique(sort_res$day), ] 
   group_by(lakeClass, AreaGroup, day) %>%
   # mutate(day_bin = floor((day - 1) / 30) * 30 + 1) %>%  # days 1–7 → 1, 8–14 → 8, etc.
@@ -235,7 +237,20 @@ p_Tprofile_DAY_all <- (p_Tprofile_DAY[[1]] /
 p_Tprofile_DAY_all
 ggsave(file.path(save_figures, paste0(name,"_perAproxMonth.png")), p_Tprofile_DAY_all, height = 4.5, width = 4.5, scale = 1.5)
 
-
+cols <- c( # chatgpt
+  "#3b5aa9",  # 1 tiefblau
+  "#4f79c7",  # 2 blau
+  "#74a9cf",  # 3 hellblau
+  "#a6bddb",  # 4 sehr hellblau
+  "#fdd49e",  # 5 hell warm
+  "#fdae61",  # 6 orange
+  "#f46d43",  # 7 rot-orange
+  "#e34a33",  # 8 warm rot
+  "#fee8c8",  # 9 warm hell
+  "#c6dbef",  # 10 sehr hellblau
+  "#9ecae1",  # 11 hellblau
+  "#5b8fd1"   # 12 blau
+)
 p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth, 
                                                       color = factor(month_bin))) +
   geom_line(linewidth = 1) +
@@ -246,11 +261,13 @@ p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth,
        x =  "mean Temperature [°C]",
        y = "Depth [m]",
        color = "approx. Months")  +
-  theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 2))
+  theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 2)) +
+  scale_color_manual(values = cols)
+  #scale_color_discrete_divergingx(palette = "RdYlBu")
 
 p_Tprofile_DAY
 ggsave(file.path(save_figures, paste0(name,"_perAproxMonth2.png")), p_Tprofile_DAY, 
-       height = 4.5, width = 4.5, scale = 1.2)
+       height = 4.5, width = 4.5, scale = 1.1)
 
 
 # ----------------------------------------------------------------------------
