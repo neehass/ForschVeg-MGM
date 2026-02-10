@@ -264,7 +264,7 @@ p_Tprofile_DAY <- ggplot(sort_env_Tprof_DAY_long, aes(x = T_prof, y = depth,
   # theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 2)) +
 p_Tprofile_DAY
 ggsave(file.path(save_figures, paste0(name,"_perAproxMonth2.png")), p_Tprofile_DAY,
-       height = 4.5, width = 4.5, scale = 1.1)
+       height = 4.5, width = 4.5, scale = 1)
 # get legend
 library(cowplot)
 legend <- p_Tprofile_DAY + theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 1)) 
