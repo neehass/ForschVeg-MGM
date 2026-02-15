@@ -159,7 +159,7 @@ p_macro <- ggplot(sortRES_combo, aes(x = day, y = biomass_mean,
   scale_color_manual(values =  c(rev(TrophiePalette))) +
   facet_grid( depth ~  lakeClass, scales = "free_y") +
   theme_bw() + theme(legend.position = "bottom") +
-  labs(title = scenario,
+  labs(# title = scenario,
        y = "Mean Biomass [g]", x = "Days", color = "Spec. Group") 
 
 p_macro
@@ -345,7 +345,7 @@ ggsave(file.path(save_figures, paste0(name,"_depth.png")), p_Tprofile, height = 
 # combo temp mit boxplot
 p_combo <-  p_box + p_Tprofile + plot_layout(guides = "collect") +
   plot_layout(ncol = 1, heights = c(3, 1)) &
-  theme(legend.position = "bottom",  legend.box = "vertical")&
+  theme(legend.position = "none")& # theme(legend.position = "bottom",  legend.box = "vertical")&
   guides(fill = guide_legend(nrow = 1),
          colour = guide_legend(nrow = 1))
 p_combo
@@ -354,9 +354,14 @@ ggsave(file.path(save_figures, paste0("BOX-temp",name,"_biomass_day.png")), p_co
 
 p_combo <-  p_macro + p_Tprofile + plot_layout(guides = "collect") + 
   plot_layout(ncol = 1, heights = c(3, 1)) &
-  theme(legend.position = "bottom", legend.direction = "horizontal" , 
-        legend.box = "vertical")
+  theme(legend.position = "none")
+  #theme(legend.position = "bottom", legend.direction = "horizontal" , 
+   #     legend.box = "vertical")
 p_combo
 ggsave(file.path(save_figures, paste0("Biomass_day_temp",name,".png")), p_combo, 
-       width = 4.5, height=7, dpi="print", bg="white", scale=1.2)
-
+       width = 4.5, height=6, dpi="print", bg="white", scale=1.1)
+# get legend
+legend <- p_macro + p_Tprofile + plot_layout(guides = "collect")+ theme(legend.position = "bottom") + guides(color = guide_legend(nrow = 1)) 
+legend <- get_legend(legend)
+ggsave(file.path(save_figures, paste0(name,"_Biomass_day_temp_LEGEND.png")), legend,
+       height = 1, width = 8, scale = 1.1)

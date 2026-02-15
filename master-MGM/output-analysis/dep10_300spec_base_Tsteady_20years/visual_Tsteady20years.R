@@ -69,8 +69,9 @@ load(file.path(lewSpec_dir, "data/data_lakes_env_class.rda"))
 # ---------------------------------------------------------------------------------------------------------
 # ---- Environmental variables ----------------------------------------------------------------------
 # ---- plot ------------------
-sort_env_Tprof <- func_sortENV_plot(sort_env, save_figures, scenario, k) # defined in help-func.R
+
 # lightAttenuation_mean missing 
+sort_env_Tprof <- func_sortENV_plot2(sort_env, save_figures, scenario, k) # defined in help-func.R
 
 # ---- Results -------------------------------------------
 # ---- plot ------------------------------------------------------------------------------------------

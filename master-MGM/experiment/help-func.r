@@ -540,6 +540,74 @@ func_sortENV_plot <- function(sort_env, save_figures, scenario, k){
   return(sort_env)
 }
 
+func_sortENV_plot2 <- function(sort_env, save_figures, scenario, k){
+  sort_env <- sort_env %>% # sort_env[sort_env$day %in% unique(sort_res$day), ] 
+    mutate(
+      T_prof = T_profile(z = sort(0, decreasing = TRUE), 
+                         T_epi = tempEpi_mean, T_hypo = tempHypo_mean,
+                         z0 = metaDepth_mean, k = k))  %>%
+    ungroup()
+  
+  p_temp <- ggplot(sort_env, aes(x = day)) +
+    geom_line(aes(y = tempEpi_mean, color = AreaGroup, linetype = "input TempEpi"), linewidth = 0.5) +
+    # color = "TempEpi", linetype = lakeClass)) +
+    geom_line(aes(y = T_prof, color = AreaGroup, linetype = "model TempEpi")) +
+    #geom_line(aes(y = tempHypo_mean, color = AreaGroup, linetype = "TempHypo")) +
+    #color = "TempHypo", linetype = lakeClass)) +
+    
+    theme_bw() +
+    scale_color_brewer(palette = "Set2", name = "AreaGroup") +
+    scale_linetype_manual(values = c("model TempEpi" = "solid", "input TempEpi" = "dotted", "TempHypo" = "dashed"), name = "a)") +
+    # scale_color_manual(values = c("TempEpi" = "red", "TempHypo" = "blue"), name = "a)") +
+    labs(title = "a) Temperatur Data",
+         y = "Temp [°C]", x = "Days",  linetype = "AreaGroup",color = "Linecolor") + 
+    facet_grid( ~  lakeClass) 
+  # p_temp
+  
+  p_metadepth <- ggplot(sort_env, aes(x = day)) +
+    geom_line(aes(y = metaDepth_mean, color = AreaGroup, linetype = "meatDpeth")) + # color = "metaDepth", linetype = lakeClass)) +
+    geom_line(aes(y = waterlevel_mean, color = AreaGroup, linetype = "waterlevel")) + # color ="waterlevel",  linetype = lakeClass)) +
+    # scale_color_manual(values = c("metaDepth" = "magenta", "waterlevel" = "darkgreen"),
+    #     labels = c("Mesolimnion Depth", "Waterlevel"), name = "b)") +
+    scale_linetype_manual(values = c("meatDpeth" = "solid", "waterlevel" = "dashed"), name = "b)") +
+    scale_color_brewer(palette = "Set2", name = "AreaGroup") +
+    facet_grid( ~  lakeClass) +
+    # annotate("rect",
+    #         xmin = min(days), xmax = max(days),
+    #         ymin = -Inf, ymax = Inf,
+    #         alpha = 0.2, fill = "grey") +
+    labs(title = "b) Waterlevel & Metalimnion Depth",
+         y = "Depth [m]", x = "Days",  linetype = "AreaGroup",color = "Linecolor") +
+    theme_bw()
+  # p_metadepth
+  
+  p_light <- ggplot(sort_env, aes(x = day)) +
+    geom_line(aes(y = irradiance_mean, color = "irradiance")) +
+    facet_grid( ~  lakeClass) +
+    scale_color_manual(values = c("irradiance" = "orange"),
+                       labels = c("Irradiance"), name = "c)") +
+    # annotate("rect",
+    #         xmin = min(days), xmax = max(days),
+    #         ymin = -Inf, ymax = Inf,
+    #         alpha = 0.2, fill = "grey") +
+    labs(title= "c) Irradiance related", x = "Day",y = "[W/m2]") +
+    theme_bw()
+  # p_light
+  
+  
+  p_env <- p_temp + p_metadepth + p_light + plot_layout(ncol = 1, guides = "collect") &  # collect all legends
+    theme(legend.position = "right")               # move legend to left
+  
+  p_env <- p_env + 
+    plot_annotation(title = paste("Environmental Data","\nScenario: ", scenario))
+  p_env
+  # save
+  ggsave(file.path(save_figures, paste0("ENV_day_", gsub(" ", "_", scenario),".png")), p_env, 
+         width = 6.5, height=8, dpi="print", bg="white", scale=1)
+  
+  return(sort_env)
+}
+
 
 # test plot functions ------------------------------------------------
 # ---- Plot results -------------------------------
