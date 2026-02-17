@@ -5,6 +5,7 @@ Macrophtye Growth Model (Lewerentz et al., 2023)
 
 Modification of the MGM:
 - Implementation of a seasonal and depth-dependent temperature stratification
+- parallelized model function: CHARISMA_biomass_N_weight_hight_env_parallel_name()
 
 ----------------------------------------------------------------------------
 Folder strucutre: 
