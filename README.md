@@ -10,6 +10,7 @@ Modification of the MGM:
 Folder strucutre: 
 preanalysis scripts: \PREAMA
 
-model output: \output
-model anlaysis: \output-analysis
+model: \master-MGM
+model output: \master-MGM\output
+model anlaysis: \master-MGM\output-analysis
 
