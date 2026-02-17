@@ -8,9 +8,11 @@ Modification of the MGM:
 
 ----------------------------------------------------------------------------
 Folder strucutre: 
-preanalysis scripts: \PREAMA
+preanalysis scripts: \PREANA
 
-model: \master-MGM
+model related: \master-MGM
+model functions: \master-MGM\model
+experiment setups: \master-MGM\experiment\model_run_daily_parallel_final.R
 model output: \master-MGM\output
 model anlaysis: \master-MGM\output-analysis
 
