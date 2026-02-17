@@ -9,7 +9,7 @@ Modification of the MGM:
 ----------------------------------------------------------------------------
 Folder strucutre: 
 
-preanalysis scripts: \PREANA
+preanalysis scripts: \PREANA-clean
 
 model related: \master-MGM
 - model functions: \master-MGM\model
